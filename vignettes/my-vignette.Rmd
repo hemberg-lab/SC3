@@ -1,0 +1,26 @@
+---
+title: "SC3 manual"
+author: "Vladimir Kiselev"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SC3 manual}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Quick start
+
+Before running SC3 please check that RSelenium server is installed:
+```{r}
+RSelenium::checkForServer()
+```
+
+To run SC3 with an example dataset, start R and then type:
+
+```{r, eval=FALSE}
+library(SC3)
+sc3(treutlein, ks = 3:7, cell.filter = TRUE)
+```
+
+It should open SC3 in a browser window without providing any error.
