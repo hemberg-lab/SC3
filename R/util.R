@@ -1,3 +1,5 @@
+# See https://github.com/ropensci/RSelenium/issues/67 
+# for explanation of why this function exists.
 stopSeleniumServer <- function()
 {
     if (.Platform$OS.type == "windows")
