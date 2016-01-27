@@ -81,6 +81,7 @@ sc3 <- function(filename,
     distances <- c("euclidean", "pearson", "spearman")
     dimensionality.reductions <- c("pca", "spectral")
     RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
+    on.exit(stopSeleniumServer())
 
     # get input data
     dataset <- get_data(filename)
