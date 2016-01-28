@@ -1,6 +1,4 @@
 
-__SC3__ (<b>S</b>ingle-<b>C</b>ell <b>C</b>onsensus <b>C</b>lustering) is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments.
-
 ### IMPORTANT
 
 If you installed __SC3__ on your computer before 26/01/2015 please reinstall it from the [BioConductor website](http://bioconductor.org/packages/SC3/). The new version contains a lot of fixes and major improvements.
