@@ -1,30 +1,34 @@
-### IMPORTANT
-
-If you installed __SC3__ on your computer before 26/01/2015 please reinstall it using the instructions below. The new version has been accepted by BioConductor and contains a lot of fixes and new improvements.
-
-### Description
 
 __SC3__ (<b>S</b>ingle-<b>C</b>ell <b>C</b>onsensus <b>C</b>lustering) is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments.
 
-The latest stable version of __SC3__ can be installed from BioConductor:  
-[http://bioconductor.org/packages/devel/bioc/html/SC3.html](http://bioconductor.org/packages/devel/bioc/html/SC3.html)
+### IMPORTANT
 
-This repository is a developmental version of __SC3__. To install the developmental version please use:
+If you installed __SC3__ on your computer before 26/01/2015 please reinstall it from the [BioConductor website](http://bioconductor.org/packages/SC3/). The new version contains a lot of fixes and major improvements.
+
+### Instalation
+
+This repository is a developmental version of __SC3__. When new updates are implemented here they appear after __one__ day on the [SC3 devel page on BioConductor](http://bioconductor.org/packages/devel/bioc/html/SC3.html). If you need the very latest updates and can not wait for one day, you can directly install __SC3__ from here by using the following commands:
 
 ```{R}
 install.packages("devtools")
 devtools::install_github("hemberg-lab/SC3")
-library(SC3)
-RSelenium::checkForServer()
 ```
 
-__SC3__ manuscript is under review, but also available on bioRxiv:  
-[http://biorxiv.org/content/early/2016/01/13/036558](http://biorxiv.org/content/early/2016/01/13/036558)
+Note that __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. Currently, RSelenium requires a user to download a stand-alone java binary file. Before running __SC3__, please use the following command to automatically download the binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details):
+
+```{R}
+RSelenium::checkForServer()
+```
 
 Please report any bugs, comments, issues or suggestions here:  
 [https://github.com/hemberg-lab/SC3/issues](https://github.com/hemberg-lab/SC3/issues)
 
 If you have any other questions please contact [Vladimir Kiselev](mailto:vk6@sanger.ac.uk).
+
+### Manuscript
+
+__SC3__ manuscript is under review, but also available on bioRxiv:  
+[http://biorxiv.org/content/early/2016/01/13/036558](http://biorxiv.org/content/early/2016/01/13/036558)
 
 ### Test run
 
