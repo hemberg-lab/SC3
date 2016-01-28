@@ -12,7 +12,7 @@ vignette: >
 ## Quick start
 
 Before running SC3 please check that RSelenium server is installed:
-```{r, eval=FALSE}
+```{r}
 RSelenium::checkForServer()
 ```
 
