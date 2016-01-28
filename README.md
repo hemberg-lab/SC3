@@ -1,9 +1,13 @@
+### IMPORTANT
+
+If you installed __SC3__ on your computer before 26/01/2015 please reinstall it using the instructions below. The new version has been accepted by BioConductor and contains a lot of fixes and new improvements.
+
 ### Description
 
 __SC3__ (<b>S</b>ingle-<b>C</b>ell <b>C</b>onsensus <b>C</b>lustering) is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments.
 
 The latest stable version of __SC3__ can be installed from BioConductor:  
-http://bioconductor.org/packages/devel/bioc/html/SC3.html
+[http://bioconductor.org/packages/devel/bioc/html/SC3.html](http://bioconductor.org/packages/devel/bioc/html/SC3.html)
 
 This repository is a developmental version of __SC3__. To install the developmental version please use:
 
