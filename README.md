@@ -9,7 +9,7 @@ Before running __SC3__ for the first time __only__, please start R and enter:
 RSelenium::checkForServer()
 ```
 
-Note, this command has to be executed only once, before running __SC3__ for the first time. This is required because __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details), which is automaticall downloaded by running _RSelenium::checkForServer()_ command. The file size is about 30Mb.  
+Note, this command has to be executed only once, before running __SC3__ for the first time. This is required because __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details), which is automatically downloaded by running _RSelenium::checkForServer()_ command. The file size is about 30Mb.  
 
 Please report any bugs, comments, issues or suggestions here:  
 [https://github.com/hemberg-lab/SC3/issues](https://github.com/hemberg-lab/SC3/issues)
