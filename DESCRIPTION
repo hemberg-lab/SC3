@@ -2,7 +2,7 @@ Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
 Version: 0.99.5
-Date: 2015-11-17
+Date: 2016-01-28
 Authors@R: person("Vladimir", "Kiselev", email = "vladimir.yu.kiselev@gmail.com", role =
           c("aut", "cre"))
 Description: Interactive tool for clustering and analysis of single cell RNA-Seq data.
@@ -21,3 +21,5 @@ biocViews: Classification, Clustering, DimensionReduction, SupportVectorMachine,
 NeedsCompilation: no
 Author: Vladimir Kiselev [aut, cre]
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
+URL: https://github.com/hemberg-lab/SC3
+BugReports: https://github.com/hemberg-lab/SC3/issues
