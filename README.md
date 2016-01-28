@@ -1,11 +1,11 @@
 ### Description
 
-SC3 (<b>S</b>ingle-<b>C</b>ell <b>C</b>onsensus <b>C</b>lustering) is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments.
+__SC3__ (<b>S</b>ingle-<b>C</b>ell <b>C</b>onsensus <b>C</b>lustering) is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments.
 
-The latest stable version of SC3 can be installed from BioConductor:  
+The latest stable version of __SC3__ can be installed from BioConductor:  
 http://bioconductor.org/packages/devel/bioc/html/SC3.html
 
-This repository is a developmental version of SC3. To install the developmental version please use:
+This repository is a developmental version of __SC3__. To install the developmental version please use:
 
 ```{R}
 install.packages("devtools")
@@ -14,7 +14,7 @@ library(SC3)
 RSelenium::checkForServer()
 ```
 
-SC3 manuscript is under review, but also available on bioRxiv:  
+__SC3__ manuscript is under review, but also available on bioRxiv:  
 [http://biorxiv.org/content/early/2016/01/13/036558](http://biorxiv.org/content/early/2016/01/13/036558)
 
 Please report any bugs, comments, issues or suggestions here:  
@@ -31,11 +31,11 @@ library(SC3)
 sc3(treutlein, ks = 3:7, cell.filter = TRUE)
 ```
 
-It should open SC3 in a browser window.
+It should open __SC3__ in a browser window.
 
 ### "Built-in" datasets
 
-There is one built-in dataset that is automatically loaded with SC3:
+There is one built-in dataset that is automatically loaded with __SC3__:
 
 | Dataset | Source | __N__ cells | __k__ clusters |
 --- | --- | --- | --- |
@@ -48,7 +48,7 @@ sc3(treutlein, ks = 3:7)
 sc3(deng, ks = 8:12)
 ```
 
-### Running SC3
+### Running __SC3__
 
 If you would like to check the clustering of your own __dataset__ for __k__ (number of clusters) from 2 to 5, then you need to run the following:
 
@@ -62,7 +62,7 @@ For more details please read the documentation by typing ?sc3
 
 ### Input file format
 
-To run SC3 on an input file containing an expression matrix one need to preprocess the input file so that it looks as follows:
+To run __SC3__ on an input file containing an expression matrix one need to preprocess the input file so that it looks as follows:
 
 
 |  | cell1 | cell2 | cell3 | cell4 | cell5 
