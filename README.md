@@ -11,7 +11,7 @@ This repository is a developmental version of SC3. To install the developmental 
 install.packages("devtools")
 devtools::install_github("hemberg-lab/SC3")
 library(SC3)
-RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
+RSelenium::checkForServer()
 ```
 
 SC3 manuscript is under review, but also available on bioRxiv:  
