@@ -1,8 +1,4 @@
 
-### IMPORTANT
-
-If you installed __SC3__ on your computer before 26/01/2015 please reinstall it from the [BioConductor website](http://bioconductor.org/packages/SC3/). The new version contains a lot of fixes and major improvements.
-
 ### Instalation
 
 To install __SC3__ please follow the instruction on the [BioConductor website](http://bioconductor.org/packages/SC3/)
