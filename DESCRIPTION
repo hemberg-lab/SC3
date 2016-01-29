@@ -9,7 +9,7 @@ License: GPL-3
 Imports: grDevices, graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
           doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8), RColorBrewer, colorspace,
           ROCR, robustbase, rrcov, cluster
-Depends: R(>= 2.10)
+Depends: R(>= 3.3)
 LazyData: TRUE
 RoxygenNote: 5.0.1
 Suggests: knitr, rmarkdown
