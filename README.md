@@ -3,9 +3,14 @@
 
 To install __SC3__ please follow the instruction on the [BioConductor website](http://bioconductor.org/packages/SC3/)
 
-Before running __SC3__ for the first time __only__, please start R and enter:
+If you have an older version of R, please install __SC3__ directly from this repository:
+```{r}
+install.packages("devtools")
+devtools::install_github("hemberg-lab/SC3")
+```
 
-```{R}
+Before running __SC3__ for the first time __only__, please start R and enter:
+```{r}
 RSelenium::checkForServer()
 ```
 
@@ -24,8 +29,7 @@ __SC3__ manuscript is under review, but also available on bioRxiv:
 ### Test run
 
 To test that the package has been installed successfully please run the following command:
-
-```{R}
+```{r}
 library(SC3)
 sc3(treutlein, ks = 3:7, cell.filter = TRUE)
 ```
@@ -41,8 +45,7 @@ There is one built-in dataset that is automatically loaded with __SC3__:
 | [treutlein](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.html) | Distal lung epithelium | 80 | 5 |
 
 One can explore clusterings of this dataset by running the following commands (__ks__ parameter defines a region of __k__ needed to be investigated - see the next section):
-
-```{R}
+```{r}
 sc3(treutlein, ks = 3:7)
 sc3(deng, ks = 8:12)
 ```
@@ -50,8 +53,7 @@ sc3(deng, ks = 8:12)
 ### Running __SC3__
 
 If you would like to check the clustering of your own __dataset__ for __k__ (number of clusters) from 2 to 5, then you need to run the following:
-
-```{R}
+```{r}
 sc3(dataset, ks = 2:5)                        # without filtering of lowly expressed cells
 sc3(dataset, ks = 2:5, cell.filter = TRUE)    # with filtering of lowly expressed cells
 sc3(dataset, ks = 2:5, interactivity = FALSE) # without interactive visualisation
@@ -72,8 +74,7 @@ To run __SC3__ on an input file containing an expression matrix one need to prep
 
 
 The first row of the expression matrix (with cell labels, e.g. __cell1__, __cell2__, etc.) should contain one fewer field than all other rows. Separators should be either spaces or tabs. If separators are commas (,) then the extension of the file must be .csv. If a path to your input file is "/path/to/input/file/expression-matrix.txt", to run it:
-
-```{R}
+```{r}
 sc3("/path/to/input/file/expression-matrix.txt", ks = 2:5)
 ```
 
