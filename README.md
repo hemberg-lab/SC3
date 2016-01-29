@@ -1,12 +1,12 @@
 
 ### Instalation
 
-To install __SC3__ please follow the instruction on the [BioConductor website](http://bioconductor.org/packages/SC3/)
+If you use the __devel__ version of R, to install __SC3__ please follow the instruction on the [BioConductor website](http://bioconductor.org/packages/SC3/)
 
-If you have an older version of R, please install __SC3__ directly from this repository:
+If you have any other version of __R (>= 2.10)__, please install __SC3__ directly from "R-old" branch of this repository:
 ```{r}
 install.packages("devtools")
-devtools::install_github("hemberg-lab/SC3")
+devtools::install_github("hemberg-lab/SC3", ref = "R-old")
 ```
 
 Before running __SC3__ for the first time __only__, please start R and enter:
