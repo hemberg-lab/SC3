@@ -181,7 +181,6 @@ get_marker_genes <- function(dataset, labels) {
         d <- rbind(d, tmp)
     }
 
-    colnames(d) <- c("AUC","clusts","p.value")
     return(d)
 }
 
