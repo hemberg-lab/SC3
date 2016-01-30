@@ -1,12 +1,12 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 0.99.7
+Version: 0.99.8
 Date: 2016-01-30
 Authors@R: person("Vladimir", "Kiselev", email = "vladimir.yu.kiselev@gmail.com", role = c("aut", "cre"))
 Description: Interactive tool for clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
-Imports: grDevices, graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
+Imports: graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
           doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8), RColorBrewer, colorspace,
           ROCR, robustbase, rrcov, cluster
 Depends: R(>= 3.3)

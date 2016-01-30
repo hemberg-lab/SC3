@@ -10,7 +10,6 @@
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions
 #' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs
-#' @importFrom grDevices colorRampPalette
 #' @importFrom utils head write.table
 #' @importFrom stats as.dendrogram order.dendrogram cutree median
 #' @importFrom graphics plot
@@ -48,9 +47,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
     dimensionality.reductions <- as.list(dimensionality.reductions)
     names(dimensionality.reductions) <- dimensionality.reductions
     
-    colour.pallete <- grDevices::colorRampPalette(
-        rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu"))
-    )(median(as.numeric(unlist(cons.table[,3]))))
     plot.width <- 800
     plot.height <- 800
     plot.height.small <- 400
@@ -213,7 +209,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                     if(show.original.labels) {
                         ann <- data.frame(Input.Labels = factor(cell.names))
                         pheatmap::pheatmap(values$consensus,
-                                           color = colour.pallete,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
                                            cutree_rows = input$clusters,
@@ -223,7 +218,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                            show_colnames = FALSE)
                     } else {
                         pheatmap::pheatmap(values$consensus,
-                                           color = colour.pallete,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
                                            cutree_rows = input$clusters,
@@ -276,7 +270,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                         t <- values$dataset
                         colnames(t) <- rownames(ann)
                         pheatmap::pheatmap(t,
-                                           # color = colour.pallete,
                                            kmeans_k = 100,
                                            cluster_cols = FALSE,
                                            show_rownames = FALSE,
@@ -285,7 +278,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                            gaps_col = values$col.gaps)
                     } else {
                         pheatmap::pheatmap(values$dataset,
-                                           # color = colour.pallete,
                                            kmeans_k = 100,
                                            cluster_cols = FALSE,
                                            show_rownames = FALSE,
@@ -328,7 +320,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                                                     unique(colnames(d)))
                                  values$mark <- TRUE
                                  pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), ],
-                                                    # color = colour.pallete,
                                                     show_colnames = FALSE,
                                                     cluster_rows = FALSE,
                                                     cluster_cols = FALSE,
@@ -371,7 +362,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                     values$de <- TRUE
                     
                     pheatmap::pheatmap(d[names(head(values$de.res, 70)), ],
-                                       # color = colour.pallete,
                                        show_colnames = FALSE,
                                        cluster_rows = FALSE,
                                        cluster_cols = FALSE,
