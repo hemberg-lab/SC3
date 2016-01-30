@@ -8,7 +8,7 @@
 #' @return Opens a browser window with an interactive shine app and visualize
 #' all precomputed clusterings.
 #'
-#' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel
+#' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions
 #' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs
 #' @importFrom grDevices colorRampPalette
 #' @importFrom utils head write.table
@@ -85,12 +85,12 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                                                   loop = FALSE)),
                            
                            checkboxGroupInput("distance",
-                                              label = "Distance metrics",
+                                              label = "Distance",
                                               choices = distances,
                                               selected = distances),
                            
                            checkboxGroupInput("dimRed",
-                                              label = "Dimensionality reduction",
+                                              label = "Transformation",
                                               choices = dimensionality.reductions,
                                               selected = dimensionality.reductions),
                            
@@ -104,33 +104,21 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                actionButton("svm", label = "Run SVM")
                            },
                            
-                           h4("Gene/Cell Analysis"),
-                           p("\n\nOpen a corresponding panel first, then press a button:"),
-                           actionButton("get_de_genes",
-                                        label = "Get DE genes"),
-                           p("\n\n"),
-                           actionButton("get_mark_genes",
-                                        label = "Get Marker genes"),
-                           p("\n\n"),
-                           actionButton("get_outliers",
-                                        label = "Get Cells outliers"),
-                           
-                           conditionalPanel("output.mark_genes", h4("GO Analysis")),
-                           # p("\n\nRun Marker genes analysis first."),
-                           conditionalPanel("output.mark_genes", selectInput("cluster", "Choose a cluster:",
+                           conditionalPanel("output.is_mark", h4("GO for Marker genes")),
+                           conditionalPanel("output.is_mark", selectInput("cluster", "Choose a cluster:",
                                        c("None" = "NULL"))),
-                           conditionalPanel("output.mark_genes", actionButton("GO", label = "Go to Webgestalt")),
-                           conditionalPanel("output.mark_genes", p(" (will open in Firefox)")),
+                           conditionalPanel("output.is_mark", actionButton("GO", label = "Go to Webgestalt")),
+                           conditionalPanel("output.is_mark", p(" (opens in Firefox)")),
                            
                            h4("Save results"),
                            p("\n\n"),
                            downloadLink('labs', label = "Cell Labels"),
                            p("\n\n"),
-                           conditionalPanel("output.de_genes", downloadLink('de', label = "DE genes")),
+                           conditionalPanel("output.is_de", downloadLink('de', label = "DE genes")),
                            p("\n\n"),
-                           conditionalPanel("output.mark_genes", downloadLink('markers', label = "Marker genes")),
+                           conditionalPanel("output.is_mark", downloadLink('markers', label = "Marker genes")),
                            p("\n\n"),
-                           conditionalPanel("output.outliers", downloadLink('outl', label = "Cells outliers"))
+                           conditionalPanel("output.is_outl", downloadLink('outl', label = "Cells outliers"))
                        )
                 ),
                 column(9,
@@ -190,10 +178,11 @@ sc3_interactive <- function(input.param, example = FALSE) {
                 colnames(d) <- values$new.labels
                 values$dataset <- d
                 
-                values$mark.res <- NULL
-                values$outl.res <- NULL
-                
                 values$col.gaps <- which(diff(as.numeric(colnames(d))) != 0)
+                
+                values$mark <- FALSE
+                values$de <- FALSE
+                values$outl <- FALSE
             })
             
             observe({
@@ -306,6 +295,137 @@ sc3_interactive <- function(input.param, example = FALSE) {
                 })
             }, height = plot.height, width = plot.width)
             
+            output$mark_genes <- renderPlot({
+                if(with_svm) {
+                    validate(need(try(values$svm.ready),
+                                  "\nPlease run SVM prediction first!"))
+                }
+                validate(
+                    need(try(!is.null(rownames(dataset))),
+                         "\nNo gene names provided in the input expression matrix!")
+                )
+                withProgress(message = 'Calculating Marker genes...',
+                             value = 0, {
+                                 # prepare dataset for plotting
+                                 if(with_svm) {
+                                     d <- values$dataset.svm
+                                     col.gaps <- values$col.gaps.svm
+                                 } else {
+                                     d <- values$dataset
+                                     col.gaps <- values$col.gaps
+                                 }
+                                 # define marker genes
+                                 values$mark.res <- get_marker_genes(d,
+                                                                     as.numeric(colnames(d)))
+                                 # check the results of mark_genes_main:
+                                 # global variable mark.res
+                                 validate(
+                                     need(try(dim(values$mark.res)[1] != 0),
+                                          "\nUnable to find significant marker genes from obtained clusters! Please try to change the number of clusters k and run marker analysis again.")
+                                 )
+                                 colnames(values$mark.res) <- c("AUC","clusts","p.value")
+                                 d.param <- mark_gene_heatmap_param(values$mark.res,
+                                                                    unique(colnames(d)))
+                                 values$mark <- TRUE
+                                 pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), ],
+                                                    # color = colour.pallete,
+                                                    show_colnames = FALSE,
+                                                    cluster_rows = FALSE,
+                                                    cluster_cols = FALSE,
+                                                    annotation_row = d.param$row.ann,
+                                                    annotation_names_row = FALSE,
+                                                    gaps_row = d.param$row.gaps,
+                                                    gaps_col = col.gaps)
+                             })
+            }, height = plot.height, width = plot.width)
+            
+            output$de_genes <- renderPlot({
+                if(with_svm) {
+                    validate(need(try(values$svm.ready),
+                                  "\nPlease run SVM prediction first!"))
+                }
+                validate(
+                    need(try(!is.null(rownames(dataset))),
+                         "\nNo gene names provided in the input expression matrix!")
+                )
+                withProgress(message = 'Calculating DE genes...', value = 0, {
+                    # prepare dataset for plotting
+                    if(with_svm) {
+                        d <- values$dataset.svm
+                        col.gaps <- values$col.gaps.svm
+                    } else {
+                        d <- values$dataset
+                        col.gaps <- values$col.gaps
+                    }
+                    # define de genes
+                    values$de.res <- kruskal_statistics(d, colnames(d))
+                    # check the results of de_genes_main:
+                    # global variable de.res
+                    validate(
+                        need(try(length(values$de.res) != 0),
+                             "\nUnable to find significant differentially expressed genes from obtained clusters! Please try to change the number of clusters k and run DE analysis again.")
+                    )
+                    
+                    d.param <- de_gene_heatmap_param(head(values$de.res, 70))
+                    
+                    values$de <- TRUE
+                    
+                    pheatmap::pheatmap(d[names(head(values$de.res, 70)), ],
+                                       # color = colour.pallete,
+                                       show_colnames = FALSE,
+                                       cluster_rows = FALSE,
+                                       cluster_cols = FALSE,
+                                       annotation_row = d.param$row.ann,
+                                       annotation_names_row = FALSE,
+                                       gaps_col = col.gaps)
+                })
+            }, height = plot.height, width = plot.width)
+            
+            output$outliers <- renderPlot({
+                if(with_svm) {
+                    validate(need(try(values$svm.ready),
+                                  "\nPlease run SVM prediction first!"))
+                }
+                withProgress(message = 'Calculating cell outliers...',
+                             value = 0, {
+                                 # prepare dataset for plotting
+                                 if(with_svm) {
+                                     d <- values$dataset.svm
+                                 } else {
+                                     d <- values$dataset
+                                 }
+                                 # compute outlier cells
+                                 values$outl.res <- outl_cells_main(d, chisq.quantile)
+                                 
+                                 t <- as.data.frame(values$outl.res)
+                                 colnames(t)[1] <- "outl"
+                                 t$Cluster <- names(values$outl.res)
+                                 t$Cells <- 1:dim(t)[1]
+                                 t$Cluster <-
+                                     factor(t$Cluster,
+                                            levels =
+                                                unique(
+                                                    as.character(
+                                                        sort(as.numeric(t$Cluster)))
+                                                )
+                                     )
+                                 cols <- iwanthue(length(unique(t$Cluster)))
+                                 Cells <- outl <- Cluster <- NULL
+                                 
+                                 values$outl <- TRUE
+                                 
+                                 ggplot(t, aes(x = Cells, y = outl,
+                                               fill = Cluster, color = Cluster)) +
+                                     geom_bar(stat = "identity") +
+                                     geom_point() +
+                                     scale_fill_manual(values = cols) +
+                                     scale_color_manual(values = cols) +
+                                     guides(color = FALSE, fill = FALSE) +
+                                     labs(y = "Outlier score") +
+                                     theme_bw()
+                             })
+            }, height = plot.height.small, width = plot.width)
+            
             ## REACTIVE BUTTONS
             
             observeEvent(input$svm, {
@@ -343,132 +463,6 @@ sc3_interactive <- function(input.param, example = FALSE) {
                 })
             })
             
-            get_de_genes <- eventReactive(input$get_de_genes, {
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
-                validate(
-                    need(try(!is.null(rownames(dataset))),
-                         "\nNo gene names provided in the input expression matrix!")
-                    )
-                withProgress(message = 'Calculating DE genes...', value = 0, {
-                    # prepare dataset for plotting
-                    if(with_svm) {
-                        d <- values$dataset.svm
-                        col.gaps <- values$col.gaps.svm
-                    } else {
-                        d <- values$dataset
-                        col.gaps <- values$col.gaps
-                    }
-                    # define de genes
-                    values$de.res <- kruskal_statistics(d, colnames(d))
-                    # check the results of de_genes_main:
-                    # global variable de.res
-                    validate(
-                        need(try(length(values$de.res) != 0),
-                             "\nUnable to find significant differentially expressed genes from obtained clusters! Please try to change the number of clusters k and run DE analysis again.")
-                    )
-                    
-                    d.param <- de_gene_heatmap_param(head(values$de.res, 70))
-                    
-                    pheatmap::pheatmap(d[names(head(values$de.res, 70)), ],
-                                       # color = colour.pallete,
-                                       show_colnames = FALSE,
-                                       cluster_rows = FALSE,
-                                       cluster_cols = FALSE,
-                                       annotation_row = d.param$row.ann,
-                                       annotation_names_row = FALSE,
-                                       gaps_col = col.gaps)
-                })
-                
-            })
-            
-            get_mark_genes <- eventReactive(input$get_mark_genes, {
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
-                validate(
-                    need(try(!is.null(rownames(dataset))),
-                         "\nNo gene names provided in the input expression matrix!")
-                )
-                withProgress(message = 'Calculating Marker genes...',
-                             value = 0, {
-                                 # prepare dataset for plotting
-                                 if(with_svm) {
-                                     d <- values$dataset.svm
-                                     col.gaps <- values$col.gaps.svm
-                                 } else {
-                                     d <- values$dataset
-                                     col.gaps <- values$col.gaps
-                                 }
-                                 # define marker genes
-                                 values$mark.res <- get_marker_genes(d,
-                                                                     as.numeric(colnames(d)))
-                                 # check the results of mark_genes_main:
-                                 # global variable mark.res
-                                 validate(
-                                     need(try(dim(values$mark.res)[1] != 0),
-                                          "\nUnable to find significant marker genes from obtained clusters! Please try to change the number of clusters k and run marker analysis again.")
-                                 )
-                                 colnames(values$mark.res) <- c("AUC","clusts","p.value")
-                                 d.param <- mark_gene_heatmap_param(values$mark.res,
-                                                                    unique(colnames(d)))
-                                 pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), ],
-                                                    # color = colour.pallete,
-                                                    show_colnames = FALSE,
-                                                    cluster_rows = FALSE,
-                                                    cluster_cols = FALSE,
-                                                    annotation_row = d.param$row.ann,
-                                                    annotation_names_row = FALSE,
-                                                    gaps_row = d.param$row.gaps,
-                                                    gaps_col = col.gaps)
-                             })
-            })
-            
-            get_outl <- eventReactive(input$get_outliers, {
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
-                withProgress(message = 'Calculating cell outliers...',
-                             value = 0, {
-                                 # prepare dataset for plotting
-                                 if(with_svm) {
-                                     d <- values$dataset.svm
-                                 } else {
-                                     d <- values$dataset
-                                 }
-                                 # compute outlier cells
-                                 values$outl.res <- outl_cells_main(d, chisq.quantile)
-                                 
-                                 t <- as.data.frame(values$outl.res)
-                                 colnames(t)[1] <- "outl"
-                                 t$Cluster <- names(values$outl.res)
-                                 t$Cells <- 1:dim(t)[1]
-                                 t$Cluster <-
-                                     factor(t$Cluster,
-                                            levels =
-                                                unique(
-                                                    as.character(
-                                                        sort(as.numeric(t$Cluster)))
-                                                )
-                                     )
-                                 cols <- iwanthue(length(unique(t$Cluster)))
-                                 Cells <- outl <- Cluster <- NULL
-                                 ggplot(t, aes(x = Cells, y = outl,
-                                               fill = Cluster, color = Cluster)) +
-                                     geom_bar(stat = "identity") +
-                                     geom_point() +
-                                     scale_fill_manual(values = cols) +
-                                     scale_color_manual(values = cols) +
-                                     guides(color = FALSE, fill = FALSE) +
-                                     labs(y = "Outlier score") +
-                                     theme_bw()
-                             })
-            })
-            
             observeEvent(input$GO, {
                 open_webgestalt_go(
                     rownames(
@@ -477,19 +471,19 @@ sc3_interactive <- function(input.param, example = FALSE) {
                 )
             })
             
-            ## PANELS REACTIVE ON BUTTON CLICK
+            ## OUTPUTS USED FOR CONDITIONAL PANELS
             
-            output$de_genes <- renderPlot({
-                get_de_genes()
-            }, height = plot.height, width = plot.width)
+            output$is_mark <- reactive({
+                return(values$mark)
+            })
             
-            output$mark_genes <- renderPlot({
-                get_mark_genes()
-            }, height = plot.height, width = plot.width)
+            output$is_de <- reactive({
+                return(values$de)
+            })
             
-            output$outliers <- renderPlot({
-                get_outl()
-            }, height = plot.height.small, width = plot.width)
+            output$is_outl <- reactive({
+                return(values$outl)
+            })
             
             ## DOWNLOAD LINKS
             
@@ -589,6 +583,9 @@ sc3_interactive <- function(input.param, example = FALSE) {
                 }
             )
             session$onSessionEnded(function() { stopApp() } )
+            outputOptions(output, 'is_mark', suspendWhenHidden = FALSE)
+            outputOptions(output, 'is_de', suspendWhenHidden = FALSE)
+            outputOptions(output, 'is_outl', suspendWhenHidden = FALSE)
         },
         options = list(launch.browser = TRUE)
     )
