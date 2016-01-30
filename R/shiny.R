@@ -48,9 +48,9 @@ sc3_interactive <- function(input.param, example = FALSE) {
     dimensionality.reductions <- as.list(dimensionality.reductions)
     names(dimensionality.reductions) <- dimensionality.reductions
     
-    colour.pallete <- grDevices::colorRampPalette(
-        rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu"))
-    )(median(as.numeric(unlist(cons.table[,3]))))
+#     colour.pallete <- grDevices::colorRampPalette(
+#         rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu"))
+#     )(median(as.numeric(unlist(cons.table[,3]))))
     plot.width <- 800
     plot.height <- 800
     plot.height.small <- 400
@@ -213,7 +213,7 @@ sc3_interactive <- function(input.param, example = FALSE) {
                     if(show.original.labels) {
                         ann <- data.frame(Input.Labels = factor(cell.names))
                         pheatmap::pheatmap(values$consensus,
-                                           color = colour.pallete,
+                                           # color = colour.pallete,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
                                            cutree_rows = input$clusters,
@@ -223,7 +223,7 @@ sc3_interactive <- function(input.param, example = FALSE) {
                                            show_colnames = FALSE)
                     } else {
                         pheatmap::pheatmap(values$consensus,
-                                           color = colour.pallete,
+                                           # color = colour.pallete,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
                                            cutree_rows = input$clusters,
