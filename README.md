@@ -14,17 +14,15 @@ Before running __SC3__ for the first time __only__, please start R and enter:
 RSelenium::checkForServer()
 ```
 
-Note, this command has to be executed only once, before running __SC3__ for the first time. This is required because __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details), which is automatically downloaded by running _RSelenium::checkForServer()_ command. The file size is about 30Mb.  
+Note, this command has to be executed only once, before running __SC3__ for the first time. This is required because __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details), which is automatically downloaded by running _RSelenium::checkForServer()_ command. The file size is about 30Mb.
 
-Please report any bugs, comments, issues or suggestions here:  
-[https://github.com/hemberg-lab/SC3/issues](https://github.com/hemberg-lab/SC3/issues)
+Please report any bugs, comments, issues or suggestions [here](https://github.com/hemberg-lab/SC3/issues).
 
 If you have any other questions please contact [Vladimir Kiselev](mailto:vladimir.yu.kiselev@gmail.com).
 
 ### Manuscript
 
-__SC3__ manuscript is under review, but also available on bioRxiv:  
-[http://biorxiv.org/content/early/2016/01/13/036558](http://biorxiv.org/content/early/2016/01/13/036558)
+__SC3__ manuscript is under review, but also available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
 
 ### Test run
 
@@ -66,11 +64,11 @@ For more details please read the documentation by typing ?sc3
 To run __SC3__ on an input file containing an expression matrix one need to preprocess the input file so that it looks as follows:
 
 
-|  | cell1 | cell2 | cell3 | cell4 | cell5 
+|  | cell1 | cell2 | cell3 | cell4 | cell5
 --- | --- | --- | --- | --- | ---
-| __gene1__ | 1 | 2 | 3 | 4 | 5 
-| __gene2__ | 1 | 2 | 3 | 4 | 5 
-| __gene3__ | 1 | 2 | 3 | 4 | 5 
+| __gene1__ | 1 | 2 | 3 | 4 | 5
+| __gene2__ | 1 | 2 | 3 | 4 | 5
+| __gene3__ | 1 | 2 | 3 | 4 | 5
 
 
 The first row of the expression matrix (with cell labels, e.g. __cell1__, __cell2__, etc.) should contain one fewer field than all other rows. Separators should be either spaces or tabs. If separators are commas (,) then the extension of the file must be .csv. If a path to your input file is "/path/to/input/file/expression-matrix.txt", to run it:
