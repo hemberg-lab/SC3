@@ -354,7 +354,7 @@ sc3_interactive <- function(input.param) {
                     
                     values$de <- TRUE
                     
-                    pheatmap::pheatmap(d[names(head(values$de.res, 70)), ],
+                    pheatmap::pheatmap(d[names(head(values$de.res, 70)), , drop = FALSE],
                                        show_colnames = FALSE,
                                        cluster_rows = FALSE,
                                        cluster_cols = FALSE,
