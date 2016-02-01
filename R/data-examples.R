@@ -8,8 +8,3 @@
 #'
 #' @return blah blah
 "treutlein"
-
-#' Data used for sc3_interactive() example
-#'
-#' @return blah blah
-"sc3.interactive.example"
