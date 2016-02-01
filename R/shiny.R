@@ -312,7 +312,7 @@ sc3_interactive <- function(input.param) {
                                  d.param <- mark_gene_heatmap_param(values$mark.res,
                                                                     unique(colnames(d)))
                                  values$mark <- TRUE
-                                 pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), ],
+                                 pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), , drop = FALSE],
                                                     show_colnames = FALSE,
                                                     cluster_rows = FALSE,
                                                     cluster_cols = FALSE,
