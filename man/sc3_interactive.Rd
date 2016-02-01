@@ -4,12 +4,10 @@
 \alias{sc3_interactive}
 \title{SC3 interactive function}
 \usage{
-sc3_interactive(input.param, example = FALSE)
+sc3_interactive(input.param)
 }
 \arguments{
 \item{input.param}{parameters precomputed by sc3() with interactivity = FALSE}
-
-\item{example}{this parameter is used only to pass the BiocCheck() check.}
 }
 \value{
 Opens a browser window with an interactive shine app and visualize
@@ -17,9 +15,5 @@ all precomputed clusterings.
 }
 \description{
 Runs interactive session of SC3 based on precomputed objects
-}
-\examples{
-sc3_interactive(sc3.interactive.example, example = TRUE)
-
 }
 

@@ -3,7 +3,6 @@
 #' Runs interactive session of SC3 based on precomputed objects
 #'
 #' @param input.param parameters precomputed by sc3() with interactivity = FALSE
-#' @param example this parameter is used only to pass the BiocCheck() check.
 #'
 #' @return Opens a browser window with an interactive shine app and visualize
 #' all precomputed clusterings.
@@ -18,13 +17,7 @@
 #'
 #' @export
 #'
-#' @examples
-#' sc3_interactive(sc3.interactive.example, example = TRUE)
-#'
-sc3_interactive <- function(input.param, example = FALSE) {
-    if(example) {
-        return()
-    }
+sc3_interactive <- function(input.param) {
     filename <- input.param[[1]]
     distances <- input.param[[2]]
     dimensionality.reductions <- input.param[[3]]
