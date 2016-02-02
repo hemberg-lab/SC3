@@ -54,6 +54,7 @@ sc3_interactive <- function(input.param) {
         values$svm.ready <- FALSE
     } else {
         with_svm <- FALSE
+        values$svm <- TRUE
     }
     
     shinyApp(
@@ -83,31 +84,32 @@ sc3_interactive <- function(input.param) {
                                               choices = dimensionality.reductions,
                                               selected = dimensionality.reductions),
                            
-                           if(with_svm) {
-                               h4("SVM")
-                           },
-                           if(with_svm) {
-                               p("Press this button when you have found the best clustering\n\n")
-                           },
-                           if(with_svm) {
-                               actionButton("svm", label = "Run SVM")
-                           },
-                           
+                           conditionalPanel("!output.is_svm", h4("SVM prediction")),
+                           conditionalPanel("!output.is_svm", p(paste0("You chose to cluster your data based on ",
+                                                                       svm.num.cells,
+                                                                       " random cells. When you have found the best clustering, press this button to predict labels of the other cells:\n\n"))),
+                           conditionalPanel("!output.is_svm", actionButton("svm", label = "Run SVM")),
+
                            conditionalPanel("output.is_mark", h4("GO for Marker genes")),
                            conditionalPanel("output.is_mark", selectInput("cluster", "Choose a cluster:",
                                        c("None" = "NULL"))),
                            conditionalPanel("output.is_mark", actionButton("GO", label = "Go to Webgestalt")),
-                           conditionalPanel("output.is_mark", p(" (opens in Firefox)")),
+                           conditionalPanel("output.is_mark", p("(opens in Firefox)")),
                            
-                           h4("Save results"),
-                           p("\n\n"),
-                           downloadLink('labs', label = "Cell Labels"),
-                           p("\n\n"),
-                           conditionalPanel("output.is_de", downloadLink('de', label = "DE genes")),
-                           p("\n\n"),
-                           conditionalPanel("output.is_mark", downloadLink('markers', label = "Marker genes")),
-                           p("\n\n"),
-                           conditionalPanel("output.is_outl", downloadLink('outl', label = "Cells outliers"))
+                           conditionalPanel("output.is_svm", h4("Export results")),
+                           conditionalPanel("output.is_svm", p("\n\n")),
+                           conditionalPanel("output.is_svm", downloadLink('labs', label = "Cell Labels as xls")),
+
+                           conditionalPanel("output.is_de", p("\n\n")),
+                           conditionalPanel("output.is_de", downloadLink('de', label = "DE genes as xls")),
+                           conditionalPanel("output.is_mark", p("\n\n")),
+                           conditionalPanel("output.is_mark", downloadLink('markers', label = "Marker genes as xls")),
+                           conditionalPanel("output.is_outl", p("\n\n")),
+                           conditionalPanel("output.is_outl", downloadLink('outl', label = "Cells outliers as xls")),
+                           
+                           conditionalPanel("output.is_svm", p("\n\n")),
+                           conditionalPanel("output.is_svm", actionButton('save', label = "Export results to R session")),
+                           conditionalPanel("output.is_svm", p("(the results above will be available in your R session as \"SC3.results\" list after closing this window)"))
                        )
                 ),
                 column(9,
@@ -117,21 +119,33 @@ sc3_interactive <- function(input.param) {
         ),
         server = function(input, output, session) {
             output$mytabs = renderUI({
-                myTabs <- list(tabPanel("Consensus Matrix",
-                                        plotOutput('consensus')),
-                               tabPanel("Silhouette",
-                                        plotOutput('silh')),
-                               tabPanel("Cell Labels",
-                                        div(htmlOutput('labels'),
-                                            style = "font-size:80%")),
-                               tabPanel("Expression Matrix",
-                                        plotOutput('matrix')),
-                               tabPanel("DE genes",
-                                        plotOutput('de_genes')),
-                               tabPanel("Marker genes",
-                                        plotOutput('mark_genes')),
-                               tabPanel("Cells outliers",
-                                        plotOutput('outliers')))
+                if(values$svm) {
+                    myTabs <- list(tabPanel("Consensus Matrix",
+                                            plotOutput('consensus')),
+                                   tabPanel("Silhouette",
+                                            plotOutput('silh')),
+                                   tabPanel("Cell Labels",
+                                            div(htmlOutput('labels'),
+                                                style = "font-size:80%")),
+                                   tabPanel("Expression Matrix",
+                                            plotOutput('matrix')),
+                                   tabPanel("DE genes",
+                                            plotOutput('de_genes')),
+                                   tabPanel("Marker genes",
+                                            plotOutput('mark_genes')),
+                                   tabPanel("Cells outliers",
+                                            plotOutput('outliers')))
+                } else {
+                    myTabs <- list(tabPanel("Consensus Matrix",
+                                            plotOutput('consensus')),
+                                   tabPanel("Silhouette",
+                                            plotOutput('silh')),
+                                   tabPanel("Cell Labels",
+                                            div(htmlOutput('labels'),
+                                                style = "font-size:80%")),
+                                   tabPanel("Expression Matrix",
+                                            plotOutput('matrix')))
+                }
                 do.call(tabsetPanel, myTabs)
             })
             
@@ -172,6 +186,20 @@ sc3_interactive <- function(input.param) {
                 values$mark <- FALSE
                 values$de <- FALSE
                 values$outl <- FALSE
+                
+                if(with_svm) {
+                    values$svm <- FALSE
+                }
+                
+                values$cell.labels <- NULL
+                values$cells.outliers <- NULL
+                values$de.genes <- NULL
+                values$marker.genes <- NULL
+                SC3.results <- list()
+                
+                values$cell.labels <- 
+                    data.frame(new.labels = values$new.labels,
+                               original.labels = values$original.labels)
             })
             
             observe({
@@ -188,8 +216,8 @@ sc3_interactive <- function(input.param) {
             # update GO drop down menu with current clusters after calculating
             # marker genes
             observe({
-                if(!is.null(values$mark.res)) {
-                    clusts <- unique(colnames(values$dataset))
+                if(values$mark) {
+                    clusts <- unique(values$mark.res$clusts)
                     updateSelectInput(session, "cluster", choices = clusts)
                 }
                 
@@ -281,10 +309,6 @@ sc3_interactive <- function(input.param) {
             }, height = plot.height, width = plot.width)
             
             output$mark_genes <- renderPlot({
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
                 validate(
                     need(try(!is.null(rownames(dataset))),
                          "\nNo gene names provided in the input expression matrix!")
@@ -312,6 +336,11 @@ sc3_interactive <- function(input.param) {
                                  d.param <- mark_gene_heatmap_param(values$mark.res,
                                                                     unique(colnames(d)))
                                  values$mark <- TRUE
+                                 values$marker.genes <- data.frame(new.labels = values$mark.res[,2],
+                                                             gene = rownames(values$mark.res),
+                                                             AUROC = values$mark.res[,1],
+                                                             p.value = values$mark.res[,3])
+                                 
                                  pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), , drop = FALSE],
                                                     show_colnames = FALSE,
                                                     cluster_rows = FALSE,
@@ -319,15 +348,12 @@ sc3_interactive <- function(input.param) {
                                                     annotation_row = d.param$row.ann,
                                                     annotation_names_row = FALSE,
                                                     gaps_row = d.param$row.gaps,
-                                                    gaps_col = col.gaps)
+                                                    gaps_col = col.gaps,
+                                                    cellheight = 10)
                              })
             }, height = plot.height, width = plot.width)
             
             output$de_genes <- renderPlot({
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
                 validate(
                     need(try(!is.null(rownames(dataset))),
                          "\nNo gene names provided in the input expression matrix!")
@@ -353,6 +379,10 @@ sc3_interactive <- function(input.param) {
                     d.param <- de_gene_heatmap_param(head(values$de.res, 70))
                     
                     values$de <- TRUE
+                    res <- data.frame(gene = names(values$de.res),
+                                            p.value = values$de.res)
+                    rownames(res) <- NULL
+                    values$de.genes <- res
                     
                     pheatmap::pheatmap(d[names(head(values$de.res, 70)), , drop = FALSE],
                                        show_colnames = FALSE,
@@ -360,15 +390,12 @@ sc3_interactive <- function(input.param) {
                                        cluster_cols = FALSE,
                                        annotation_row = d.param$row.ann,
                                        annotation_names_row = FALSE,
-                                       gaps_col = col.gaps)
+                                       gaps_col = col.gaps,
+                                       cellheight = 11)
                 })
             }, height = plot.height, width = plot.width)
             
             output$outliers <- renderPlot({
-                if(with_svm) {
-                    validate(need(try(values$svm.ready),
-                                  "\nPlease run SVM prediction first!"))
-                }
                 withProgress(message = 'Calculating cell outliers...',
                              value = 0, {
                                  # prepare dataset for plotting
@@ -396,6 +423,15 @@ sc3_interactive <- function(input.param) {
                                  Cells <- outl <- Cluster <- NULL
                                  
                                  values$outl <- TRUE
+                                 values$cells.outliers <- if(with_svm) {
+                                         data.frame(new.labels = names(values$outl.res),
+                                                    original.labels = values$original.labels.svm,
+                                                    MCD.dist = values$outl.res)
+                                 } else {
+                                         data.frame(new.labels = names(values$outl.res),
+                                                    original.labels = values$original.labels,
+                                                    MCD.dist = values$outl.res)
+                                 }
                                  
                                  ggplot(t, aes(x = Cells, y = outl,
                                                fill = Cluster, color = Cluster)) +
@@ -439,11 +475,23 @@ sc3_interactive <- function(input.param) {
                         which(diff(as.numeric(colnames(values$dataset.svm)))
                               != 0)
                     
+                    values$cell.labels <- data.frame(new.labels = values$new.labels.svm,
+                                   original.labels = values$original.labels.svm)
+                    
                     values$svm <- TRUE
                     values$svm.clusters <- paste(input$clusters, collapse = "_")
                     values$svm.distance <- paste(input$distance, collapse = "_")
                     values$svm.dimRed <- paste(input$dimRed, collapse = "_")
                 })
+            })
+            
+            observeEvent(input$save, {
+                SC3.results <<- list(
+                    cell.labels = values$cell.labels,
+                    de.genes = values$de.genes,
+                    marker.genes = values$marker.genes,
+                    cells.outliers = values$cells.outliers
+                )
             })
             
             observeEvent(input$GO, {
@@ -455,6 +503,10 @@ sc3_interactive <- function(input.param) {
             })
             
             ## OUTPUTS USED FOR CONDITIONAL PANELS
+            
+            output$is_svm <- reactive({
+                return(values$svm)
+            })
             
             output$is_mark <- reactive({
                 return(values$mark)
@@ -476,25 +528,11 @@ sc3_interactive <- function(input.param) {
                 },
                 
                 content = function(file) {
-                    if(with_svm) {
-                        validate(need(try(values$svm.ready),
-                                      "\nPlease run SVM prediction first!"))
-                        write.table(
-                            data.frame(new.labels = values$new.labels.svm,
-                                       original.labels = values$original.labels.svm),
-                            file = file,
-                            row.names = FALSE,
-                            quote = FALSE,
-                            sep = "\t")}
-                    else{
-                        write.table(
-                            data.frame(new.labels = values$new.labels,
-                                       original.labels = values$original.labels),
-                            file = file,
-                            row.names = FALSE,
-                            quote = FALSE,
-                            sep = "\t")
-                    }
+                    write.table(values$cell.labels,
+                        file = file,
+                        row.names = FALSE,
+                        quote = FALSE,
+                        sep = "\t")
                 }
             )
             
@@ -503,13 +541,7 @@ sc3_interactive <- function(input.param) {
                     paste0("k-", input$clusters, "-de-genes-", filename, ".xls")
                 },
                 content = function(file) {
-                    if(with_svm) {
-                        validate(need(try(values$svm.ready),
-                                      "\nPlease run SVM prediction first!"))
-                    }
-                    write.table(
-                        data.frame(gene = names(values$de.res),
-                                   p.value = values$de.res),
+                    write.table(values$de.genes,
                         file = file,
                         row.names = FALSE,
                         quote = FALSE,
@@ -522,14 +554,7 @@ sc3_interactive <- function(input.param) {
                     paste0("k-", input$clusters, "-markers-", filename, ".xls")
                 },
                 content = function(file) {
-                    if(with_svm) {
-                        validate(need(try(values$svm.ready),
-                                      "\nPlease run SVM prediction first!"))
-                    }
-                    write.table(data.frame(new.labels = values$mark.res[,2],
-                                           gene = rownames(values$mark.res),
-                                           AUROC = values$mark.res[,1],
-                                           p.value = values$mark.res[,3]),
+                    write.table(values$marker.genes,
                                 file = file,
                                 row.names = FALSE,
                                 quote = FALSE,
@@ -542,33 +567,20 @@ sc3_interactive <- function(input.param) {
                     paste0("k-", input$clusters, "-outliers-", filename, ".xls")
                 },
                 content = function(file) {
-                    if(with_svm) {
-                        validate(need(try(values$svm.ready),
-                                      "\nPlease run SVM prediction first!"))
-                        write.table(
-                            data.frame(new.labels = names(values$outl.res),
-                                       original.labels = values$original.labels.svm,
-                                       MCD.dist = values$outl.res),
-                            file = file,
-                            row.names = FALSE,
-                            quote = FALSE,
-                            sep = "\t")
-                    } else {
-                        write.table(
-                            data.frame(new.labels = names(values$outl.res),
-                                       original.labels = values$original.labels,
-                                       MCD.dist = values$outl.res),
-                            file = file,
-                            row.names = FALSE,
-                            quote = FALSE,
-                            sep = "\t")
-                    }
+                    write.table(values$cells.outliers,
+                        file = file,
+                        row.names = FALSE,
+                        quote = FALSE,
+                        sep = "\t")
                 }
             )
-            session$onSessionEnded(function() { stopApp() } )
+            session$onSessionEnded(function() {
+                stopApp()
+            })
             outputOptions(output, 'is_mark', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_de', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_outl', suspendWhenHidden = FALSE)
+            outputOptions(output, 'is_svm', suspendWhenHidden = FALSE)
         },
         options = list(launch.browser = TRUE)
     )

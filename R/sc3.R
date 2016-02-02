@@ -118,11 +118,9 @@ sc3 <- function(filename,
         cat("\n")
         cat(paste0("Your dataset contains more than ",
                    svm.num.cells,
-                   " cells,therefore clustering wil
-                   be performed on a random sample of ",
+                   " cells,therefore clustering wil be performed on a random sample of ",
                    svm.num.cells,
-                   " cells, the rest of the cells will
-                   be predicted using SVM."))
+                   " cells, the rest of the cells will be predicted using SVM."))
         cat("\n")
         cat("\n")
 
