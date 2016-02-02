@@ -53,8 +53,7 @@ outl_cells_main <- function(d, chisq.quantile) {
             message(cond)
         }, error = function(cond) {
             message(paste0("No outliers detected in cluster ", i,
-                           ". Distribution of gene expression in cells is too
-                           skewed towards 0."))
+                           ". Distribution of gene expression in cells is too skewed towards 0."))
             return(NULL)
         })
         if(class(t) != "NULL") {
@@ -75,8 +74,7 @@ outl_cells_main <- function(d, chisq.quantile) {
                     }, warning = function(cond) {
                         message(cond)
                     }, error = function(cond) {
-                        message("No outliers detected in the cluster.
-                                Error in MCD.")
+                        message("No outliers detected in the cluster. Error in MCD.")
                         return(NULL)
                     })
                 }
