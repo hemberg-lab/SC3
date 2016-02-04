@@ -54,7 +54,6 @@ There is one built-in dataset that is automatically loaded with __SC3__:
 One can explore clusterings of this dataset by running the following commands (__ks__ parameter defines a region of __k__ needed to be investigated - see the next section):
 ```{r, eval=FALSE}
 sc3(treutlein, ks = 3:7)
-sc3(deng, ks = 8:12)
 ```
 
 ## Running __SC3__
@@ -66,7 +65,7 @@ sc3(dataset, ks = 2:5, cell.filter = TRUE)    # with filtering of lowly expresse
 sc3(dataset, ks = 2:5, interactivity = FALSE) # without interactive visualisation
 ```
 
-For more details please read the documentation by typing ?sc3
+where __dataset__ is either an R matrix / data.frame / data.table object OR a path to your input file containing an expression matrix. For more details please read the documentation by typing ?sc3.
 
 ## Input file format
 

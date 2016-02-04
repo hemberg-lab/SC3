@@ -7,15 +7,17 @@
 gene_filter(data, fraction)
 }
 \arguments{
-\item{data}{Input expression matrix}
+\item{data}{expression matrix}
 
-\item{fraction}{threshold defining a fraction cells for each gene}
+\item{fraction}{fraction of cells (1 - X/100), default is 0.06.}
 }
 \value{
-Filtered expression matrix
+filtered expression matrix some genes were removed.
 }
 \description{
-Filter genes that would not contribute to clustering, because they are either
-expressed or not expressed in almost all cells.
+The gene filter removes genes that are either expressed or absent
+(expression value is less than 2) in at least X % of cells.
+The motivation for the gene filter is that ubiquitous and rare genes most
+often are not informative for the clustering.
 }
 

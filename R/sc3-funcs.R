@@ -1,9 +1,9 @@
 #' Import expression matrix
 #'
-#' Import either treutlein dataset or a dataset defined by a user
+#' Import an input expression matrix.
 #'
-#' @param name either treutlein or a name of a text file
-#' @return Expression matrix
+#' @param name name of an R object or a text file
+#' @return expression matrix
 #'
 #' @importFrom utils read.table read.csv
 get_data <- function(name) {
@@ -20,47 +20,40 @@ get_data <- function(name) {
 
 #' Cell filter
 #'
-#' More than cell.filter.genes have to be expressed in each cell
+#' The cell filter should be used if the quality of data is low, i.e. if one
+#' suspects that some of the cells may be technical outliers with poor coverage.
+#' The cell filter removes cells containing fewer than cell.filter.genes.
 #'
-#' @param data Input expression matrix
-#' @param cell.filter.genes number of genes that have to expressed in each cell
+#' @param data expression matrix
+#' @param cell.filter.genes minimum number of genes that must be expressed in
+#' each cell, default is 2,000.
 #' @return Filtered expression matrix
 cell_filter <- function(data, cell.filter.genes) {
     cat("Cell filtering...\n")
     data <- data[ , colSums(data > 1e-2) > cell.filter.genes]
-    if(dim(data)[2] == 0) {
-        cat(paste0("Your dataset did not pass cell filter (more than ",
-                   cell.filter.genes,
-                   " genes have to be expressed in each cell)!
-                   Stopping now..."))
-        return()
-    } else {
-        return(data)
-    }
+    return(data)
 }
 
 #' Gene filter
 #'
-#' Filter genes that would not contribute to clustering, because they are either
-#' expressed or not expressed in almost all cells.
+#' The gene filter removes genes that are either expressed or absent
+#' (expression value is less than 2) in at least X % of cells.
+#' The motivation for the gene filter is that ubiquitous and rare genes most
+#' often are not informative for the clustering.
 #'
-#' @param data Input expression matrix
-#' @param fraction threshold defining a fraction cells for each gene
-#' @return Filtered expression matrix
+#' @param data expression matrix
+#' @param fraction fraction of cells (1 - X/100), default is 0.06.
+#' @return filtered expression matrix some genes were removed.
 gene_filter <- function(data, fraction) {
     cat("Gene filtering...\n")
     filter.params <- filter_params(data, fraction)
     min.cells <- filter.params$min.cells
     max.cells <- filter.params$max.cells
     min.reads <- filter.params$min.reads
-    data <- gene_filter1(data, min.cells, max.cells, min.reads)
-
-    if(dim(data)[1] == 0) {
-        cat("All genes were removed after the gene filter! Stopping now...")
-        return()
-    } else {
-        return(data)
-    }
+    d <- data[rowSums(data > min.reads) >= min.cells &
+              rowSums(data > 0) <= dim(data)[2] - max.cells, ]
+    d <- unique(d)
+    return(d)
 }
 
 filter_params <- function(dataset, fraction) {
@@ -74,59 +67,42 @@ filter_params <- function(dataset, fraction) {
                 min.reads = min.reads))
 }
 
-#' Gene filter
-#'
-#' Filter genes that would not contribute to clustering, because they are either
-#' expressed or not expressed in almost all cells.
-#'
-#' @param d Expression matrix with rows as genes and columns as cells
-#' @param min.cells Minimum number of cells in which a given gene is expressed
-#' (obtained from filter_params())
-#' @param max.cells Maximum number of cells in which a given gene is expressed
-#' (obtained from filter_params())
-#' @param min.reads Minimum number of reads per gene per cell
-#' (obtained from filter_params())
-#' @return Filtered expression matrix in which only genes that are expressed in
-#' more than \code{min.cells} with more than \code{min.reads} reads and also are
-#' expressed in less than [total number of cells - \code{max.cells}].
-gene_filter1 <- function(d, min.cells, max.cells, min.reads) {
-    d <-
-        d[rowSums(d > min.reads) >= min.cells &
-              rowSums(d > 0) <= dim(d)[2] - max.cells, ]
-    d <- unique(d)
-    return(d)
-}
-
 #' Calculate a distance matrix
 #'
-#' Calculate a distance between column vectors of the input dataset using a
-#' specified distance metrics.
+#' Distance between the cells, i.e. columns, in the input expression matrix are
+#' calculated using the Euclidean, Pearson and Spearman metrics to construct
+#' distance matrices.
 #'
-#' @param d Expression matrix with rows as genes and columns as cells
-#' @param method Distance metrics: "spearman", "pearson", "euclidean", "maximum",
-#' "manhattan", "canberra", "binary" or "minkowski"
-#' @return A distance matrix
+#' @param data expression matrix
+#' @param method one of the distance metrics: "spearman", "pearson", "euclidean",
+#' "maximum", "manhattan", "canberra", "binary" or "minkowski"
+#' @return distance matrix
 #'
 #' @importFrom stats cor dist
 #'
-calculate_distance <- function(d, method) {
+calculate_distance <- function(data, method) {
     return(if (method == "spearman") {
-        as.matrix(1 - cor(d, method = "spearman"))
+        as.matrix(1 - cor(data, method = "spearman"))
     } else if (method == "pearson") {
-        as.matrix(1 - cor(d, method = "pearson"))
+        as.matrix(1 - cor(data, method = "pearson"))
     } else {
-        as.matrix(dist(t(d), method = method))
+        as.matrix(dist(t(data), method = method))
     })
 }
 
-#' Dimensionality reduction of a distance matrix
+#' Distance matrix transformation
 #'
-#' Transform a distance matrix to a new basis
+#' All distance matrices are transformed using either principal component 
+#' analysis (PCA), multidimensional scaling (MDS) or by calculating the 
+#' eigenvectors of the graph Laplacian (Spectral). 
+#' The columns of the resulting matrices are then sorted in 
+#' descending order by their corresponding eigenvalues.
 #'
-#' @param dists A distance matrix
-#' @param method Dimensionality reduction method: "pca", "spectral",
-#' "spectral_reg" or "mds"
-#' @return A transformed distance matrix
+#' @param dists distance matrix
+#' @param method transformation method: either "pca", "mds", "spectral" or
+#' "spectral_reg", where "spectral_reg" calculates graph Laplacian with
+#' regularization (tau = 1000)
+#' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
 #'
@@ -150,13 +126,13 @@ transformation <- function(dists, method) {
     }
 }
 
-#' Laplacian
+#' Graph Laplacian calculation
 #'
-#' Calculate Laplacian of an input distance matrix
+#' Calculate graph Laplacian of a distance matrix
 #'
-#' @param x Adjacency/distance matrix
-#' @param tau Regularization term
-#' @return Laplacian of the adjacency/distance matrix
+#' @param x adjacency/distance matrix
+#' @param tau regularization term
+#' @return graph Laplacian of the adjacency/distance matrix
 norm_laplacian <- function(x, tau) {
     x <- x + tau * matrix(1, dim(x)[1], dim(x)[2])
     D <- diag(colSums(x))
@@ -165,17 +141,21 @@ norm_laplacian <- function(x, tau) {
     return(diag(dim(D)[1]) - D1 %*% x %*% D1)
 }
 
-#' Consensus clustering
+#' Calculate consensus matrix
 #'
-#' Caclulate consensus clustering by using Cluster-based similarity
-#' partitioning algorithm (CSPA)
+#' Consensus matrix is calculated using the Cluster-based Similarity 
+#' Partitioning Algorithm (CSPA). For each clustering result a binary 
+#' similarity matrix is constructed from the corresponding cell labels: 
+#' if two cells belong to the same cluster, their similarity is 1, otherwise 
+#' the similarity is 0. A consensus matrix is calculated by averaging all 
+#' similarity matrices.
 #'
 #' @param clusts a list clustering labels (separated by a space)
-#' @return Consensus matrix
+#' @return consensus matrix
 #'
 #' @importFrom stats dist
 #'
-consensus_clustering <- function(clusts) {
+consensus_matrix <- function(clusts) {
     n.cells <- length(unlist(strsplit(clusts[1], " ")))
     res <- matrix(0, nrow = n.cells, ncol = n.cells)
     for (i in 1:length(clusts)) {
@@ -191,23 +171,23 @@ consensus_clustering <- function(clusts) {
     return(res)
 }
 
-#' Support vector machines (SVM)
+#' Run support vector machines (SVM) prediction
 #'
-#' Train an SVM classifier on teacher cells and then
-#' classify study cells usin the classifier
+#' Train an SVM classifier on training cells and then
+#' classify study cells using the classifier.
 #'
-#' @param teach Expression matrix of teacher cells
-#' @param study Expression matrix of study cells
-#' @param kern Kernel to be used with SVM
-#' @return Classification of study cells
+#' @param train expression matrix with training cells
+#' @param study expression matrix with study cells
+#' @param kern kernel to be used with SVM
+#' @return classification of study cells
 #'
 #' @importFrom e1071 svm
 #' @importFrom stats predict
-support_vector_machines <- function(teach, study, kern) {
-    teach <- t(teach)
-    labs <- factor(rownames(teach))
-    rownames(teach) <- NULL
-    model <- tryCatch(svm(teach, labs, kernel = kern),
+support_vector_machines <- function(train, study, kern) {
+    train <- t(train)
+    labs <- factor(rownames(train))
+    rownames(train) <- NULL
+    model <- tryCatch(svm(train, labs, kernel = kern),
                       error = function(cond) return(NA))
     pred <- predict(model, t(study))
     return(pred = pred)

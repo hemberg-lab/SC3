@@ -2,19 +2,19 @@
 % Please edit documentation in R/sc3-funcs.R
 \name{norm_laplacian}
 \alias{norm_laplacian}
-\title{Laplacian}
+\title{Graph Laplacian calculation}
 \usage{
 norm_laplacian(x, tau)
 }
 \arguments{
-\item{x}{Adjacency/distance matrix}
+\item{x}{adjacency/distance matrix}
 
-\item{tau}{Regularization term}
+\item{tau}{regularization term}
 }
 \value{
-Laplacian of the adjacency/distance matrix
+graph Laplacian of the adjacency/distance matrix
 }
 \description{
-Calculate Laplacian of an input distance matrix
+Calculate graph Laplacian of a distance matrix
 }
 

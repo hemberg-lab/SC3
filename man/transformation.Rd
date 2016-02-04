@@ -2,20 +2,25 @@
 % Please edit documentation in R/sc3-funcs.R
 \name{transformation}
 \alias{transformation}
-\title{Dimensionality reduction of a distance matrix}
+\title{Distance matrix transformation}
 \usage{
 transformation(dists, method)
 }
 \arguments{
-\item{dists}{A distance matrix}
+\item{dists}{distance matrix}
 
-\item{method}{Dimensionality reduction method: "pca", "spectral",
-"spectral_reg" or "mds"}
+\item{method}{transformation method: either "pca", "mds", "spectral" or
+"spectral_reg", where "spectral_reg" calculates graph Laplacian with
+regularization (tau = 1000)}
 }
 \value{
-A transformed distance matrix
+transformed distance matrix
 }
 \description{
-Transform a distance matrix to a new basis
+All distance matrices are transformed using either principal component 
+analysis (PCA), multidimensional scaling (MDS) or by calculating the 
+eigenvectors of the graph Laplacian (Spectral). 
+The columns of the resulting matrices are then sorted in 
+descending order by their corresponding eigenvalues.
 }
 

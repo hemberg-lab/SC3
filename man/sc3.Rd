@@ -6,13 +6,13 @@
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter.fraction = 0.06, d.region.min = 0.04, d.region.max = 0.07,
-  chisq.quantile = 0.9999, interactivity = TRUE, output.directory = NULL,
+  chisq.quantile = 0.9999, interactivity = TRUE,
   show.original.labels = FALSE, svm.num.cells = 1000,
   use.max.cores = TRUE, n.cores = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame / data.table object OR a
-path to your input file containing an expression matrix.}
+path to your input file containing an input expression matrix.}
 
 \item{ks}{a range of the number of clusters that needs to be tested.
 k.min is the minimum number of clusters (default is 3). k.max is the maximum
@@ -20,39 +20,39 @@ number of clusters (default is 7).}
 
 \item{cell.filter}{defines whether to filter cells that express less than
 cell.filter.genes genes (lowly expressed cells). By default it is FALSE.
-Should be used if it is not possible to properly cluster original cells -
-filtering of lowly expressed cells usually improves clustering.}
+The cell filter should be used if the quality of data is low, i.e. if one
+suspects that some of the cells may be technical outliers with poor coverage.
+Filtering of lowly expressed cells usually improves clustering.}
 
 \item{cell.filter.genes}{if cell.filter is used then this parameter defines
 the minimum number of genes that have to be expressed in each cell
-(i.e. have more than zero reads). If there are fewer, the cell will be
+(expression value > 1e-2). If there are fewer, the cell will be
 removed from the analysis. The default is 2000.}
 
-\item{gene.filter.fraction}{the threshold of number of cells to use in the
-gene filter}
+\item{gene.filter.fraction}{fraction of cells (1 - X/100), default is 0.06.
+The gene filter removes genes that are either expressed or absent
+(expression value is less than 2) in at least X % of cells.
+The motivation for the gene filter is that ubiquitous and rare genes most
+often are not informative for the clustering.}
 
-\item{d.region.min}{the lower boundary of the optimum region of d.
-The default is 0.04.}
+\item{d.region.min}{the lower boundary of the optimum region of d, 
+default is 0.04.}
 
-\item{d.region.max}{the upper boundary of the optimum region of d.
-The default is 0.07.}
+\item{d.region.max}{the upper boundary of the optimum region of d, 
+default is 0.07.}
 
-\item{chisq.quantile}{a treshold used for cell outliers detection.
-The default is 0.9999.}
+\item{chisq.quantile}{a treshold used for cell outliers detection, 
+default is 0.9999.}
 
 \item{interactivity}{defines whether a browser interactive window should be
 open after all computation is done. By default it is TRUE. This option can
 be used to separate clustering calculations from visualisation,
 e.g. long and time-consuming clustering of really big datasets can be run
-on a computing cluster and visualisations can be done using a personal
+on a farm cluster and visualisations can be done using a personal
 laptop afterwards. If interactivity is FALSE then all clustering results
-will be saved to filename.rds file. To run interactive visulisation with
+will be saved as "sc3.interactive.arg" list. To run interactive visulisation with
 the precomputed clustering results please use
-sc3_interactive(readRDS(filename.rds)).}
-
-\item{output.directory}{if interactivity is FALSE, this parameter defines an
-output directory in which the user has writing rights. The default value is
-NULL and the output will be written to a temporal directory.}
+sc3_interactive(sc3.interactive.arg).}
 
 \item{show.original.labels}{if cell labels in the dataset are not unique,
 but represent clusters expected from the experiment, they can be visualised
@@ -61,7 +61,7 @@ by setting this parameter to TRUE. The default is FALSE.}
 \item{svm.num.cells}{if number of cells in the dataset is greater than this
 parameter, then an SVM prediction will be used. The default is 1000.}
 
-\item{use.max.cores}{defines whether to us maximum available cores on the
+\item{use.max.cores}{defines whether to use maximum available cores on the
 user's machine. Logical, default is TRUE.}
 
 \item{n.cores}{if use.max.cores is FALSE, this parameter defines the number
@@ -72,7 +72,7 @@ Opens a browser window with an interactive shine app and visualize
 all precomputed clusterings.
 }
 \description{
-Run SC3 clustering pipeline on N-1 CPUs and starts the interactive session
+Run SC3 clustering pipeline and starts an interactive session in a web browser.
 }
 \examples{
 sc3(treutlein, 3:7, interactivity = FALSE, use.max.cores = FALSE)

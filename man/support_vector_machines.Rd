@@ -2,22 +2,22 @@
 % Please edit documentation in R/sc3-funcs.R
 \name{support_vector_machines}
 \alias{support_vector_machines}
-\title{Support vector machines (SVM)}
+\title{Run support vector machines (SVM) prediction}
 \usage{
-support_vector_machines(teach, study, kern)
+support_vector_machines(train, study, kern)
 }
 \arguments{
-\item{teach}{Expression matrix of teacher cells}
+\item{train}{expression matrix with training cells}
 
-\item{study}{Expression matrix of study cells}
+\item{study}{expression matrix with study cells}
 
-\item{kern}{Kernel to be used with SVM}
+\item{kern}{kernel to be used with SVM}
 }
 \value{
-Classification of study cells
+classification of study cells
 }
 \description{
-Train an SVM classifier on teacher cells and then
-classify study cells usin the classifier
+Train an SVM classifier on training cells and then
+classify study cells using the classifier.
 }
 

@@ -4,19 +4,20 @@
 \alias{calculate_distance}
 \title{Calculate a distance matrix}
 \usage{
-calculate_distance(d, method)
+calculate_distance(data, method)
 }
 \arguments{
-\item{d}{Expression matrix with rows as genes and columns as cells}
+\item{data}{expression matrix}
 
-\item{method}{Distance metrics: "spearman", "pearson", "euclidean", "maximum",
-"manhattan", "canberra", "binary" or "minkowski"}
+\item{method}{one of the distance metrics: "spearman", "pearson", "euclidean",
+"maximum", "manhattan", "canberra", "binary" or "minkowski"}
 }
 \value{
-A distance matrix
+distance matrix
 }
 \description{
-Calculate a distance between column vectors of the input dataset using a
-specified distance metrics.
+Distance between the cells, i.e. columns, in the input expression matrix are
+calculated using the Euclidean, Pearson and Spearman metrics to construct
+distance matrices.
 }
 

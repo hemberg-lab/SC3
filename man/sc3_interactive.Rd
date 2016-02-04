@@ -7,10 +7,10 @@
 sc3_interactive(input.param)
 }
 \arguments{
-\item{input.param}{parameters precomputed by sc3() with interactivity = FALSE}
+\item{input.param}{parameters precomputed by sc3() with interactivity = FALSE (sc3.interactive.arg).}
 }
 \value{
-Opens a browser window with an interactive shine app and visualize
+Opens a browser window with an interactive shiny app and visualize
 all precomputed clusterings.
 }
 \description{
