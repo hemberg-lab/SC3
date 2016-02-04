@@ -7,14 +7,17 @@
 cell_filter(data, cell.filter.genes)
 }
 \arguments{
-\item{data}{Input expression matrix}
+\item{data}{expression matrix}
 
-\item{cell.filter.genes}{number of genes that have to expressed in each cell}
+\item{cell.filter.genes}{minimum number of genes that must be expressed in
+each cell, default is 2,000.}
 }
 \value{
 Filtered expression matrix
 }
 \description{
-More than cell.filter.genes have to be expressed in each cell
+The cell filter should be used if the quality of data is low, i.e. if one
+suspects that some of the cells may be technical outliers with poor coverage.
+The cell filter removes cells containing fewer than cell.filter.genes.
 }
 

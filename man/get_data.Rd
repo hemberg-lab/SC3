@@ -7,12 +7,12 @@
 get_data(name)
 }
 \arguments{
-\item{name}{either treutlein or a name of a text file}
+\item{name}{name of an R object or a text file}
 }
 \value{
-Expression matrix
+expression matrix
 }
 \description{
-Import either treutlein dataset or a dataset defined by a user
+Import an input expression matrix.
 }
 

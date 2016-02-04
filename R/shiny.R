@@ -2,9 +2,9 @@
 #'
 #' Runs interactive session of SC3 based on precomputed objects
 #'
-#' @param input.param parameters precomputed by sc3() with interactivity = FALSE
+#' @param input.param parameters precomputed by sc3() with interactivity = FALSE (sc3.interactive.arg).
 #'
-#' @return Opens a browser window with an interactive shine app and visualize
+#' @return Opens a browser window with an interactive shiny app and visualize
 #' all precomputed clusterings.
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions
@@ -18,26 +18,14 @@
 #' @export
 #'
 sc3_interactive <- function(input.param) {
-    filename <- input.param[[1]]
-    distances <- input.param[[2]]
-    dimensionality.reductions <- input.param[[3]]
-    cons.table <- input.param[[4]]
-    dataset <- input.param[[5]]
-    study.dataset <- input.param[[6]]
-    svm.num.cells <- input.param[[7]]
-    cell.names <- input.param[[8]]
-    study.cell.names <- input.param[[9]]
-    show.original.labels <- input.param[[10]]
-    chisq.quantile <- input.param[[11]]
-    
     ## define UI parameters
-    dist.opts <- strsplit(unlist(cons.table[,1]), " ")
-    dim.red.opts <- strsplit(unlist(cons.table[,2]), " ")
+    dist.opts <- strsplit(unlist(input.param$cons.table[,1]), " ")
+    dim.red.opts <- strsplit(unlist(input.param$cons.table[,2]), " ")
     
-    distances <- as.list(distances)
+    distances <- as.list(input.param$distances)
     names(distances) <- distances
     
-    dimensionality.reductions <- as.list(dimensionality.reductions)
+    dimensionality.reductions <- as.list(input.param$dimensionality.reductions)
     names(dimensionality.reductions) <- dimensionality.reductions
     
     plot.width <- 800
@@ -48,7 +36,7 @@ sc3_interactive <- function(input.param) {
     
     values <- reactiveValues()
     
-    if(dim(study.dataset)[2] > 0) {
+    if(dim(input.param$study.dataset)[2] > 0) {
         with_svm <- TRUE
         values$svm <- FALSE
         values$svm.ready <- FALSE
@@ -60,16 +48,16 @@ sc3_interactive <- function(input.param) {
     shinyApp(
         ui = fluidPage(
             headerPanel(
-                paste0("SC3 clustering of ", filename)
+                paste0("SC3 clustering of ", input.param$filename)
             ),
             fluidRow(
                 column(3,
                        wellPanel(
                            h4("Clustering"),
                            sliderInput("clusters", label = "Number of clusters k",
-                                       min = min(as.numeric(unlist(cons.table[,3]))) + 1,
-                                       max = max(as.numeric(unlist(cons.table[,3]))),
-                                       value = median(as.numeric(unlist(cons.table[,3]))),
+                                       min = min(as.numeric(unlist(input.param$cons.table[,3]))) + 1,
+                                       max = max(as.numeric(unlist(input.param$cons.table[,3]))),
+                                       value = median(as.numeric(unlist(input.param$cons.table[,3]))),
                                        step = 1,
                                        animate = animationOptions(interval = 2000,
                                                                   loop = FALSE)),
@@ -86,7 +74,7 @@ sc3_interactive <- function(input.param) {
                            
                            conditionalPanel("!output.is_svm", h4("SVM prediction")),
                            conditionalPanel("!output.is_svm", p(paste0("You chose to cluster your data based on ",
-                                                                       svm.num.cells,
+                                                                       input.param$svm.num.cells,
                                                                        " random cells. When you have found the best clustering, press this button to predict labels of the other cells:\n\n"))),
                            conditionalPanel("!output.is_svm", actionButton("svm", label = "Run SVM")),
 
@@ -152,16 +140,16 @@ sc3_interactive <- function(input.param) {
             ## main reactive function for extraction of precalculated variables
             
             observe({
-                res <- cons.table[unlist(lapply(
+                res <- input.param$cons.table[unlist(lapply(
                     dist.opts, function(x){setequal(x, input$distance)}
                 )) & unlist(lapply(
                     dim.red.opts, function(x){setequal(x, input$dimRed)}
-                )) & as.numeric(cons.table[ , 3]) == input$clusters, 4][[1]]
-                res1 <- cons.table[unlist(lapply(
+                )) & as.numeric(input.param$cons.table[ , 3]) == input$clusters, 4][[1]]
+                res1 <- input.param$cons.table[unlist(lapply(
                     dist.opts, function(x){setequal(x, input$distance)}
                 )) & unlist(lapply(
                     dim.red.opts, function(x){setequal(x, input$dimRed)}
-                )) & as.numeric(cons.table[ , 3]) ==
+                )) & as.numeric(input.param$cons.table[ , 3]) ==
                     (input$clusters - 1), 4][[1]]
                 
                 values$consensus <- res[[1]]
@@ -173,10 +161,10 @@ sc3_interactive <- function(input.param) {
                 clusts <- cutree(values$hc, input$clusters)
                 cell.order <- order.dendrogram(as.dendrogram(values$hc))
                 
-                d <- dataset
+                d <- input.param$dataset
                 colnames(d) <- clusts
                 d <- d[ , cell.order]
-                values$original.labels <- cell.names[cell.order]
+                values$original.labels <- input.param$cell.names[cell.order]
                 values$new.labels <- reindex_clusters(colnames(d))
                 colnames(d) <- values$new.labels
                 values$dataset <- d
@@ -227,8 +215,8 @@ sc3_interactive <- function(input.param) {
             
             output$consensus <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    if(show.original.labels) {
-                        ann <- data.frame(Input.Labels = factor(cell.names))
+                    if(input.param$show.original.labels) {
+                        ann <- data.frame(Input.Labels = factor(input.param$cell.names))
                         pheatmap::pheatmap(values$consensus,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
@@ -285,7 +273,7 @@ sc3_interactive <- function(input.param) {
             
             output$matrix <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    if(show.original.labels) {
+                    if(input.param$show.original.labels) {
                         ann <- data.frame(Input.Labels =
                                               factor(values$original.labels))
                         t <- values$dataset
@@ -310,7 +298,7 @@ sc3_interactive <- function(input.param) {
             
             output$mark_genes <- renderPlot({
                 validate(
-                    need(try(!is.null(rownames(dataset))),
+                    need(try(!is.null(rownames(input.param$dataset))),
                          "\nNo gene names provided in the input expression matrix!")
                 )
                 withProgress(message = 'Calculating Marker genes...',
@@ -355,7 +343,7 @@ sc3_interactive <- function(input.param) {
             
             output$de_genes <- renderPlot({
                 validate(
-                    need(try(!is.null(rownames(dataset))),
+                    need(try(!is.null(rownames(input.param$dataset))),
                          "\nNo gene names provided in the input expression matrix!")
                 )
                 withProgress(message = 'Calculating DE genes...', value = 0, {
@@ -405,7 +393,7 @@ sc3_interactive <- function(input.param) {
                                      d <- values$dataset
                                  }
                                  # compute outlier cells
-                                 values$outl.res <- outl_cells_main(d, chisq.quantile)
+                                 values$outl.res <- outl_cells_main(d, input.param$chisq.quantile)
                                  
                                  t <- as.data.frame(values$outl.res)
                                  colnames(t)[1] <- "outl"
@@ -449,13 +437,13 @@ sc3_interactive <- function(input.param) {
             
             observeEvent(input$svm, {
                 withProgress(message = 'Running SVM...', value = 0, {
-                    values$dataset.svm <- study.dataset
+                    values$dataset.svm <- input.param$study.dataset
                     
                     original.labels <-
-                        c(values$original.labels, study.cell.names)
+                        c(values$original.labels, input.param$study.cell.names)
                     colnames(values$dataset.svm) <-
                         support_vector_machines(values$dataset,
-                                                study.dataset,
+                                                input.param$study.dataset,
                                                 "linear")
                     
                     tmp <- cbind(values$dataset, values$dataset.svm)
@@ -524,7 +512,7 @@ sc3_interactive <- function(input.param) {
             
             output$labs <- downloadHandler(
                 filename = function() {
-                    paste0("k-", input$clusters, "-labels-", filename, ".xls")
+                    paste0("k-", input$clusters, "-labels-", input.param$filename, ".xls")
                 },
                 
                 content = function(file) {
@@ -538,7 +526,7 @@ sc3_interactive <- function(input.param) {
             
             output$de <- downloadHandler(
                 filename = function() {
-                    paste0("k-", input$clusters, "-de-genes-", filename, ".xls")
+                    paste0("k-", input$clusters, "-de-genes-", input.param$filename, ".xls")
                 },
                 content = function(file) {
                     write.table(values$de.genes,
@@ -551,7 +539,7 @@ sc3_interactive <- function(input.param) {
             
             output$markers <- downloadHandler(
                 filename = function() {
-                    paste0("k-", input$clusters, "-markers-", filename, ".xls")
+                    paste0("k-", input$clusters, "-markers-", input.param$filename, ".xls")
                 },
                 content = function(file) {
                     write.table(values$marker.genes,
@@ -564,7 +552,7 @@ sc3_interactive <- function(input.param) {
             
             output$outl <- downloadHandler(
                 filename = function() {
-                    paste0("k-", input$clusters, "-outliers-", filename, ".xls")
+                    paste0("k-", input$clusters, "-outliers-", input.param$filename, ".xls")
                 },
                 content = function(file) {
                     write.table(values$cells.outliers,
