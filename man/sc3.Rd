@@ -8,7 +8,7 @@ sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter.fraction = 0.06, d.region.min = 0.04, d.region.max = 0.07,
   chisq.quantile = 0.9999, auroc.threshold = 0.85, interactivity = TRUE,
   show.original.labels = FALSE, svm.num.cells = 1000,
-  use.max.cores = TRUE, n.cores = 1, seed = 1)
+  use.max.cores = TRUE, n.cores = NA, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame / data.table object OR a
@@ -67,8 +67,8 @@ parameter, then an SVM prediction will be used. The default is 1000.}
 \item{use.max.cores}{defines whether to use maximum available cores on the
 user's machine. Logical, default is TRUE.}
 
-\item{n.cores}{if use.max.cores is FALSE, this parameter defines the number
-of cores to be used on the user's machine. Default is 1.}
+\item{n.cores}{defines the number
+of cores to be used on the user's machine. Default is NA.}
 
 \item{seed}{sets seed for the random number generator, default is 1.
 Can be used to check the stability of clustering results: if the results are 
@@ -83,7 +83,7 @@ all precomputed clusterings.
 Run SC3 clustering pipeline and starts an interactive session in a web browser.
 }
 \examples{
-sc3(treutlein, 3:7, interactivity = FALSE, use.max.cores = FALSE)
+sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 1)
 
 }
 

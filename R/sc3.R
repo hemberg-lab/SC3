@@ -45,8 +45,8 @@
 #' parameter, then an SVM prediction will be used. The default is 1000.
 #' @param use.max.cores defines whether to use maximum available cores on the
 #' user's machine. Logical, default is TRUE.
-#' @param n.cores if use.max.cores is FALSE, this parameter defines the number
-#' of cores to be used on the user's machine. Default is 1.
+#' @param n.cores defines the number
+#' of cores to be used on the user's machine. Default is NA.
 #' @param seed sets seed for the random number generator, default is 1.
 #' Can be used to check the stability of clustering results: if the results are 
 #' the same after changing the seed several time, then the clustering solution 
@@ -65,7 +65,7 @@
 #' @importFrom stats cutree hclust kmeans dist
 #'
 #' @examples
-#' sc3(treutlein, 3:7, interactivity = FALSE, use.max.cores = FALSE)
+#' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 1)
 #'
 #' @export
 sc3 <- function(filename,
@@ -81,7 +81,7 @@ sc3 <- function(filename,
                 show.original.labels = FALSE,
                 svm.num.cells = 1000,
                 use.max.cores = TRUE,
-                n.cores = 1,
+                n.cores = NA,
                 seed = 1) {
 
     # initial parameters
@@ -169,9 +169,14 @@ sc3 <- function(filename,
 
     cat("Calculating distance matrices...\n")
     # register computing cluster (N-1 CPUs) on a local machine
-    if(use.max.cores) {
-        n.cores <- parallel::detectCores() - 1
+    if(is.na(n.cores)) {
+        if(use.max.cores) {
+            n.cores <- parallel::detectCores() - 1
+        } else {
+            return("Please provide a number of CPU cores (n.cores) that can be used by SC3.")
+        }
     }
+    
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
 
