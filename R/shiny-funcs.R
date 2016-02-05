@@ -156,7 +156,7 @@ getAUC <- function(gene, labels) {
 }
 
 #' @importFrom stats p.adjust
-get_marker_genes <- function(dataset, labels) {
+get_marker_genes <- function(dataset, labels, auroc.threshold) {
     geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
     geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow=length(geneAUCs)/3,
                                     byrow=TRUE))
@@ -170,7 +170,7 @@ get_marker_genes <- function(dataset, labels) {
     geneAUCsdf <-
         geneAUCsdf[geneAUCsdf$p.value < 0.01 & !is.na(geneAUCsdf$p.value), ]
 
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > 0.85, ]
+    geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
 
     d <- NULL
     for(i in sort(unique(geneAUCsdf$clusts))) {

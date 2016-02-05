@@ -6,9 +6,9 @@
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter.fraction = 0.06, d.region.min = 0.04, d.region.max = 0.07,
-  chisq.quantile = 0.9999, interactivity = TRUE,
+  chisq.quantile = 0.9999, auroc.threshold = 0.85, interactivity = TRUE,
   show.original.labels = FALSE, svm.num.cells = 1000,
-  use.max.cores = TRUE, n.cores = 1)
+  use.max.cores = TRUE, n.cores = 1, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame / data.table object OR a
@@ -41,8 +41,11 @@ default is 0.04.}
 \item{d.region.max}{the upper boundary of the optimum region of d, 
 default is 0.07.}
 
-\item{chisq.quantile}{a treshold used for cell outliers detection, 
+\item{chisq.quantile}{a threshold used for cell outliers detection, 
 default is 0.9999.}
+
+\item{auroc.threshold}{a threshold used for marker genes detection,
+default is 0.85}
 
 \item{interactivity}{defines whether a browser interactive window should be
 open after all computation is done. By default it is TRUE. This option can
@@ -66,6 +69,11 @@ user's machine. Logical, default is TRUE.}
 
 \item{n.cores}{if use.max.cores is FALSE, this parameter defines the number
 of cores to be used on the user's machine. Default is 1.}
+
+\item{seed}{sets seed for the random number generator, default is 1.
+Can be used to check the stability of clustering results: if the results are 
+the same after changing the seed several time, then the clustering solution 
+is stable.}
 }
 \value{
 Opens a browser window with an interactive shine app and visualize

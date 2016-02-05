@@ -313,7 +313,8 @@ sc3_interactive <- function(input.param) {
                                  }
                                  # define marker genes
                                  values$mark.res <- get_marker_genes(d,
-                                                                     as.numeric(colnames(d)))
+                                                                     as.numeric(colnames(d)),
+                                                                     input.param$auroc.threshold)
                                  # check the results of mark_genes_main:
                                  # global variable mark.res
                                  validate(
