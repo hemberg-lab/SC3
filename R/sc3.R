@@ -181,8 +181,7 @@ sc3 <- function(filename,
     doParallel::registerDoParallel(cl, cores = n.cores)
 
     # calculate distances in parallel
-    dists <- foreach::foreach(i = distances,
-                             .options.RNG=1234) %dorng% {
+    dists <- foreach::foreach(i = distances) %dorng% {
         try({
             calculate_distance(dataset, i)
         })
@@ -195,7 +194,7 @@ sc3 <- function(filename,
     cat("Performing dimensionality reduction and kmeans clusterings...\n")
     labs <- foreach::foreach(i = 1:dim(hash.table)[1],
                             .combine = rbind,
-                            .options.RNG=1234) %dorng% {
+                            .options.RNG = seed) %dorng% {
         try({
             t <- transformation(get(hash.table[i, 1], dists),
                                 hash.table[i, 2])[[1]]
@@ -236,8 +235,7 @@ sc3 <- function(filename,
     }
 
     # run consensus clustering in parallel
-    cons <- foreach::foreach(i = 1:dim(all.combinations)[1],
-                            .options.RNG=1234) %dorng% {
+    cons <- foreach::foreach(i = 1:dim(all.combinations)[1]) %dorng% {
         try({
             d <- res[res$distan %in% strsplit(all.combinations[i, 1], " ")[[1]] &
                 res$dim.red %in% strsplit(all.combinations[i, 2], " ")[[1]] &
