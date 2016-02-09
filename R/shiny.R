@@ -186,8 +186,9 @@ sc3_interactive <- function(input.param) {
                 SC3.results <- list()
                 
                 values$cell.labels <- 
-                    data.frame(new.labels = values$new.labels,
-                               original.labels = values$original.labels)
+                    data.frame(new.labels = as.numeric(values$new.labels),
+                               original.labels = values$original.labels,
+                               stringsAsFactors = FALSE)
             })
             
             observe({
@@ -325,10 +326,11 @@ sc3_interactive <- function(input.param) {
                                  d.param <- mark_gene_heatmap_param(values$mark.res,
                                                                     unique(colnames(d)))
                                  values$mark <- TRUE
-                                 values$marker.genes <- data.frame(new.labels = values$mark.res[,2],
+                                 values$marker.genes <- data.frame(new.labels = as.numeric(values$mark.res[,2]),
                                                              gene = rownames(values$mark.res),
-                                                             AUROC = values$mark.res[,1],
-                                                             p.value = values$mark.res[,3])
+                                                             AUROC = as.numeric(values$mark.res[,1]),
+                                                             p.value = as.numeric(values$mark.res[,3]),
+                                                             stringsAsFactors = FALSE)
                                  
                                  pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), , drop = FALSE],
                                                     show_colnames = FALSE,
@@ -369,7 +371,8 @@ sc3_interactive <- function(input.param) {
                     
                     values$de <- TRUE
                     res <- data.frame(gene = names(values$de.res),
-                                            p.value = values$de.res)
+                                            p.value = as.numeric(values$de.res),
+                                      stringsAsFactors = FALSE)
                     rownames(res) <- NULL
                     values$de.genes <- res
                     
@@ -413,13 +416,15 @@ sc3_interactive <- function(input.param) {
                                  
                                  values$outl <- TRUE
                                  values$cells.outliers <- if(with_svm) {
-                                         data.frame(new.labels = names(values$outl.res),
+                                         data.frame(new.labels = as.numeric(names(values$outl.res)),
                                                     original.labels = values$original.labels.svm,
-                                                    MCD.dist = values$outl.res)
+                                                    MCD.dist = as.numeric(values$outl.res),
+                                                    stringsAsFactors = FALSE)
                                  } else {
-                                         data.frame(new.labels = names(values$outl.res),
+                                         data.frame(new.labels = as.numeric(names(values$outl.res)),
                                                     original.labels = values$original.labels,
-                                                    MCD.dist = values$outl.res)
+                                                    MCD.dist = values$outl.res,
+                                                    stringsAsFactors = FALSE)
                                  }
                                  
                                  ggplot(t, aes(x = Cells, y = outl,
