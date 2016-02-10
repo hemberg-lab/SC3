@@ -16,11 +16,15 @@
 #' the minimum number of genes that have to be expressed in each cell
 #' (expression value > 1e-2). If there are fewer, the cell will be
 #' removed from the analysis. The default is 2000.
+#' @param gene.filter defines whether to perform gene filtering or not. Boolean,
+#' default is TRUE.
 #' @param gene.filter.fraction fraction of cells (1 - X/100), default is 0.06.
 #' The gene filter removes genes that are either expressed or absent
 #' (expression value is less than 2) in at least X % of cells.
 #' The motivation for the gene filter is that ubiquitous and rare genes most
 #' often are not informative for the clustering.
+#' @param log.scale defines whether to perform log2 scaling or not. Boolean,
+#' default is TRUE.
 #' @param d.region.min the lower boundary of the optimum region of d, 
 #' default is 0.04.
 #' @param d.region.max the upper boundary of the optimum region of d, 
@@ -72,7 +76,9 @@ sc3 <- function(filename,
                 ks = 3:7,
                 cell.filter = FALSE,
                 cell.filter.genes = 2000,
+                gene.filter = TRUE,
                 gene.filter.fraction = 0.06,
+                log.scale = TRUE,
                 d.region.min = 0.04,
                 d.region.max = 0.07,
                 chisq.quantile = 0.9999,
@@ -107,15 +113,19 @@ sc3 <- function(filename,
     }
 
     # gene filter
-    dataset <- gene_filter(dataset, gene.filter.fraction)
-    if(dim(dataset)[1] == 0) {
-        cat("All genes were removed after the gene filter! Stopping now...")
-        return()
+    if(gene.filter) {
+        dataset <- gene_filter(dataset, gene.filter.fraction)
+        if(dim(dataset)[1] == 0) {
+            cat("All genes were removed after the gene filter! Stopping now...")
+            return()
+        }
     }
 
     # log2 transformation
-    cat("log2-scaling...\n")
-    dataset <- log2(1 + dataset)
+    if(log.scale) {
+        cat("log2-scaling...\n")
+        dataset <- log2(1 + dataset)
+    }
 
     # define the output file basename
     filename <- ifelse(!is.character(filename),
