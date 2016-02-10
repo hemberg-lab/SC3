@@ -5,8 +5,9 @@
 \title{SC3 main function}
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
-  gene.filter.fraction = 0.06, d.region.min = 0.04, d.region.max = 0.07,
-  chisq.quantile = 0.9999, auroc.threshold = 0.85, interactivity = TRUE,
+  gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
+  d.region.min = 0.04, d.region.max = 0.07, chisq.quantile = 0.9999,
+  auroc.threshold = 0.85, interactivity = TRUE,
   show.original.labels = FALSE, svm.num.cells = 1000,
   use.max.cores = TRUE, n.cores = NA, seed = 1)
 }
@@ -29,11 +30,17 @@ the minimum number of genes that have to be expressed in each cell
 (expression value > 1e-2). If there are fewer, the cell will be
 removed from the analysis. The default is 2000.}
 
+\item{gene.filter}{defines whether to perform gene filtering or not. Boolean,
+default is TRUE.}
+
 \item{gene.filter.fraction}{fraction of cells (1 - X/100), default is 0.06.
 The gene filter removes genes that are either expressed or absent
 (expression value is less than 2) in at least X % of cells.
 The motivation for the gene filter is that ubiquitous and rare genes most
 often are not informative for the clustering.}
+
+\item{log.scale}{defines whether to perform log2 scaling or not. Boolean,
+default is TRUE.}
 
 \item{d.region.min}{the lower boundary of the optimum region of d, 
 default is 0.04.}
