@@ -2,8 +2,9 @@
 #'
 #' Run SC3 clustering pipeline and starts an interactive session in a web browser.
 #'
-#' @param filename either an R matrix / data.frame / data.table object OR a
-#' path to your input file containing an input expression matrix.
+#' @param filename either an R matrix / data.frame object OR a
+#' path to your input file containing an input expression matrix. The expression
+#' matrix must contain both colnames (cell IDs) and rownames (gene IDs).
 #' @param ks a range of the number of clusters that needs to be tested.
 #' k.min is the minimum number of clusters (default is 3). k.max is the maximum
 #' number of clusters (default is 7).

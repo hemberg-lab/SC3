@@ -8,7 +8,7 @@
 #' @importFrom utils read.table read.csv
 get_data <- function(name) {
     if(!is.character(name)) {
-        return(name)
+        return(as.matrix(name))
     } else {
         if(!grepl("csv", name)) {
             return(as.matrix(read.table(name, check.names = FALSE)))
