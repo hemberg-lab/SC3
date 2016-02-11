@@ -12,8 +12,9 @@ sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   use.max.cores = TRUE, n.cores = NA, seed = 1)
 }
 \arguments{
-\item{filename}{either an R matrix / data.frame / data.table object OR a
-path to your input file containing an input expression matrix.}
+\item{filename}{either an R matrix / data.frame object OR a
+path to your input file containing an input expression matrix. The expression
+matrix must contain both colnames (cell IDs) and rownames (gene IDs).}
 
 \item{ks}{a range of the number of clusters that needs to be tested.
 k.min is the minimum number of clusters (default is 3). k.max is the maximum
