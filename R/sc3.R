@@ -32,8 +32,6 @@
 #' default is 0.07.
 #' @param chisq.quantile a threshold used for cell outliers detection, 
 #' default is 0.9999.
-#' @param auroc.threshold a threshold used for marker genes detection,
-#' default is 0.85
 #' @param interactivity defines whether a browser interactive window should be
 #' open after all computation is done. By default it is TRUE. This option can
 #' be used to separate clustering calculations from visualisation,
@@ -83,7 +81,6 @@ sc3 <- function(filename,
                 d.region.min = 0.04,
                 d.region.max = 0.07,
                 chisq.quantile = 0.9999,
-                auroc.threshold = 0.85,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm.num.cells = 1000,
@@ -286,8 +283,7 @@ sc3 <- function(filename,
                          cell.names = cell.names,
                          study.cell.names = study.cell.names,
                          show.original.labels = show.original.labels,
-                         chisq.quantile = chisq.quantile,
-                         auroc.threshold = auroc.threshold)
+                         chisq.quantile = chisq.quantile)
 
     if(interactivity) {
         # start a shiny app in a browser window

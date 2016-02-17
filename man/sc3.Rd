@@ -7,9 +7,8 @@
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
   d.region.min = 0.04, d.region.max = 0.07, chisq.quantile = 0.9999,
-  auroc.threshold = 0.85, interactivity = TRUE,
-  show.original.labels = FALSE, svm.num.cells = 1000,
-  use.max.cores = TRUE, n.cores = NA, seed = 1)
+  interactivity = TRUE, show.original.labels = FALSE,
+  svm.num.cells = 1000, use.max.cores = TRUE, n.cores = NA, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -51,9 +50,6 @@ default is 0.07.}
 
 \item{chisq.quantile}{a threshold used for cell outliers detection, 
 default is 0.9999.}
-
-\item{auroc.threshold}{a threshold used for marker genes detection,
-default is 0.85}
 
 \item{interactivity}{defines whether a browser interactive window should be
 open after all computation is done. By default it is TRUE. This option can
