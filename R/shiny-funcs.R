@@ -156,7 +156,7 @@ getAUC <- function(gene, labels) {
 }
 
 #' @importFrom stats p.adjust
-get_marker_genes <- function(dataset, labels, auroc.threshold) {
+get_marker_genes <- function(dataset, labels, auroc.threshold, p.val) {
     geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
     geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow=length(geneAUCs)/3,
                                     byrow=TRUE))
@@ -168,7 +168,7 @@ get_marker_genes <- function(dataset, labels, auroc.threshold) {
 
     geneAUCsdf$p.value <- p.adjust(geneAUCsdf$p.value)
     geneAUCsdf <-
-        geneAUCsdf[geneAUCsdf$p.value < 0.01 & !is.na(geneAUCsdf$p.value), ]
+        geneAUCsdf[geneAUCsdf$p.value < p.val & !is.na(geneAUCsdf$p.value), ]
 
     geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
 
@@ -183,12 +183,12 @@ get_marker_genes <- function(dataset, labels, auroc.threshold) {
 }
 
 #' @importFrom stats kruskal.test p.adjust
-kruskal_statistics <- function(dataset, labels) {
+kruskal_statistics <- function(dataset, labels, p.val) {
     t <- apply(dataset, 1, kruskal.test, g = factor(labels))
     ps <- unlist(lapply(t, "[[", "p.value"))
     ps <- p.adjust(ps)
     ps <- ps[!is.na(ps)]
-    ps <- ps[ps < 0.01]
+    ps <- ps[ps < p.val]
     return(ps[order(ps)])
 }
 

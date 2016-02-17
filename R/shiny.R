@@ -78,6 +78,20 @@ sc3_interactive <- function(input.param) {
                                                                        " random cells. When you have found the best clustering, press this button to predict labels of the other cells:\n\n"))),
                            conditionalPanel("!output.is_svm", actionButton("svm", label = "Run SVM")),
 
+                           h4("Biological interpretation"),
+                           
+                           sliderInput("auroc.threshold", label = "AUROC threshold for Marker genes",
+                                       min = 0.5,
+                                       max = 0.95,
+                                       value = 0.85,
+                                       step = 0.05),
+                           
+                           sliderInput("p.val", label = "p-value for DE and Marker genes",
+                                       min = 0.01,
+                                       max = 0.1,
+                                       value = 0.01,
+                                       step = 0.01),
+                           
                            conditionalPanel("output.is_mark", h4("GO for Marker genes")),
                            conditionalPanel("output.is_mark", selectInput("cluster", "Choose a cluster:",
                                        c("None" = "NULL"))),
@@ -315,7 +329,8 @@ sc3_interactive <- function(input.param) {
                                  # define marker genes
                                  values$mark.res <- get_marker_genes(d,
                                                                      as.numeric(colnames(d)),
-                                                                     input.param$auroc.threshold)
+                                                                     input$auroc.threshold,
+                                                                     input$p.val)
                                  # check the results of mark_genes_main:
                                  # global variable mark.res
                                  validate(
@@ -359,7 +374,7 @@ sc3_interactive <- function(input.param) {
                         col.gaps <- values$col.gaps
                     }
                     # define de genes
-                    values$de.res <- kruskal_statistics(d, colnames(d))
+                    values$de.res <- kruskal_statistics(d, colnames(d), input$p.val)
                     # check the results of de_genes_main:
                     # global variable de.res
                     validate(
