@@ -92,7 +92,13 @@ sc3 <- function(filename,
     set.seed(seed)
     distances <- c("euclidean", "pearson", "spearman")
     dimensionality.reductions <- c("pca", "spectral")
-    RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
+    if(file.exists(paste0(file.path(find.package("RSelenium"),
+                                    "bin/selenium-server-standalone.jar")))) {
+        RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
+        rselenium.installed <- TRUE
+    } else {
+        rselenium.installed <- FALSE
+    }
     on.exit(stopSeleniumServer())
 
     # get input data
@@ -283,7 +289,8 @@ sc3 <- function(filename,
                          cell.names = cell.names,
                          study.cell.names = study.cell.names,
                          show.original.labels = show.original.labels,
-                         chisq.quantile = chisq.quantile)
+                         chisq.quantile = chisq.quantile,
+                         rselenium.installed = rselenium.installed)
 
     if(interactivity) {
         # start a shiny app in a browser window
