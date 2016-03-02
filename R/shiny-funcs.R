@@ -95,8 +95,15 @@ outl_cells_main <- function(d, chisq.quantile) {
                 }
             }
         } else {
-            out <- rep(0, dim(d[ , colnames(d) == i])[2])
-            names(out) <- rep(i, dim(d[ , colnames(d) == i])[2])
+            # check if there is only one cell in the cluster
+            tmp <- as.matrix(table(colnames(d) == i))
+            if(tmp["TRUE", ] > 1) {
+                out <- rep(0, dim(d[ , colnames(d) == i])[2])
+                names(out) <- rep(i, dim(d[ , colnames(d) == i])[2])
+            } else {
+                out <- 0
+                names(out) <- i
+            }
             outl.res[[i]] <- out
         }
     }
