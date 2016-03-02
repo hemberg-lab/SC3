@@ -112,6 +112,12 @@ sc3_interactive <- function(input.param) {
                         column(6,
                                actionButton('save', label = "To R session")
                         )
+                    ),
+                    fluidRow(
+                        column(12,
+                               HTML("<br>"),
+                               downloadButton('consens_download', label = "Consensus")
+                        )
                     )
                     # Remove the text links for now. If needed - just uncomment
                     # the piece of code below and they should then work.
@@ -125,6 +131,7 @@ sc3_interactive <- function(input.param) {
                     #            conditionalPanel("output.is_outl", downloadLink('outl', label = "Outliers"))
                     #     )
                     # )
+                    
                 ))),
                 column(6,
                        uiOutput('mytabs')
@@ -307,95 +314,101 @@ sc3_interactive <- function(input.param) {
                 res <- ""
                 if(length(input$main_panel) > 0) {
                     if(grepl("Consensus", input$main_panel)) {
-                        res <- HTML("Consensus matrix is a <i>N</i>x<i>N</i> 
+                        res <- HTML("The consensus matrix is a <i>N</i>x<i>N</i> 
                                     matrix, where <i>N</i> is the number of cells.
-                                    It represents similarity between 
-                                    the cells based on the averaging of clusteing 
-                                    results from all combinations of clustering 
-                                    parameters (in the left panel). Similarity 0 (<font color = 'blue'>blue</font>) means that the two cells are always assigned to different clusters by any clustering combination.
-                                    In contrast, similarity 1 (<font color = 'red'>red</font>) means that 
-                                    the two cells are always assigned to the same cluster. 
-                                    Consensus matrix is clustered by hierarchical clustering 
-                                    and has a diagonal-block structure. Intuitively, the perfect 
-                                    clustering is achieved when all diagonal blocks are 
-                                    completely <font color = 'red'>red</font> and all off-diagonal elements are 
-                                    completely <font color = 'blue'>blue</font>. 
+                                    It represents similarity between the cells based 
+                                    on the averaging of clustering results from all 
+                                    combinations of clustering parameters 
+                                    (checkboxes in the left panel). Similarity 0  
+                                    (<font color = 'blue'>blue</font>) means that 
+                                    the two cells are always assigned to different clusters. 
+                                    In contrast, similarity 1 (<font color = 'red'>red</font>) 
+                                    means that the two cells are always assigned 
+                                    to the same cluster. The consensus matrix is 
+                                    clustered by hierarchical clustering and has 
+                                    a diagonal-block structure. Intuitively, the 
+                                    perfect clustering is achieved when all diagonal 
+                                    blocks are completely <font color = 'red'>red</font> 
+                                    and all off-diagonal elements are completely <font color = 'blue'>blue</font>. 
                                     For a more objective clustering validation please visit the <b>Silhouette</b> panel.")
                     }
                     if(grepl("Silhouette", input$main_panel)) {
                         res <- HTML("As opposed to visual exploration of the 
-                                    consensus matrix, a silhouette is a quantitative
-                                    measure of the diagonality of the consensus matrix.
-                                    An average silhouette width (shown at the bottom of the 
-                                    silhouette plot) varies from 0 to 1, where 0 
-                                    represents a complete non-diagonality and 1 represents a 
-                                    perfect diagonality of the consensus matrix. The best 
-                                    clustering is achieved when the average silhouette width is close to 1.")
+                                    consensus matrix, a silhouette is a quantitative 
+                                    measure of the diagonality of the consensus 
+                                    matrix. An average silhouette width 
+                                    (shown at the bottom left of the silhouette 
+                                    plot) varies from 0 to 1, where 1 represents 
+                                    a perfectly block-diagonal consensus matrix 
+                                    and 0 represents a situation where there is 
+                                    no block-diagonal structure. The best 
+                                    clustering is achieved when the average 
+                                    silhouette width is close to 1.")
                     }
                     if(grepl("Labels", input$main_panel)) {
-                        res <- HTML("Labels panel shows how cells are distributed in the
-                                    obtained clusters using the original cell indexes 
-                                    from the expression matix. To help you see how clustering
-                                    changes in transition from <i>k</i> - 1 to <i>k</i>, we introduced a colour-code 
-                                    that corresponds to custering results for <i>k</i> - 1.")
+                        res <- HTML("The labels panel shows how cells are distributed 
+                                    in the clusters that were obtained using the 
+                                    original cell indexes from the expression matrix. 
+                                    To help visualize how the clustering changes 
+                                    when changing from <i>k</i> - 1 to <i>k</i>, the labels are 
+                                    colour-coded corresponding to the custering 
+                                    results for <i>k</i> - 1.")
                     }
                     if(grepl("Expression", input$main_panel)) {
-                        res <- HTML("Expression panel represents the original input
-                                    expression matrix (cells in columns and genes in rows) after cell and gene filters. 
-                                    The matrix is log2-scaled. Genes are clustered 
-                                    by <i>k</i>-means with <i>k</i> = 100 (dendrogram on the left) and the heatmap 
-                                    represents the expression levels of the gene
-                                    cluster centers.")
+                        res <- HTML("The expression panel represents the original 
+                                    input expression matrix (cells in columns and 
+                                    genes in rows) after cell and gene filters. 
+                                    Genes are clustered by <i>k</i>-means with <i>k</i> = 100 
+                                    (dendrogram on the left) and the heatmap 
+                                    represents the expression levels of the gene 
+                                    cluster centers after <i>log2</i>-scaling.")
                     }
                     if(grepl("DE", input$main_panel)) {
                         res <- HTML("Differential expression is calculated using 
-                                    the non-parametric Kruskal-Wallis test. A significant <i>p</i>-value indicates 
-                                    that gene expression in at least one 
-                                    cluster stochastically dominates one 
-                                    other cluster. SC3 provides a list of all 
-                                    differentially expressed genes with 
-                                    adjusted <i>p</i>-values < 0.01 and plots gene 
-                                    expression profiles of the 50 most 
-                                    significant differentially expressed genes. 
-                                    Note that the calculation of differential 
+                                    the non-parametric Kruskal-Wallis test. 
+                                    A significant <i>p</i>-value indicates that gene 
+                                    expression in at least one cluster 
+                                    stochastically dominates one other cluster. 
+                                    SC3 provides a list of all differentially 
+                                    expressed genes with adjusted <i>p</i>-values < 0.01 
+                                    and plots gene expression profiles of the 
+                                    50 genes with the lowest <i>p</i>-values. Note 
+                                    that the calculation of differential 
                                     expression after clustering can introduce 
                                     a bias in the distribution of <i>p</i>-values, 
                                     and thus we advise to use the <i>p</i>-values for 
-                                    ranking the genes only.<br>If you would like
-                                    to reduce the <i>p</i>-value threshold please use the
-                                    radio buttons below.<br><br>")
+                                    ranking the genes only.<br>The <i>p</i>-value threshold 
+                                    can be changed using the radio buttons below.<br><br>")
                     }
                     if(grepl("Markers", input$main_panel)) {
-                        res <- HTML("For each gene a binary classifier is 
-                                    constructed based on the mean cluster 
-                                    expression values. A classifier prediction 
-                                    is then calculated using the gene expression 
-                                    ranks. The area under the receiver operating 
-                                    characteristic (ROC) curve is used to quantify 
-                                    the accuracy of the prediction. A p-value is 
-                                    assigned to each gene by using the Wilcoxon 
-                                    signed rank test. The genes with the area under 
-                                    the ROC curve (AUROC) > 0.85 and with the 
-                                    <i>p</i>-value < 0.01 are defined as marker genes. 
-                                    SC3 provides a visualization of the gene 
-                                    expression profiles for the top 10 marker 
-                                    genes of each obtained cluster.<br>If 
-                                    you would like to reduce the AUROC or <i>p</i>-value 
-                                    thresholds please use the slider and radio 
-                                    buttons below.<br>
-                                    In addition, SC3 allows to run a Gene Ontology (GO) analysis
-                                    using a panel below.<br><br>")
+                        res <- HTML("For each gene a binary classifier is constructed 
+                                    based on the mean cluster expression values. 
+                                    The classifier prediction is then calculated 
+                                    using the gene expression ranks. The area 
+                                    under the receiver operating characteristic 
+                                    (ROC) curve is used to quantify the accuracy 
+                                    of the prediction. A <i>p</i>-value is assigned to 
+                                    each gene by using the Wilcoxon signed rank 
+                                    test. The genes with the area under the ROC 
+                                    curve (AUROC) > 0.85 and with the <i>p</i>-value 
+                                    < 0.01 are defined as marker genes and the 
+                                    top 10 marker genes of each cluster are 
+                                    visualized in this panel. The AUROC and the 
+                                    p-value thresholds can be changed using the 
+                                    slider and radio buttons below.<br>
+                                    In addition, SC3 allows you to run a Gene 
+                                    Ontology (GO) analysis using a panel below.<br><br>")
                     }
                     if(grepl("Outliers", input$main_panel)) {
                         res <- HTML("Outlier cells in each cluster are detected 
-                                    by using robust distances, 
-                                    calculated using the minimum covariance 
-                                    determinant (MCD). An outlier 
-                                    score is defined as the differences between 
+                                    using robust distances, calculated using 
+                                    the minimum covariance determinant (MCD). 
+                                    The outlier score shows how different a 
+                                    cell is from all other cells in the cluster 
+                                    and it is defined as the differences between 
                                     the square root of the robust distance and 
                                     the square root of the 99.99% quantile of 
-                                    the chi-squared distribution. The outlier score
-                                    defines how different a cell is from all other cells in the cluster.")
+                                    the chi-squared distribution.")
                     }
                 }
                 return(res)
@@ -643,7 +656,7 @@ sc3_interactive <- function(input.param) {
                  scale_fill_manual(values = cols) +
                  scale_color_manual(values = cols) +
                  guides(color = FALSE, fill = FALSE) +
-                 labs(y = "Outlier score") +
+                 labs(x = "Cells", y = "Outlier score") +
                  theme_bw()
             })
             
@@ -789,16 +802,28 @@ sc3_interactive <- function(input.param) {
                 
                 content = function(file) {
                     WriteXLS(list(values$cell.labels,
-                                  values$consensus.download,
                                   values$de.genes,
                                   values$marker.genes,
                                   values$cells.outliers),
                              ExcelFileName = file,
                              SheetNames = c("Cell labels",
-                                            "Consensus matrix",
                                             "DE genes",
                                             "Marker genes",
                                             "Cell outliers"))
+                }
+            )
+            
+            output$consens_download <- downloadHandler(
+                filename = function() {
+                    paste0("k-", input$clusters, "-consensus-", input.param$filename, ".txt")
+                },
+                
+                content = function(file) {
+                    write.table(values$consensus.download,
+                                file = file,
+                                row.names = FALSE,
+                                quote = FALSE,
+                                sep = "\t")
                 }
             )
             
