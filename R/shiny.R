@@ -243,6 +243,13 @@ sc3_interactive <- function(input.param) {
                 colnames(d) <- clusts
                 d <- d[ , cell.order]
                 values$original.labels <- input.param$cell.names[cell.order]
+                
+                # prepare a consensus matrix for downloading
+                tmp <- data.frame(values$consensus[cell.order, cell.order])
+                colnames(tmp) <- values$original.labels
+                rownames(tmp) <- seq(length=nrow(tmp))
+                values$consensus.download <- tmp
+                
                 values$new.labels <- reindex_clusters(colnames(d))
                 colnames(d) <- values$new.labels
                 values$dataset <- d
@@ -740,6 +747,7 @@ sc3_interactive <- function(input.param) {
             observeEvent(input$save, {
                 SC3.results <<- list(
                     cell.labels = values$cell.labels,
+                    consensus = values$consensus.download,
                     de.genes = values$de.genes,
                     marker.genes = values$marker.genes,
                     cells.outliers = values$cells.outliers
@@ -781,11 +789,13 @@ sc3_interactive <- function(input.param) {
                 
                 content = function(file) {
                     WriteXLS(list(values$cell.labels,
+                                  values$consensus.download,
                                   values$de.genes,
                                   values$marker.genes,
                                   values$cells.outliers),
                              ExcelFileName = file,
                              SheetNames = c("Cell labels",
+                                            "Consensus matrix",
                                             "DE genes",
                                             "Marker genes",
                                             "Cell outliers"))
