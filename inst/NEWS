@@ -1,3 +1,11 @@
+01/03/2016
+
+The latest version 0.99.23 contains the following major updates
+* Major redesign
+* Added description panels
+* Fixed a bug with RSelenium
+* Added a proper Excel export using WriteXLS library
+
 10/12/2015
 
 The first version 0.99.0 is submitted to Bioconductor
