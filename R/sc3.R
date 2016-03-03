@@ -140,16 +140,25 @@ sc3 <- function(filename,
     # prepare for SVM (optional)
     study.cell.names <- NULL
     study.dataset <- data.frame()
+    
     if(dim(dataset)[2] > svm.num.cells) {
-
-        cat("\n")
-        cat(paste0("Your dataset contains more than ",
-                   svm.num.cells,
-                   " cells,therefore clustering wil be performed on a random sample of ",
-                   svm.num.cells,
-                   " cells, the rest of the cells will be predicted using SVM."))
-        cat("\n")
-        cat("\n")
+        svm.num.cells <- round(0.2 * dim(dataset)[2])
+        if(svm.num.cells > 1000) {
+            svm.num.cells <- 1000
+            cat("\n")
+            cat(paste0("Your dataset contains more than 5000 cells,therefore clustering will be performed on a random sample of ",
+                       svm.num.cells,
+                       " cells, the rest of the cells will be predicted using SVM."))
+            cat("\n")
+            cat("\n")
+        } else {
+            cat("\n")
+            cat(paste0("Your dataset contains more than 1000 cells,therefore clustering will be performed on a random sample of ",
+                       svm.num.cells,
+                       " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
+            cat("\n")
+            cat("\n")
+        }
 
         working.sample <- sample(1:dim(dataset)[2], svm.num.cells)
         study.sample <- setdiff(1:dim(dataset)[2], working.sample)

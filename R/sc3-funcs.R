@@ -6,14 +6,29 @@
 #' @return expression matrix
 #'
 #' @importFrom utils read.table read.csv
+#' @importFrom stats na.omit
 get_data <- function(name) {
     if(!is.character(name)) {
-        return(as.matrix(name))
+        res1 <- na.omit(name)
+        if(dim(name)[1] != dim(res1)[1] | dim(name)[2] != dim(res1)[2]) {
+            cat("There were NA values in the input matrix. Genes containing these values were removed from the matrix.\n")
+        }
+        return(as.matrix(res1))
     } else {
         if(!grepl("csv", name)) {
-            return(as.matrix(read.table(name, check.names = FALSE)))
+            res <- read.table(name, check.names = FALSE)
+            res1 <- na.omit(res)
+            if(dim(res)[1] != dim(res1)[1] | dim(res)[2] != dim(res1)[2]) {
+                cat("There were non-numeric values in the input matrix. Genes containing these values were removed from the matrix.\n")
+            }
+            return(as.matrix(res1))
         } else if(grepl("csv", name)) {
-            return(as.matrix(read.csv(name, check.names = FALSE)))
+            res <- read.csv(name, check.names = FALSE)
+            res1 <- na.omit(res)
+            if(dim(res)[1] != dim(res1)[1] | dim(res)[2] != dim(res1)[2]) {
+                cat("There were NA values in the input matrix. Genes containing these values were removed from the matrix.\n")
+            }
+            return(as.matrix(res1))
         }
     }
 }
