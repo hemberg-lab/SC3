@@ -46,8 +46,6 @@
 #' by setting this parameter to TRUE. The default is FALSE.
 #' @param svm.num.cells if number of cells in the dataset is greater than this
 #' parameter, then an SVM prediction will be used. The default is 1000.
-#' @param use.max.cores defines whether to use maximum available cores on the
-#' user's machine. Logical, default is TRUE.
 #' @param n.cores defines the number
 #' of cores to be used on the user's machine. Default is NA.
 #' @param seed sets seed for the random number generator, default is 1.
@@ -68,7 +66,7 @@
 #' @importFrom stats cutree hclust kmeans dist
 #'
 #' @examples
-#' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 1)
+#' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
 #'
 #' @export
 sc3 <- function(filename,
@@ -84,14 +82,13 @@ sc3 <- function(filename,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm.num.cells = 1000,
-                use.max.cores = TRUE,
                 n.cores = NA,
                 seed = 1) {
 
     # initial parameters
     set.seed(seed)
     distances <- c("euclidean", "pearson", "spearman")
-    dimensionality.reductions <- c("pca", "spectral")
+    dimensionality.reductions <- c("PCA", "Spectral")
     if(file.exists(paste0(file.path(find.package("RSelenium"),
                                     "bin/selenium-server-standalone.jar")))) {
         RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
@@ -184,10 +181,13 @@ sc3 <- function(filename,
     cat("Calculating distance matrices...\n")
     # register computing cluster (N-1 CPUs) on a local machine
     if(is.na(n.cores)) {
-        if(use.max.cores) {
-            n.cores <- parallel::detectCores() - 1
-        } else {
-            return("Please provide a number of CPU cores (n.cores) that can be used by SC3.")
+        n.cores <- parallel::detectCores()
+        if(is.na(n.cores)) {
+            return("Cannot define a number of available CPU cores that can be used by SC3. Try to set the n.cores parameter in the sc3() function call.")
+        }
+        # leave one core for the user
+        if(n.cores > 1) {
+            n.cores <- n.cores - 1
         }
     }
     
