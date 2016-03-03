@@ -46,6 +46,7 @@ mark_gene_heatmap_param <- function(mark.res, labs) {
 outl_cells_main <- function(d, chisq.quantile) {
     outl.res <- list()
     for(i in unique(colnames(d))) {
+        n.cells <- length(colnames(d)[colnames(d) == i])
         # reduce p dimensions by using robust PCA
         t <- tryCatch({
             PcaHubert(d[ , colnames(d) == i])
@@ -61,8 +62,8 @@ outl_cells_main <- function(d, chisq.quantile) {
             if(dim(t@loadings)[1] <= 6) {
                 message(paste0("No outliers detected in cluster ", i,
                                ". Small number of cells in the cluster."))
-                out <- rep(0, dim(d[ , colnames(d) == i])[2])
-                names(out) <- rep(i, dim(d[ , colnames(d) == i])[2])
+                out <- rep(0, n.cells)
+                names(out) <- rep(i, n.cells)
                 outl.res[[i]] <- out
             } else {
                 df <- ifelse(dim(t@loadings)[2] > 3, 3, dim(t@loadings)[2])
@@ -89,21 +90,14 @@ outl_cells_main <- function(d, chisq.quantile) {
                     outliers[which(outliers < 0)] <- 0
                     outl.res[[i]] <- outliers
                 } else {
-                    out <- rep(0, dim(d[ , colnames(d) == i])[2])
-                    names(out) <- rep(i, dim(d[ , colnames(d) == i])[2])
+                    out <- rep(0, n.cells)
+                    names(out) <- rep(i, n.cells)
                     outl.res[[i]] <- out
                 }
             }
         } else {
-            # check if there is only one cell in the cluster
-            tmp <- as.matrix(table(colnames(d) == i))
-            if(tmp["TRUE", ] > 1) {
-                out <- rep(0, dim(d[ , colnames(d) == i])[2])
-                names(out) <- rep(i, dim(d[ , colnames(d) == i])[2])
-            } else {
-                out <- 0
-                names(out) <- i
-            }
+            out <- rep(0, n.cells)
+            names(out) <- rep(i, n.cells)
             outl.res[[i]] <- out
         }
     }

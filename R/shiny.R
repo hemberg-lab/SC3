@@ -95,9 +95,9 @@ sc3_interactive <- function(input.param) {
                         column(12,
                             conditionalPanel("!output.is_svm",
                                h4("SVM prediction"),
-                               p(paste0("You chose to cluster your data based on ",
+                               p(paste0("Your data was clustered based on ",
                                         input.param$svm.num.cells,
-                                        " random cells. When you have found the best clustering parameters, press this button to predict labels of the other cells:\n\n")),
+                                        " random cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n")),
                                actionButton("svm", label = "Run SVM")
                             )
                         )
@@ -364,7 +364,9 @@ sc3_interactive <- function(input.param) {
                                     cluster centers after <i>log2</i>-scaling.")
                     }
                     if(grepl("DE", input$main_panel)) {
-                        res <- HTML("Differential expression is calculated using 
+                        res <- HTML(paste0("SC3 found <b>", length(values$de.res), "</b> differentially expressed genes based
+                                           on the obtained clustering.<br>",
+                                    "Differential expression is calculated using 
                                     the non-parametric Kruskal-Wallis test. 
                                     A significant <i>p</i>-value indicates that gene 
                                     expression in at least one cluster 
@@ -378,10 +380,12 @@ sc3_interactive <- function(input.param) {
                                     a bias in the distribution of <i>p</i>-values, 
                                     and thus we advise to use the <i>p</i>-values for 
                                     ranking the genes only.<br>The <i>p</i>-value threshold 
-                                    can be changed using the radio buttons below.<br><br>")
+                                    can be changed using the radio buttons below.<br><br>"))
                     }
                     if(grepl("Markers", input$main_panel)) {
-                        res <- HTML("For each gene a binary classifier is constructed 
+                        res <- HTML(paste0("SC3 found <b>", nrow(values$mark.res), "</b> marker genes based
+                                           on the obtained clustering.<br>",
+                                    "To find marker genes, for each gene a binary classifier is constructed 
                                     based on the mean cluster expression values. 
                                     The classifier prediction is then calculated 
                                     using the gene expression ranks. The area 
@@ -397,7 +401,7 @@ sc3_interactive <- function(input.param) {
                                     p-value thresholds can be changed using the 
                                     slider and radio buttons below.<br>
                                     In addition, SC3 allows you to run a Gene 
-                                    Ontology (GO) analysis using a panel below.<br><br>")
+                                    Ontology (GO) analysis using a panel below.<br><br>"))
                     }
                     if(grepl("Outliers", input$main_panel)) {
                         res <- HTML("Outlier cells in each cluster are detected 
@@ -576,7 +580,7 @@ sc3_interactive <- function(input.param) {
                 
                 values$plot.mark <- list(d, d.param, col.gaps)
                 
-                return(50 + 10*dim(d.param$mark.res.plot)[1])
+                return(50 + 10.8*nrow(d.param$mark.res.plot))
             }
             
             output$plot_mark_genes <- renderUI({
@@ -639,7 +643,7 @@ sc3_interactive <- function(input.param) {
                 
                 values$plot.de <- list(d, d.param, col.gaps)
                 
-                return(50 + 10*length(head(values$de.res, 50)))
+                return(50 + 10.8*length(head(values$de.res, 50)))
             }
             
             output$plot_de_genes <- renderUI({
