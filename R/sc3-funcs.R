@@ -107,10 +107,10 @@ calculate_distance <- function(data, method) {
 #' @importFrom stats prcomp cmdscale
 #'
 transformation <- function(dists, method) {
-    if (method == "pca") {
+    if (method == "PCA") {
         t <- prcomp(dists, center = TRUE, scale. = TRUE)
         list(t$rotation, t$sdev)
-    } else if (method == "spectral") {
+    } else if (method == "Spectral") {
         L <- norm_laplacian(exp(-dists/max(dists)), 0)
         # sort eigenvectors by their eigenvalues in increasing order
         list(eigen(L)$vectors[, order(eigen(L)$values)],
@@ -120,7 +120,7 @@ transformation <- function(dists, method) {
         # sort eigenvectors by their eigenvalues in increasing order
         list(eigen(L)$vectors[, order(eigen(L)$values)],
              eigen(L)$values[order(eigen(L)$values)])
-    } else if (method == "mds") {
+    } else if (method == "MDS") {
         t <- cmdscale(dists, k = ncol(dists) - 1)
         list(t)
     }
