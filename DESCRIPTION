@@ -1,7 +1,7 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 0.99.30
+Version: 0.99.31
 Date: 2016-03-03
 Authors@R: person("Vladimir", "Kiselev", email = "vladimir.yu.kiselev@gmail.com", role = c("aut", "cre"))
 Description: Interactive tool for clustering and analysis of single cell RNA-Seq data.
@@ -12,7 +12,8 @@ Imports: graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
 Depends: R(>= 3.3)
 LazyData: TRUE
 RoxygenNote: 5.0.1
-Suggests: knitr, rmarkdown
+Suggests: knitr, rmarkdown,
+    testthat
 VignetteBuilder: knitr
 biocViews: Classification, Clustering, DimensionReduction, SupportVectorMachine, RNASeq,
           Visualization, Transcriptomics, DataRepresentation, GUI, DifferentialExpression,
