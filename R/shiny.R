@@ -162,7 +162,9 @@ sc3_interactive <- function(input.param) {
                                              selectInput("cluster", "Choose a cluster for GO analysis:",
                                                          c("None" = "NULL")),
                                              if(input.param$rselenium.installed) {
-                                                 actionButton("GO", label = "Analyze!")
+                                                actionButton("GO", label = "Analyze!")
+                                             },
+                                             if(input.param$rselenium.installed) {
                                                  HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
                                              } else {
                                                  HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
