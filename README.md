@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/hemberg-lab/SC3.svg?branch=master)](https://travis-ci.org/hemberg-lab/SC3)
 
 __Q__: What is this?  
 __A__: __SC3__ is an interactive tool for the unsupervised clustering of cells from single cell RNA-Seq experiments. __SC3__ main page is on [BioConductor](http://bioconductor.org/packages/SC3/).
