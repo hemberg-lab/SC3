@@ -1,25 +1,30 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 0.99.33
-Date: 2016-03-07
-Authors@R: person("Vladimir", "Kiselev", email = "vladimir.yu.kiselev@gmail.com", role = c("aut", "cre"))
+Version: 0.99.34
+Date: 2016-04-05
+Author: Vladimir Kiselev
+Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
+Authors@R: c(person("Vladimir", "Kiselev",
+             email = "vladimir.yu.kiselev@gmail.com",
+             role = c("aut", "cre")),
+             person("Tallulah", "Andrews",
+             role=c("aut")),
+             person("Martin", "Hemberg",
+             role=c("aut")))
 Description: Interactive tool for clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
 Imports: graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
-          doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8), RColorBrewer, colorspace,
-          ROCR, robustbase, rrcov, cluster, WriteXLS
+          doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8), RColorBrewer,
+          colorspace, ROCR, robustbase, rrcov, cluster, WriteXLS, Rtsne
 Depends: R(>= 3.3)
 LazyData: TRUE
 RoxygenNote: 5.0.1
-Suggests: knitr, rmarkdown,
-    testthat
+Suggests: knitr, rmarkdown, testthat
 VignetteBuilder: knitr
-biocViews: Classification, Clustering, DimensionReduction, SupportVectorMachine, RNASeq,
-          Visualization, Transcriptomics, DataRepresentation, GUI, DifferentialExpression,
-          GeneSetEnrichment, Transcription
+biocViews: Classification, Clustering, DimensionReduction, SupportVectorMachine,
+          RNASeq, Visualization, Transcriptomics, DataRepresentation, GUI,
+          DifferentialExpression, GeneSetEnrichment, Transcription
 NeedsCompilation: no
-Author: Vladimir Kiselev
-Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 URL: https://github.com/hemberg-lab/SC3
 BugReports: https://github.com/hemberg-lab/SC3/issues
