@@ -8,13 +8,14 @@
 #' all precomputed clusterings.
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions tags radioButtons downloadButton
-#' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs
+#' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string xlab ylab geom_rug
 #' @importFrom utils head write.table
 #' @importFrom stats as.dendrogram order.dendrogram cutree median
 #' @importFrom graphics plot
 #' @importFrom pheatmap pheatmap
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom WriteXLS WriteXLS
+#' @importFrom Rtsne Rtsne
 #'
 #' @export
 #'
@@ -181,6 +182,16 @@ sc3_interactive <- function(input.param) {
                                                           selected = "0.01",
                                                           inline = TRUE)
                                     )
+                            ),
+                            
+                            conditionalPanel("input.main_panel == 'tSNE'",
+                                     wellPanel(
+                                         sliderInput("perplexity", label = "Perplexity",
+                                                     min = floor(0.7 * ncol(input.param$dataset) / 5),
+                                                     max = floor(1.3 * ncol(input.param$dataset) / 5),
+                                                     value = floor(ncol(input.param$dataset) / 5)
+                                                     )
+                                     )
                             )
                        )
                    )
@@ -199,6 +210,8 @@ sc3_interactive <- function(input.param) {
                                                 style = "font-size:80%")),
                                    tabPanel("Expression",
                                             plotOutput('matrix', height = plot.height, width = "100%")),
+                                   tabPanel("tSNE",
+                                            plotOutput('tSNEplot', height = plot.height, width = "100%")),
                                    tabPanel("DE",
                                             uiOutput('plot_de_genes')),
                                    tabPanel("Markers",
@@ -214,7 +227,9 @@ sc3_interactive <- function(input.param) {
                                             div(htmlOutput('labels'),
                                                 style = "font-size:80%")),
                                    tabPanel("Expression",
-                                            plotOutput('matrix', height = plot.height, width = "100%")))
+                                            plotOutput('matrix', height = plot.height, width = "100%")),
+                                   tabPanel("tSNE",
+                                            plotOutput('tSNEplot', height = plot.height, width = "100%")))
                 }
                 do.call(tabsetPanel, c(myTabs, id = "main_panel", type = "pills"))
             })
@@ -365,6 +380,23 @@ sc3_interactive <- function(input.param) {
                                     represents the expression levels of the gene 
                                     cluster centers after <i>log2</i>-scaling.")
                     }
+                    if(grepl("tSNE", input$main_panel)) {
+                        res <- HTML("<a href = 'https://lvdmaaten.github.io/tsne/'>tSNE</a> (t-Distributed
+                                    Stochastic Neighbor Embedding) method is used to
+                                    map high-dimensional data to a 2D 
+                                    space while preserving local distances between 
+                                    cells. tSNE has become a very popular visualisation
+                                    tool. SC3 imports the Rtsne function from the
+                                    <a href='https://cran.r-project.org/web/packages/Rtsne/index.html'>
+                                    Rtsne package</a> to perform the tSNE analysis.
+                                    The colors on the plot correspond to the clusters
+                                    identified by SC3.<br>
+                                    One of the most sensitive parameters in tSNE analysis is the
+                                    so-called <i>perplexity</i>. SC3 defines the default
+                                    <i>perplexity</i> as <i>N</i>/5, where <i>N</i> is
+                                    the number of cells, but also allows to change it
+                                    in a reasonable interval using the slider below.<br><br>")
+                    }
                     if(grepl("DE", input$main_panel)) {
                         res <- HTML(paste0("SC3 found <b>", length(values$de.res), "</b> differentially expressed genes based
                                            on the obtained clustering.<br>",
@@ -498,6 +530,7 @@ sc3_interactive <- function(input.param) {
                     need(input$dimRed, "\nPlease select at least one Transformation!")
                 )
                 withProgress(message = 'Plotting...', value = 0, {
+                    set.seed(1234567)
                     if(input.param$show.original.labels) {
                         ann <- data.frame(Input.Labels =
                                               factor(values$original.labels))
@@ -518,6 +551,27 @@ sc3_interactive <- function(input.param) {
                                            show_colnames = FALSE,
                                            gaps_col = values$col.gaps)
                     }
+                })
+            })
+            
+            output$tSNEplot <- renderPlot({
+                validate(
+                    need(input$distance, "\nPlease select at least one Distance!"),
+                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                )
+                withProgress(message = 'Plotting...', value = 0, {
+                    set.seed(1234567)
+                    tsne_out <- Rtsne::Rtsne(t(values$dataset),
+                                             perplexity = input$perplexity)
+                    df_to_plot <- as.data.frame(tsne_out$Y)
+                    df_to_plot$Cluster <- factor(colnames(values$dataset),
+                                                 levels = unique(colnames(values$dataset)))
+                    comps <- colnames(df_to_plot)[1:2]
+                    ggplot(df_to_plot, aes_string(x = comps[1], y = comps[2], color = "Cluster")) +
+                        geom_point() +
+                        xlab("Dimension 1") +
+                        ylab("Dimension 2") +
+                        theme_bw()
                 })
             })
             
