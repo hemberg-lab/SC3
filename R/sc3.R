@@ -44,8 +44,11 @@
 #' @param show.original.labels if cell labels in the dataset are not unique,
 #' but represent clusters expected from the experiment, they can be visualised
 #' by setting this parameter to TRUE. The default is FALSE.
-#' @param svm.num.cells if number of cells in the dataset is greater than this
-#' parameter, then an SVM prediction will be used. The default is 1000.
+#' @param svm if TRUE then an SVM prediction will be used. The default is FALSE.
+#' @param svm.num.cells number of training cells to be used for SVM prediction. 
+#' The default is NA. If the svm parameter is TRUE and svn.num.cells is not provided,
+#' then the defaults of SC3 will be used: if number of cells is more than 5000,
+#' then svn.num.cells = 1000, otherwise svn.num.cells = 20 percent of the total number of cells
 #' @param n.cores defines the number
 #' of cores to be used on the user's machine. Default is NA.
 #' @param seed sets seed for the random number generator, default is 1.
@@ -81,7 +84,8 @@ sc3 <- function(filename,
                 chisq.quantile = 0.9999,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
-                svm.num.cells = 1000,
+                svm = FALSE,
+                svm.num.cells = NA,
                 n.cores = NA,
                 seed = 1) {
 
@@ -133,43 +137,51 @@ sc3 <- function(filename,
                        deparse(substitute(filename)),
                        basename(filename))
 
-    # define cell names from the input dataset
-    cell.names <- c(1:dim(dataset)[2])
-    cell.names <- colnames(dataset)
-
-    # prepare for SVM (optional)
-    study.cell.names <- NULL
+    # prepare for SVM
     study.dataset <- data.frame()
+    svm.inds <- NULL
     
-    if(dim(dataset)[2] > svm.num.cells) {
-        svm.num.cells <- round(0.2 * dim(dataset)[2])
-        if(svm.num.cells > 1000) {
-            svm.num.cells <- 1000
-            cat("\n")
-            cat(paste0("Your dataset contains more than 5000 cells,therefore clustering will be performed on a random sample of ",
-                       svm.num.cells,
-                       " cells, the rest of the cells will be predicted using SVM."))
-            cat("\n")
-            cat("\n")
+    # SVM (optional)
+    if(svm) {
+        if(is.na(svm.num.cells)) {
+            svm.num.cells <- round(0.2 * dim(dataset)[2])
+            if(svm.num.cells > 5000) {
+                svm.num.cells <- 1000
+                cat("\n")
+                cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. Your dataset contains more than 5000 cells and by default clustering will be performed on a random sample of ",
+                           svm.num.cells,
+                           " cells, the rest of the cells will be predicted using SVM."))
+                cat("\n")
+                cat("\n")
+            } else {
+                cat("\n")
+                cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. By default clustering will be performed on a random sample of ",
+                           svm.num.cells,
+                           " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
+                cat("\n")
+                cat("\n")
+            }
         } else {
-            cat("\n")
-            cat(paste0("Your dataset contains more than 1000 cells,therefore clustering will be performed on a random sample of ",
+            if(svm.num.cells >= dim(dataset)[2] - 1) return(
+                paste0("You have chosen to use SVM for clustering, and provided the number of training cells (svm.num.cells = ",
                        svm.num.cells,
-                       " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
-            cat("\n")
-            cat("\n")
+                       ") that is larger (or equal) than the number of cells in your dataset - 1 (",
+                       dim(dataset)[2] - 1,
+                       "). Please adjust svm.num.cells parameter and rerun SC3.")
+            ) else {
+                cat("\n")
+                cat(paste0("You have chosen to use SVM for clustering and provided the number of training cells using svm.num.cells parameter: ",
+                           svm.num.cells,
+                           " cells. This number of cells will be used for SVM training. The rest of the cells will be predicted using SVM."))
+                cat("\n")
+                cat("\n")
+            }
         }
-
-        working.sample <- sample(1:dim(dataset)[2], svm.num.cells)
-        study.sample <- setdiff(1:dim(dataset)[2], working.sample)
-        study.dataset <- dataset[ , study.sample]
-        dataset <- dataset[, working.sample]
-
-        study.cell.names <- study.sample
-        study.cell.names <- colnames(study.dataset)
-
-        cell.names <- working.sample
-        cell.names <- colnames(dataset)
+        svm.train.inds <- sample(1:dim(dataset)[2], svm.num.cells)
+        svm.study.inds <- setdiff(1:dim(dataset)[2], svm.train.inds)
+        study.dataset <- dataset[ , svm.study.inds]
+        dataset <- dataset[, svm.train.inds]
+        svm.inds <- c(svm.train.inds, svm.study.inds)
     }
 
     # define number of cells and region of dimensions
@@ -295,8 +307,7 @@ sc3 <- function(filename,
                          dataset = dataset,
                          study.dataset = study.dataset,
                          svm.num.cells = svm.num.cells,
-                         cell.names = cell.names,
-                         study.cell.names = study.cell.names,
+                         svm.inds = svm.inds,
                          show.original.labels = show.original.labels,
                          chisq.quantile = chisq.quantile,
                          rselenium.installed = rselenium.installed)
