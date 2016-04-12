@@ -37,7 +37,7 @@ sc3_interactive <- function(input.param) {
     
     values <- reactiveValues()
     
-    if(dim(input.param$study.dataset)[2] > 0) {
+    if(!is.na(input.param$svm.num.cells)) {
         with_svm <- TRUE
         values$svm <- FALSE
         values$svm.ready <- FALSE
@@ -120,19 +120,6 @@ sc3_interactive <- function(input.param) {
                                downloadButton('consens_download', label = "Consensus")
                         )
                     )
-                    # Remove the text links for now. If needed - just uncomment
-                    # the piece of code below and they should then work.
-                    #
-                    # fluidRow(
-                    #     column(12,
-                    #            HTML("To text files:<br>"),
-                    #            downloadLink('labs', label = "Labels"),
-                    #            conditionalPanel("output.is_de", downloadLink('de', label = "DE genes")),
-                    #            conditionalPanel("output.is_mark", downloadLink('markers', label = "Markers")),
-                    #            conditionalPanel("output.is_outl", downloadLink('outl', label = "Outliers"))
-                    #     )
-                    # )
-                    
                 ))),
                 column(6,
                        uiOutput('mytabs')
@@ -266,7 +253,7 @@ sc3_interactive <- function(input.param) {
                 d <- input.param$dataset
                 colnames(d) <- clusts
                 d <- d[ , cell.order]
-                values$original.labels <- input.param$cell.names[cell.order]
+                values$original.labels <- colnames(input.param$dataset)[cell.order]
                 
                 # prepare a consensus matrix for downloading
                 tmp <- data.frame(values$consensus[cell.order, cell.order])
@@ -277,6 +264,11 @@ sc3_interactive <- function(input.param) {
                 values$new.labels <- reindex_clusters(colnames(d))
                 colnames(d) <- values$new.labels
                 values$dataset <- d
+                
+                # original ordering of the cells
+                ord <- order(cell.order)
+                values$original.labels1 <- values$original.labels[ord]
+                values$new.labels1 <- values$new.labels[ord]
                 
                 values$col.gaps <- which(diff(as.numeric(colnames(d))) != 0)
                 
@@ -297,6 +289,10 @@ sc3_interactive <- function(input.param) {
                 values$cell.labels <- 
                     data.frame(new.labels = as.numeric(values$new.labels),
                                original.labels = values$original.labels,
+                               stringsAsFactors = FALSE)
+                values$cell.labels1 <- 
+                    data.frame(original.labels = values$original.labels1,
+                               new.labels = as.numeric(values$new.labels1),
                                stringsAsFactors = FALSE)
             })
             
@@ -461,7 +457,7 @@ sc3_interactive <- function(input.param) {
                 )
                 withProgress(message = 'Plotting...', value = 0, {
                     if(input.param$show.original.labels) {
-                        ann <- data.frame(Input.Labels = factor(input.param$cell.names))
+                        ann <- data.frame(Input.Labels = factor(colnames(input.param$dataset)))
                         pheatmap::pheatmap(values$consensus,
                                            cluster_rows = values$hc,
                                            cluster_cols = values$hc,
@@ -781,16 +777,19 @@ sc3_interactive <- function(input.param) {
             
             observeEvent(input$svm, {
                 withProgress(message = 'Running SVM...', value = 0, {
-                    values$dataset.svm <- input.param$study.dataset
+                    d <- input.param$dataset
+                    colnames(d) <- values$new.labels1
                     
                     original.labels <-
-                        c(values$original.labels, input.param$study.cell.names)
+                        c(values$original.labels1, colnames(input.param$study.dataset))
+                    
+                    values$dataset.svm <- input.param$study.dataset
                     colnames(values$dataset.svm) <-
-                        support_vector_machines(values$dataset,
+                        support_vector_machines(d,
                                                 input.param$study.dataset,
                                                 "linear")
                     
-                    tmp <- cbind(values$dataset, values$dataset.svm)
+                    tmp <- cbind(d, values$dataset.svm)
                     cols <- colnames(tmp)
                     inds <- NULL
                     for(i in unique(colnames(tmp))) {
@@ -810,6 +809,12 @@ sc3_interactive <- function(input.param) {
                     values$cell.labels <- data.frame(new.labels = values$new.labels.svm,
                                    original.labels = values$original.labels.svm)
                     
+                    # original ordering of the cells
+                    ord <- order(input.param$svm.inds)
+                    values$cell.labels1 <- data.frame(
+                        original.labels = original.labels[ord],
+                        new.labels = values$new.labels.svm[order(inds)][ord])
+                    
                     values$svm <- TRUE
                     values$svm.clusters <- paste(input$clusters, collapse = "_")
                     values$svm.distance <- paste(input$distance, collapse = "_")
@@ -820,6 +825,7 @@ sc3_interactive <- function(input.param) {
             observeEvent(input$save, {
                 SC3.results <<- list(
                     cell.labels = values$cell.labels,
+                    cell.labels.original.order = values$cell.labels1,
                     consensus = values$consensus.download,
                     de.genes = values$de.genes,
                     marker.genes = values$marker.genes,
@@ -862,11 +868,13 @@ sc3_interactive <- function(input.param) {
                 
                 content = function(file) {
                     WriteXLS(list(values$cell.labels,
+                                  values$cell.labels1,
                                   values$de.genes,
                                   values$marker.genes,
                                   values$cells.outliers),
                              ExcelFileName = file,
                              SheetNames = c("Cell labels",
+                                            "Cell labels (original order)",
                                             "DE genes",
                                             "Marker genes",
                                             "Cell outliers"))
@@ -887,58 +895,6 @@ sc3_interactive <- function(input.param) {
                 }
             )
             
-            output$labs <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-labels-", input.param$filename, ".txt")
-                },
-                
-                content = function(file) {
-                    write.table(values$cell.labels,
-                        file = file,
-                        row.names = FALSE,
-                        quote = FALSE,
-                        sep = "\t")
-                }
-            )
-            
-            output$de <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-de-genes-", input.param$filename, ".txt")
-                },
-                content = function(file) {
-                    write.table(values$de.genes,
-                        file = file,
-                        row.names = FALSE,
-                        quote = FALSE,
-                        sep = "\t")
-                }
-            )
-            
-            output$markers <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-markers-", input.param$filename, ".txt")
-                },
-                content = function(file) {
-                    write.table(values$marker.genes,
-                                file = file,
-                                row.names = FALSE,
-                                quote = FALSE,
-                                sep = "\t")
-                }
-            )
-            
-            output$outl <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-outliers-", input.param$filename, ".txt")
-                },
-                content = function(file) {
-                    write.table(values$cells.outliers,
-                        file = file,
-                        row.names = FALSE,
-                        quote = FALSE,
-                        sep = "\t")
-                }
-            )
             session$onSessionEnded(function() {
                 stopApp()
             })

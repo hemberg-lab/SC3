@@ -7,8 +7,8 @@
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
   d.region.min = 0.04, d.region.max = 0.07, chisq.quantile = 0.9999,
-  interactivity = TRUE, show.original.labels = FALSE,
-  svm.num.cells = 1000, n.cores = NA, seed = 1)
+  interactivity = TRUE, show.original.labels = FALSE, svm = FALSE,
+  svm.num.cells = NA, n.cores = NA, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -65,8 +65,12 @@ sc3_interactive(sc3.interactive.arg).}
 but represent clusters expected from the experiment, they can be visualised
 by setting this parameter to TRUE. The default is FALSE.}
 
-\item{svm.num.cells}{if number of cells in the dataset is greater than this
-parameter, then an SVM prediction will be used. The default is 1000.}
+\item{svm}{if TRUE then an SVM prediction will be used. The default is FALSE.}
+
+\item{svm.num.cells}{number of training cells to be used for SVM prediction. 
+The default is NA. If the svm parameter is TRUE and svn.num.cells is not provided,
+then the defaults of SC3 will be used: if number of cells is more than 5000,
+then svn.num.cells = 1000, otherwise svn.num.cells = 20 percent of the total number of cells}
 
 \item{n.cores}{defines the number
 of cores to be used on the user's machine. Default is NA.}
