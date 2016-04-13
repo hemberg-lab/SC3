@@ -9,39 +9,21 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Instalation
+## Introduction
 
-If you use the __devel__ version of R, to install __SC3__ please follow the instruction on the [BioConductor website](http://bioconductor.org/packages/SC3/):
+Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently in submission but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
 
-```{r, eval=FALSE}
-## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("SC3")
-```
+## Prerequisite (optional)
 
-If you have any other version of __R (>= 2.10)__, please install __SC3__ directly from "R-old" branch of [SC3 GitHub](https://github.com/hemberg-lab/SC3) repository:
-```{r, eval=FALSE}
-install.packages("devtools")
-devtools::install_github("hemberg-lab/SC3", ref = "R-old")
-```
+> Note that this prerequisite is only optional. If it is not installed you can still run __SC3__, but the _GO anlaysis_ functionality will be disabled.
 
-Before running __SC3__ for the first time __only__, please start R and enter:
+__SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details). You can download and install this binary file by running (the file size is about 30Mb):
+
 ```{r, eval=FALSE}
 RSelenium::checkForServer()
 ```
 
-Note, this command has to be executed only once, before running __SC3__ for the first time. This is required because __SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details), which is automatically downloaded by running _RSelenium::checkForServer()_ command. The file size is about 30Mb.
-
-## Quick start
-
-To run __SC3__ with an example dataset, start R and then type:
-
-```{r, eval=FALSE}
-library(SC3)
-sc3(treutlein, ks = 3:7, cell.filter = TRUE)
-```
-
-It should open SC3 in a browser window without providing any error.
+Note, this command has to be executed only once, before running __SC3__ for the first time. Also note that the minimum Java version requirement for [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) is 1.7 (see [this post](https://github.com/ropensci/RSelenium/issues/54) for details).
 
 ## "Built-in" datasets
 
@@ -51,21 +33,55 @@ There is one built-in dataset that is automatically loaded with __SC3__:
 --- | --- | --- | --- |
 | [treutlein](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.html) | Distal lung epithelium | 80 | 5 |
 
-One can explore clusterings of this dataset by running the following commands (__ks__ parameter defines a region of __k__ needed to be investigated - see the next section):
+## Quick start
+
+To run __SC3__ with the built-in dataset, start R and then type:
+
 ```{r, eval=FALSE}
-sc3(treutlein, ks = 3:7)
+library(SC3)
+sc3(treutlein)
 ```
 
-## Running __SC3__
+It should open SC3 in a browser window without providing any error.
 
-If you would like to check the clustering of your own __dataset__ for __k__ (number of clusters) from 2 to 5, then you need to run the following:
+## __SC3__ parameters
+
+By default __SC3__ clusters the input dataset in a region of __k__ from 3 to 7. This region can be changed by adjusting the __ks__ parameter of __SC3__. E.g. if you would like to check the clustering of your own __dataset__ for __k__ from 2 to 5, then you need to run the following:
 ```{r, eval=FALSE}
-sc3(dataset, ks = 2:5)                        # without filtering of lowly expressed cells
-sc3(dataset, ks = 2:5, cell.filter = TRUE)    # with filtering of lowly expressed cells
-sc3(dataset, ks = 2:5, interactivity = FALSE) # without interactive visualisation
+sc3(dataset, ks = 2:5)
 ```
 
-where __dataset__ is either an R matrix / data.frame / data.table object OR a path to your input file containing an expression matrix. For more details please read the documentation by typing ?sc3.
+where __dataset__ is either an R matrix / data.frame / data.table object OR a path to your input file containing an expression matrix.
+
+For the full list of __SC3__ parameters please read the documentation by typing ?sc3.
+
+## Running __SC3__ without interactivity
+
+If you would like to separate clustering calculations from visualisation, e.g. when your dataset is very large and you need to run it on a computing cluster, you can disable interactivity by setting __interactivity__ parameter to FALSE:
+
+```{r, eval=FALSE}
+sc3(treutlein, interactivity = FALSE)
+```
+
+In this case all clustering results will be saved as _sc3.interactive.arg_ variable in your R session. You can then visualise your results by running:
+
+```{r, eval=FALSE}
+sc3_interactive(sc3.interactive.arg)
+```
+
+## Number of cells
+
+Combining multiple clustering results through the consensus approach is quite computationally expensive. Therefore running __SC3__ on datasets with 1,000 cells may take ~10-15 mins. We do not recommend to use the default options on datasets with more than 1,000 cells. In order to  apply  SC3 to larger datasets, we have implemented a hybrid approach that combines unsupervised and supervised methodologies. When the number of cells is large (N>1,000), SC3 selects a small subset of cells uniformly at random, and obtains clusters from this subset as described above. Subsequently, the inferred labels are used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells. Training the SVM typically takes only a few minutes, thus allowing SC3 to be applied to very large datasets. Based on our results, we set the default of __SC3__ so that when N>1,000 only 20% of the cells are used and when N>5,000 only 1,000 cells are used for clustering before training the SVM. To enable the SVM training please set the _svm_ parameter to __TRUE__:
+
+```{r, eval=FALSE}
+sc3(treutlein, svm = TRUE)
+```
+
+You can also control the number of training cells used to train SVM with the _svm.num.cells_ parameter:
+
+```{r, eval=FALSE}
+sc3(treutlein, svm = TRUE, svm.num.cells = 25)
+```
 
 ## Input file format
 
@@ -84,3 +100,6 @@ The first row of the expression matrix (with cell labels, e.g. __cell1__, __cell
 sc3("/path/to/input/file/expression-matrix.txt", ks = 2:5)
 ```
 
+## Saving results
+
+After finding the best clustering solution __SC3__ allows a user to either export the results into an excel file or to save them to the current R session. If the former is chosen then the excel file will be written to the default _Downloads_ folder used by your browser. When saving to the R session a variable (list) __SC3.results__ containing all the results from the interactive session will be created.
