@@ -145,7 +145,7 @@ sc3 <- function(filename,
     if(svm) {
         if(is.na(svm.num.cells)) {
             svm.num.cells <- round(0.2 * dim(dataset)[2])
-            if(svm.num.cells > 5000) {
+            if(dim(dataset)[2] > 5000) {
                 svm.num.cells <- 1000
                 cat("\n")
                 cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. Your dataset contains more than 5000 cells and by default clustering will be performed on a random sample of ",

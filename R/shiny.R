@@ -34,7 +34,6 @@ sc3_interactive <- function(input.param) {
     plot.height.small <- 300
     
     ## define server global variables
-    
     values <- reactiveValues()
     
     if(!is.na(input.param$svm.num.cells)) {
@@ -48,198 +47,349 @@ sc3_interactive <- function(input.param) {
     
     shinyApp(
         ui = fluidPage(
-            
             tags$head(
-                tags$style(HTML("
-                                .shiny-output-error-validation {
-                                color: red;
-                                }
-                                "))
-            ),
-            
-            fluidRow(
-                column(12,
-                       HTML(paste0("<h3>SC3 clustering of ", input.param$filename, "</h3>"))
+                tags$style(
+                    HTML(
+                        ".shiny-output-error-validation {
+                            color: red;
+                        }"
+                    )
                 )
             ),
             fluidRow(
-                column(3,
+                column(
+                    12,
+                    HTML(
+                        paste0("<h3>SC3 clustering of ", 
+                               input.param$filename, 
+                               "</h3>")
+                    )
+                )
+            ),
+            fluidRow(
+                column(
+                    3,
                     h4("Parameters"),
                     wellPanel(
                     fluidRow(
-                        column(12,
-                               sliderInput("clusters", label = "Number of clusters k",
-                                           min = min(as.numeric(unlist(input.param$cons.table[,3]))) + 1,
-                                           max = max(as.numeric(unlist(input.param$cons.table[,3]))),
-                                           value = median(as.numeric(unlist(input.param$cons.table[,3]))),
-                                           step = 1
-                                           # animate = animationOptions(interval = 2000,
-                                           #                            loop = FALSE)
-                                           )
+                        column(
+                            12,
+                            sliderInput(
+                                "clusters",
+                                label = "Number of clusters k",
+                                min = min(as.numeric(unlist(input.param$cons.table[,3]))) + 1,
+                                max = max(as.numeric(unlist(input.param$cons.table[,3]))),
+                                value = median(as.numeric(unlist(input.param$cons.table[,3]))),
+                                step = 1,
+                                animate = animationOptions(
+                                    interval = 2000,
+                                    loop = FALSE
+                                )
+                            )
                         )
                     ),
                     fluidRow(
-                        column(6,
-                               checkboxGroupInput("distance",
-                                                  label = "Distance",
-                                                  choices = distances,
-                                                  selected = distances)
+                        column(
+                            6,
+                            checkboxGroupInput(
+                                "distance",
+                                label = "Distance",
+                                choices = distances,
+                                selected = distances)
                         ),
-                        column(6,
-                               checkboxGroupInput("dimRed",
-                                                  label = "Transformation",
-                                                  choices = dimensionality.reductions,
-                                                  selected = dimensionality.reductions)
+                        column(
+                            6,
+                            checkboxGroupInput(
+                                "dimRed",
+                                label = "Transformation",
+                                choices = dimensionality.reductions,
+                                selected = dimensionality.reductions)
                         )
                     ),
                     fluidRow(
-                        column(12,
-                            conditionalPanel("!output.is_svm",
-                               h4("SVM prediction"),
-                               p(paste0("Your data was clustered based on ",
+                        column(
+                            12,
+                            conditionalPanel(
+                                "!output.is_svm",
+                                h4("SVM prediction"),
+                                p(
+                                    paste0(
+                                        "Your data was clustered based on ",
                                         input.param$svm.num.cells,
-                                        " random cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n")),
-                               actionButton("svm", label = "Run SVM")
+                                        " random cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n"
+                                    )
+                                ),
+                                actionButton(
+                                    "svm",
+                                    label = "Run SVM"
+                                )
                             )
                         )
                     )),
                     h4("Export results"),
                     wellPanel(
-                    conditionalPanel("output.is_svm",
+                        conditionalPanel(
+                            "output.is_svm",
+                            fluidRow(
+                                column(6,
+                                       downloadButton(
+                                           'excel',
+                                           label = "To Excel")
+                                ),
+                                column(6,
+                                       actionButton(
+                                           'save',
+                                           label = "To R session")
+                                )
+                            ),
+                            fluidRow(
+                                column(12,
+                                       HTML("<br>"),
+                                       downloadButton(
+                                           'consens_download',
+                                           label = "Consensus")
+                                )
+                            )
+                        )
+                    )
+                ),
+                column(
+                    6,
+                    uiOutput('mytabs')
+                ),
+                column(
+                    3,
                     fluidRow(
-                        column(6,
-                               downloadButton('excel', label = "To Excel")
-                        ),
-                        column(6,
-                               actionButton('save', label = "To R session")
+                        column(
+                            12,
+                            h4("Panel description"),
+                            htmlOutput("explanation")
                         )
                     ),
                     fluidRow(
-                        column(12,
-                               HTML("<br>"),
-                               downloadButton('consens_download', label = "Consensus")
+                        column(
+                            12,
+                            conditionalPanel(
+                                "input.main_panel == 'Markers' && output.is_mark",
+                                wellPanel(
+                                    sliderInput(
+                                        "auroc.threshold",
+                                        label = "AUROC threshold",
+                                        min = 0.6,
+                                        max = 0.95,
+                                        value = 0.85,
+                                        step = 0.05
+                                    ),
+                                    radioButtons(
+                                        "p.val.mark",
+                                        label = "p-value threshold",
+                                        choices = c(
+                                            "0.01" = 0.01,
+                                            "0.05" = 0.05,
+                                            "0.1" = 0.1
+                                        ),
+                                        selected = "0.01",
+                                        inline = TRUE
+                                    ),
+                                    selectInput(
+                                        "cluster",
+                                        "Choose a cluster for GO analysis:",
+                                        c("None" = "NULL")
+                                    ),
+                                    if(input.param$rselenium.installed) {
+                                        actionButton("GO", label = "Analyze!")
+                                    },
+                                    if(input.param$rselenium.installed) {
+                                        HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
+                                    } else {
+                                        HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
+                                    }
+                                )
+                            ),
+                            conditionalPanel(
+                                "input.main_panel == 'DE' && output.is_de",
+                                wellPanel(
+                                    radioButtons(
+                                        "p.val.de",
+                                        label = "p-value threshold",
+                                        choices = c(
+                                            "0.01" = 0.01,
+                                            "0.05" = 0.05,
+                                            "0.1" = 0.1
+                                        ),
+                                        selected = "0.01",
+                                        inline = TRUE
+                                    )
+                                )
+                            ),
+                            conditionalPanel(
+                                "input.main_panel == 'tSNE'",
+                                wellPanel(
+                                    sliderInput(
+                                        "perplexity",
+                                        label = "Perplexity",
+                                        min = floor(0.7 * ncol(input.param$dataset) / 5),
+                                        max = floor(1.3 * ncol(input.param$dataset) / 5),
+                                        value = floor(ncol(input.param$dataset) / 5)
+                                    )
+                                )
+                            )
                         )
                     )
-                ))),
-                column(6,
-                       uiOutput('mytabs')
-                ),
-                column(3,
-                   fluidRow(
-                       column(12,
-                              h4("Panel description"),
-                              htmlOutput("explanation")
-                       )
-                   ),
-                   
-                   fluidRow(
-                       column(12,
-                            conditionalPanel("input.main_panel == 'Markers' && output.is_mark",
-                                    wellPanel(
-                                             sliderInput("auroc.threshold", label = "AUROC threshold",
-                                                       min = 0.6,
-                                                       max = 0.95,
-                                                       value = 0.85,
-                                                       step = 0.05),
-                                             radioButtons("p.val.mark", label = "p-value threshold",
-                                                        choices = c("0.01" = 0.01,
-                                                                   "0.05" = 0.05,
-                                                                   "0.1" = 0.1),
-                                                        selected = "0.01",
-                                                        inline = TRUE),
-                                             selectInput("cluster", "Choose a cluster for GO analysis:",
-                                                         c("None" = "NULL")),
-                                             if(input.param$rselenium.installed) {
-                                                actionButton("GO", label = "Analyze!")
-                                             },
-                                             if(input.param$rselenium.installed) {
-                                                 HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
-                                             } else {
-                                                 HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
-                                             }
-                                    )
-                            ),
-                            
-                            conditionalPanel("input.main_panel == 'DE' && output.is_de",
-                                    wellPanel(
-                                             radioButtons("p.val.de", label = "p-value threshold",
-                                                          choices = c("0.01" = 0.01,
-                                                                      "0.05" = 0.05,
-                                                                      "0.1" = 0.1),
-                                                          selected = "0.01",
-                                                          inline = TRUE)
-                                    )
-                            ),
-                            
-                            conditionalPanel("input.main_panel == 'tSNE'",
-                                     wellPanel(
-                                         sliderInput("perplexity", label = "Perplexity",
-                                                     min = floor(0.7 * ncol(input.param$dataset) / 5),
-                                                     max = floor(1.3 * ncol(input.param$dataset) / 5),
-                                                     value = floor(ncol(input.param$dataset) / 5)
-                                                     )
-                                     )
-                            )
-                       )
-                   )
                 )
             )
         ),
         server = function(input, output, session) {
+            # render tabpanel
             output$mytabs = renderUI({
                 if(values$svm) {
-                    myTabs <- list(tabPanel("Consensus",
-                                            plotOutput('consensus', height = plot.height, width = "100%")),
-                                   tabPanel("Silhouette",
-                                            plotOutput('silh', height = plot.height, width = "100%")),
-                                   tabPanel("Labels",
-                                            div(htmlOutput('labels'),
-                                                style = "font-size:80%")),
-                                   tabPanel("Expression",
-                                            plotOutput('matrix', height = plot.height, width = "100%")),
-                                   tabPanel("tSNE",
-                                            plotOutput('tSNEplot', height = plot.height, width = "100%")),
-                                   tabPanel("DE",
-                                            uiOutput('plot_de_genes')),
-                                   tabPanel("Markers",
-                                            uiOutput('plot_mark_genes')),
-                                   tabPanel("Outliers",
-                                            uiOutput('plot_outl')))
+                    myTabs <- list(
+                        tabPanel(
+                            "Consensus",
+                            plotOutput(
+                                'consensus', 
+                                height = plot.height, 
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "Silhouette",
+                            plotOutput(
+                                'silh',
+                                height = plot.height, 
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "Labels",
+                            div(
+                                htmlOutput('labels'),
+                                style = "font-size:80%"
+                            )
+                        ),
+                        tabPanel(
+                            "Expression",
+                            plotOutput(
+                                'matrix',
+                                height = plot.height,
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "tSNE",
+                            plotOutput(
+                                'tSNEplot',
+                                height = plot.height,
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "DE",
+                            uiOutput('plot_de_genes')
+                        ),
+                        tabPanel(
+                            "Markers",
+                            uiOutput('plot_mark_genes')
+                        ),
+                        tabPanel(
+                            "Outliers",
+                            uiOutput('plot_outl')
+                        )
+                    )
                 } else {
-                    myTabs <- list(tabPanel("Consensus",
-                                            plotOutput('consensus', height = plot.height, width = "100%")),
-                                   tabPanel("Silhouette",
-                                            plotOutput('silh', height = plot.height, width = "100%")),
-                                   tabPanel("Labels",
-                                            div(htmlOutput('labels'),
-                                                style = "font-size:80%")),
-                                   tabPanel("Expression",
-                                            plotOutput('matrix', height = plot.height, width = "100%")),
-                                   tabPanel("tSNE",
-                                            plotOutput('tSNEplot', height = plot.height, width = "100%")))
+                    myTabs <- list(
+                        tabPanel(
+                            "Consensus",
+                            plotOutput(
+                                'consensus',
+                                height = plot.height,
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "Silhouette",
+                            plotOutput(
+                                'silh', 
+                                height = plot.height, 
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "Labels",
+                            div(
+                                htmlOutput('labels'),
+                                style = "font-size:80%"
+                            )
+                        ),
+                        tabPanel(
+                            "Expression",
+                            plotOutput(
+                                'matrix', 
+                                height = plot.height, 
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
+                            "tSNE",
+                            plotOutput(
+                                'tSNEplot', 
+                                height = plot.height, 
+                                width = "100%"
+                            )
+                        )
+                    )
                 }
-                do.call(tabsetPanel, c(myTabs, id = "main_panel", type = "pills"))
+                do.call(
+                    tabsetPanel,
+                    c(
+                        myTabs,
+                        id = "main_panel",
+                        type = "pills"
+                    )
+                )
             })
-            
-            ## main reactive function for extraction of precalculated variables
-            
+            # main observer for extraction of precalculated variables
             observe({
                 validate(
-                    values$dist.error <- need(input$distance, "Please select at least one Distance!"),
-                    values$trans.error <- need(input$dimRed, "Please select at least one Transformation!")
+                    values$dist.error <- need(
+                        input$distance, 
+                        "Please select at least one Distance!"
+                    ),
+                    values$trans.error <- need(
+                        input$dimRed, 
+                        "Please select at least one Transformation!"
+                    )
                 )
-
-                res <- input.param$cons.table[unlist(lapply(
-                    dist.opts, function(x){setequal(x, input$distance)}
-                )) & unlist(lapply(
-                    dim.red.opts, function(x){setequal(x, input$dimRed)}
-                )) & as.numeric(input.param$cons.table[ , 3]) == input$clusters, 4][[1]]
-                res1 <- input.param$cons.table[unlist(lapply(
-                    dist.opts, function(x){setequal(x, input$distance)}
-                )) & unlist(lapply(
-                    dim.red.opts, function(x){setequal(x, input$dimRed)}
-                )) & as.numeric(input.param$cons.table[ , 3]) ==
-                    (input$clusters - 1), 4][[1]]
+                res <- input.param$cons.table[
+                    unlist(
+                        lapply(
+                            dist.opts,
+                            function(x){setequal(x, input$distance)}
+                        )
+                    ) & 
+                    unlist(
+                        lapply(
+                            dim.red.opts, 
+                            function(x){setequal(x, input$dimRed)}
+                        )
+                    ) & 
+                    as.numeric(input.param$cons.table[ , 3]) == input$clusters, 
+                    4][[1]]
+                res1 <- input.param$cons.table[
+                    unlist(
+                        lapply(
+                            dist.opts, 
+                            function(x){setequal(x, input$distance)}
+                        )
+                    ) & 
+                    unlist(
+                        lapply(
+                            dim.red.opts, 
+                            function(x){setequal(x, input$dimRed)}
+                        )
+                    ) & 
+                    as.numeric(input.param$cons.table[ , 3]) == (input$clusters - 1), 
+                    4][[1]]
                 
                 values$consensus <- res[[1]]
                 values$labels <- res[[2]]
@@ -316,13 +466,8 @@ sc3_interactive <- function(input.param) {
                 }
                 
             })
-            
-            # observe({
-            #     values$mark.num
-            # })
-            
-            ## EXPLANATIONS
-            
+
+            ## panel descriptions
             output$explanation <- renderUI({
                 res <- ""
                 if(length(input$main_panel) > 0) {
@@ -448,8 +593,7 @@ sc3_interactive <- function(input.param) {
                 return(res)
             })
             
-            ## REACTIVE PANELS
-            
+            ## reactive panels
             output$consensus <- renderPlot({
                 validate(
                     need(input$distance, "\nPlease select at least one Distance!"),
