@@ -1,3 +1,15 @@
+15/04/2016
+
+The latest version 0.99.37 contains the following updates
+* tSNE panel is added to the interactive session
+* additional table has been added to the output - it contains original and new
+cell labels in the order corresponding to the order of cells in the input
+expression matrix
+* three functions corresponding to biological interpretation are now exported
+and can be used manually: get_de_genes, get_marker_genes, get_outl_cells. See
+their documentation for more details
+* several bugs have been fixed
+
 01/03/2016
 
 The latest version 0.99.23 contains the following major updates
