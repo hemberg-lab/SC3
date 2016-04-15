@@ -13,6 +13,23 @@ vignette: >
 
 Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently in submission but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
 
+## Installation
+
+Currently, only the "devel" (i.e. development) version of __SC3__ is available through Bioconductor. This means that you will need to be using Bioconductor devel and the development version of R (R 3.3) in order to install __SC3__ from Bioconductor:
+```{r, eval=FALSE}
+## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("SC3")
+```
+
+__SC3__ will become available as a "release" version in the next Bioconductor release in May 2016. At this point the release version of __SC3__ will work with the release version of R and Bioconductor, and development will continue in the devel version of the package.
+
+Meanwhile, if you do not have the development version of R and have any other version of R __>= 2.10__, you can install __SC3__ from [SC3 GitHub](https://github.com/hemberg-lab/SC3) repository (from "R-old" branch):
+```{r, eval=FALSE}
+install.packages("devtools")
+devtools::install_github("hemberg-lab/SC3", ref = "R-old")
+```
+
 ## Prerequisite (optional)
 
 > Note that this prerequisite is only optional. If it is not installed you can still run __SC3__, but the _GO anlaysis_ functionality will be disabled.

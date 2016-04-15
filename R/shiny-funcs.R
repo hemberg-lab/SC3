@@ -40,16 +40,33 @@ mark_gene_heatmap_param <- function(mark.res, labs) {
                 row.gaps = row.gaps))
 }
 
+#' Find cell outliers
+#'
+#' If the cell labels are available this functions allows a user to calculate
+#' cell outlier scores manually.
+#'
+#' @param dataset expression matrix
+#' @param labels cell labels corresponding to the columns of the expression matrix
+#' @param chisq.quantile a threshold of the chi-squared distribution used for 
+#' cell outliers detection, default is 0.9999
+#' @return a numeric vector containing the cell labels and 
+#' correspoding outlier scores ordered by the labels
+#' @examples
+#' d <- get_outl_cells(treutlein, colnames(treutlein))
+#' head(d)
+#' 
 #' @importFrom robustbase covMcd
 #' @importFrom rrcov PcaHubert
 #' @importFrom stats qchisq
-outl_cells_main <- function(d, chisq.quantile) {
+#' 
+#' @export
+get_outl_cells <- function(dataset, labels, chisq.quantile = 0.9999) {
     outl.res <- list()
-    for(i in unique(colnames(d))) {
-        n.cells <- length(colnames(d)[colnames(d) == i])
+    for(i in unique(labels)) {
+        n.cells <- length(labels[labels == i])
         # reduce p dimensions by using robust PCA
         t <- tryCatch({
-            PcaHubert(d[ , colnames(d) == i])
+            PcaHubert(dataset[ , labels == i])
         }, warning = function(cond) {
             message(cond)
         }, error = function(cond) {
@@ -156,8 +173,25 @@ getAUC <- function(gene, labels) {
     return(c(val,posgroup,pval))
 }
 
+#' Find marker genes
+#'
+#' If the cell labels are available this functions allows a user to calculate
+#' marker genes manually.
+#'
+#' @param dataset expression matrix
+#' @param labels cell labels corresponding to the columns of the expression matrix
+#' @param auroc.threshold area under the ROC curve threshold, by default it is
+#' 0.85. Values close to 0.5 will include very weak marker genes, values close
+#' to 1 will only include very strong marker genes.
+#' @param p.val p-value threshold, by default it is 0.01
+#' @return data.frame containing the marker genes
 #' @importFrom stats p.adjust
-get_marker_genes <- function(dataset, labels, auroc.threshold, p.val) {
+#' @examples
+#' d <- get_marker_genes(treutlein, colnames(treutlein))
+#' head(d)
+#' 
+#' @export
+get_marker_genes <- function(dataset, labels, auroc.threshold = 0.85, p.val = 0.01) {
     geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
     geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow=length(geneAUCs)/3,
                                     byrow=TRUE))
@@ -183,8 +217,24 @@ get_marker_genes <- function(dataset, labels, auroc.threshold, p.val) {
     return(d)
 }
 
+#' Find differentially expressed genes
+#'
+#' If the cell labels are available this functions allows a user to calculate
+#' differentially expressed genes manually.
+#'
+#' @param dataset expression matrix
+#' @param labels cell labels corresponding to the columns of the expression matrix
+#' @param p.val p-value threshold, by default it is 0.01
+#' @return a numeric vector containing the differentially expressed genes and 
+#' correspoding p-values
+#' @examples
+#' d <- get_de_genes(treutlein, colnames(treutlein))
+#' head(d)
+#' 
 #' @importFrom stats kruskal.test p.adjust
-kruskal_statistics <- function(dataset, labels, p.val) {
+#' 
+#' @export
+get_de_genes <- function(dataset, labels, p.val = 0.01) {
     t <- apply(dataset, 1, kruskal.test, g = factor(labels))
     ps <- unlist(lapply(t, "[[", "p.value"))
     ps <- p.adjust(ps)

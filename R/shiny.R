@@ -39,7 +39,6 @@ sc3_interactive <- function(input.param) {
     if(!is.na(input.param$svm.num.cells)) {
         with_svm <- TRUE
         values$svm <- FALSE
-        values$svm.ready <- FALSE
     } else {
         with_svm <- FALSE
         values$svm <- TRUE
@@ -239,6 +238,7 @@ sc3_interactive <- function(input.param) {
                 )
             )
         ),
+        
         server = function(input, output, session) {
             # render tabpanel
             output$mytabs = renderUI({
@@ -348,18 +348,24 @@ sc3_interactive <- function(input.param) {
                     )
                 )
             })
-            # main observer for extraction of precalculated variables
+            
+            # MAIN OBSERVER
+            # used for extraction of precalculated variables and
+            # updating the reactive variables
+            # this observer executes whenever any parameter in the left-side
+            # parameter panel is changed
             observe({
                 validate(
-                    values$dist.error <- need(
-                        input$distance, 
-                        "Please select at least one Distance!"
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
                     ),
-                    values$trans.error <- need(
-                        input$dimRed, 
-                        "Please select at least one Transformation!"
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
                     )
                 )
+                # get all results for k
                 res <- input.param$cons.table[
                     unlist(
                         lapply(
@@ -375,6 +381,7 @@ sc3_interactive <- function(input.param) {
                     ) & 
                     as.numeric(input.param$cons.table[ , 3]) == input$clusters, 
                     4][[1]]
+                # get all results for k-1
                 res1 <- input.param$cons.table[
                     unlist(
                         lapply(
@@ -390,52 +397,51 @@ sc3_interactive <- function(input.param) {
                     ) & 
                     as.numeric(input.param$cons.table[ , 3]) == (input$clusters - 1), 
                     4][[1]]
-                
+                # assign results to reactive variables
                 values$consensus <- res[[1]]
                 values$labels <- res[[2]]
                 values$labels1 <- res1[[2]]
                 values$hc <- res[[3]]
                 values$silh <- res[[4]]
-                
+                # order cells according to hierarchical clustering of the
+                # consensus matrix
                 clusts <- cutree(values$hc, input$clusters)
                 cell.order <- order.dendrogram(as.dendrogram(values$hc))
-                
                 d <- input.param$dataset
                 colnames(d) <- clusts
                 d <- d[ , cell.order]
                 values$original.labels <- colnames(input.param$dataset)[cell.order]
-                
                 # prepare a consensus matrix for downloading
                 tmp <- data.frame(values$consensus[cell.order, cell.order])
                 colnames(tmp) <- values$original.labels
                 rownames(tmp) <- seq(length=nrow(tmp))
                 values$consensus.download <- tmp
-                
+                # reindex the new clusters in ascending order
                 values$new.labels <- reindex_clusters(colnames(d))
                 colnames(d) <- values$new.labels
                 values$dataset <- d
-                
-                # original ordering of the cells
+                # reorder new cell labels in the same order as cells in the 
+                # input matrix
                 ord <- order(cell.order)
                 values$original.labels1 <- values$original.labels[ord]
                 values$new.labels1 <- values$new.labels[ord]
-                
+                # define gaps between clusters for the heatmap
                 values$col.gaps <- which(diff(as.numeric(colnames(d))) != 0)
-                
+                # update reactive variables used for hiding some panels on the
+                # webpage
                 values$mark <- FALSE
                 values$de <- FALSE
                 values$outl <- FALSE
-                
+                # update the svm reactive variable
                 if(with_svm) {
                     values$svm <- FALSE
                 }
-                
-                values$cell.labels <- NULL
+                # update output variables
                 values$cells.outliers <- data.frame()
                 values$de.genes <- data.frame()
                 values$marker.genes <- data.frame()
                 SC3.results <- list()
-                
+                # update the output cell labels
                 values$cell.labels <- 
                     data.frame(new.labels = as.numeric(values$new.labels),
                                original.labels = values$original.labels,
@@ -445,20 +451,8 @@ sc3_interactive <- function(input.param) {
                                new.labels = as.numeric(values$new.labels1),
                                stringsAsFactors = FALSE)
             })
-            
-            observe({
-                if(with_svm) {
-                    values$svm.ready <- values$svm &
-                        values$svm.clusters ==
-                        paste(input$clusters, collapse = "_") &
-                        values$svm.distance ==
-                        paste(input$distance, collapse = "_") &
-                        values$svm.dimRed == paste(input$dimRed, collapse = "_")
-                }
-            })
-            
-            # update GO drop down menu with current clusters after calculating
-            # marker genes
+            # this observer updates the GO drop down menu with current clusters
+            # after calculating marker genes
             observe({
                 if(values$mark) {
                     clusts <- unique(values$mark.res$clusts)
@@ -466,8 +460,8 @@ sc3_interactive <- function(input.param) {
                 }
                 
             })
-
-            ## panel descriptions
+            
+            ## REACTIVE PANEL DESCRIPTIONS
             output$explanation <- renderUI({
                 res <- ""
                 if(length(input$main_panel) > 0) {
@@ -593,39 +587,57 @@ sc3_interactive <- function(input.param) {
                 return(res)
             })
             
-            ## reactive panels
+            ## REACTIVE PANELS
             output$consensus <- renderPlot({
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 withProgress(message = 'Plotting...', value = 0, {
                     if(input.param$show.original.labels) {
-                        ann <- data.frame(Input.Labels = factor(colnames(input.param$dataset)))
-                        pheatmap::pheatmap(values$consensus,
-                                           cluster_rows = values$hc,
-                                           cluster_cols = values$hc,
-                                           cutree_rows = input$clusters,
-                                           cutree_cols = input$clusters,
-                                           annotation_col = ann,
-                                           show_rownames = FALSE,
-                                           show_colnames = FALSE)
+                        ann <- data.frame(
+                            Input.Labels = factor(colnames(input.param$dataset))
+                        )
+                        pheatmap::pheatmap(
+                            values$consensus,
+                            cluster_rows = values$hc,
+                            cluster_cols = values$hc,
+                            cutree_rows = input$clusters,
+                            cutree_cols = input$clusters,
+                            annotation_col = ann,
+                            show_rownames = FALSE,
+                            show_colnames = FALSE
+                        )
                     } else {
-                        pheatmap::pheatmap(values$consensus,
-                                           cluster_rows = values$hc,
-                                           cluster_cols = values$hc,
-                                           cutree_rows = input$clusters,
-                                           cutree_cols = input$clusters,
-                                           show_rownames = FALSE,
-                                           show_colnames = FALSE)
+                        pheatmap::pheatmap(
+                            values$consensus,
+                            cluster_rows = values$hc,
+                            cluster_cols = values$hc,
+                            cutree_rows = input$clusters,
+                            cutree_cols = input$clusters,
+                            show_rownames = FALSE,
+                            show_colnames = FALSE
+                        )
                     }
                 })
             })
             
             output$silh <- renderPlot({
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 withProgress(message = 'Plotting...', value = 0, {
                     plot(values$silh, col = "black")
@@ -634,8 +646,14 @@ sc3_interactive <- function(input.param) {
             
             output$labels <- renderUI({
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 labs1 <- list()
                 cols <- iwanthue(input$clusters - 1)
@@ -648,13 +666,19 @@ sc3_interactive <- function(input.param) {
                             paste0("<font color=\"", col, "\">", j, "</font>")
                     }
                 }
-                
-                labs <- paste0("<br/><font size=\"3\">Colours correspond to clusters obtained by clustering the data by <b>",
-                               input$clusters - 1, "</b> clusters</font><br/>")
+                labs <- paste0(
+                    "<br/><font size=\"3\">Colours correspond to clusters obtained by clustering the data by <b>",
+                    input$clusters - 1, 
+                    "</b> clusters</font><br/>"
+                )
                 labs <- c(labs, "<br/>")
                 for(i in 1:input$clusters) {
-                    ind <- unlist(strsplit(as.character(values$labels[i, ]),
-                                           " "))
+                    ind <- unlist(
+                        strsplit(
+                            as.character(values$labels[i, ]),
+                            " "
+                        )
+                    )
                     for(j in ind) {
                         labs <- c(labs, labs1[[j]])
                     }
@@ -663,84 +687,115 @@ sc3_interactive <- function(input.param) {
                 
                 HTML(paste0(labs))
             })
-            
             output$matrix <- renderPlot({
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
                     if(input.param$show.original.labels) {
-                        ann <- data.frame(Input.Labels =
-                                              factor(values$original.labels))
+                        ann <- data.frame(
+                            Input.Labels = factor(values$original.labels)
+                        )
                         t <- values$dataset
                         colnames(t) <- rownames(ann)
-                        pheatmap::pheatmap(t,
-                                           kmeans_k = 100,
-                                           cluster_cols = FALSE,
-                                           show_rownames = FALSE,
-                                           show_colnames = FALSE,
-                                           annotation_col = ann,
-                                           gaps_col = values$col.gaps)
+                        pheatmap::pheatmap(
+                            t,
+                            kmeans_k = 100,
+                            cluster_cols = FALSE,
+                            show_rownames = FALSE,
+                            show_colnames = FALSE,
+                            annotation_col = ann,
+                            gaps_col = values$col.gaps
+                        )
                     } else {
-                        pheatmap::pheatmap(values$dataset,
-                                           kmeans_k = 100,
-                                           cluster_cols = FALSE,
-                                           show_rownames = FALSE,
-                                           show_colnames = FALSE,
-                                           gaps_col = values$col.gaps)
+                        pheatmap::pheatmap(
+                            values$dataset,
+                            kmeans_k = 100,
+                            cluster_cols = FALSE,
+                            show_rownames = FALSE,
+                            show_colnames = FALSE,
+                            gaps_col = values$col.gaps
+                        )
                     }
                 })
             })
             
             output$tSNEplot <- renderPlot({
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
-                    tsne_out <- Rtsne::Rtsne(t(values$dataset),
-                                             perplexity = input$perplexity)
+                    tsne_out <- Rtsne::Rtsne(
+                        t(values$dataset),
+                        perplexity = input$perplexity
+                    )
                     df_to_plot <- as.data.frame(tsne_out$Y)
-                    df_to_plot$Cluster <- factor(colnames(values$dataset),
-                                                 levels = unique(colnames(values$dataset)))
+                    df_to_plot$Cluster <- factor(
+                        colnames(values$dataset),
+                        levels = unique(colnames(values$dataset))
+                    )
                     comps <- colnames(df_to_plot)[1:2]
-                    ggplot(df_to_plot, aes_string(x = comps[1], y = comps[2], color = "Cluster")) +
+                    ggplot(df_to_plot, aes_string(x = comps[1],
+                                                  y = comps[2],
+                                                  color = "Cluster")) +
                         geom_point() +
                         xlab("Dimension 1") +
                         ylab("Dimension 2") +
                         theme_bw()
                 })
             })
-            
             output$mark_genes <- renderPlot({
                 d <- values$plot.mark[[1]]
                 d.param <- values$plot.mark[[2]]
                 col.gaps <- values$plot.mark[[3]]
-                pheatmap::pheatmap(d[rownames(d.param$mark.res.plot), , drop = FALSE],
-                                show_colnames = FALSE,
-                                cluster_rows = FALSE,
-                                cluster_cols = FALSE,
-                                annotation_row = d.param$row.ann,
-                                annotation_names_row = FALSE,
-                                gaps_row = d.param$row.gaps,
-                                gaps_col = col.gaps,
-                                cellheight = 10)
+                pheatmap::pheatmap(
+                    d[rownames(d.param$mark.res.plot), , drop = FALSE],
+                    show_colnames = FALSE,
+                    cluster_rows = FALSE,
+                    cluster_cols = FALSE,
+                    annotation_row = d.param$row.ann,
+                    annotation_names_row = FALSE,
+                    gaps_row = d.param$row.gaps,
+                    gaps_col = col.gaps,
+                    cellheight = 10
+                )
             })
-            
             plotHeightMark <- function() {
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 validate(
-                    need(try(!is.null(rownames(input.param$dataset))),
-                         "\nNo gene names provided in the input expression matrix!")
+                    need(
+                        try(!is.null(rownames(input.param$dataset))),
+                        "\nNo gene names provided in the input expression matrix!"
+                    )
                 )
                 withProgress(message = 'Calculating Marker genes...',
-                             value = 0, {
+                             value = 0,
+                             {
                                  # prepare dataset for plotting
                                  if(with_svm) {
                                      d <- values$dataset.svm
@@ -753,54 +808,72 @@ sc3_interactive <- function(input.param) {
                                  values$mark <- FALSE
                                  
                                  # define marker genes
-                                 values$mark.res <- get_marker_genes(d,
-                                                                     as.numeric(colnames(d)),
-                                                                     as.numeric(input$auroc.threshold),
-                                                                     as.numeric(input$p.val.mark))
+                                 values$mark.res <- get_marker_genes(
+                                     d,
+                                     as.numeric(colnames(d)),
+                                     as.numeric(input$auroc.threshold),
+                                     as.numeric(input$p.val.mark)
+                                 )
                                  # check the results of mark_genes_main:
                                  # global variable mark.res
                                  validate(
-                                     need(try(dim(values$mark.res)[1] != 0),
-                                          "\nUnable to find significant marker genes from obtained clusters! Please try to change the number of clusters k and run marker analysis again.")
+                                     need(
+                                         try(dim(values$mark.res)[1] != 0),
+                                         "\nUnable to find significant marker genes from obtained clusters! Please try to change the number of clusters k and run marker analysis again."
+                                     )
                                  )
-                                 colnames(values$mark.res) <- c("AUC","clusts","p.value")
-                                 d.param <- mark_gene_heatmap_param(values$mark.res,
-                                                                    unique(colnames(d)))
+                                 colnames(values$mark.res) <- 
+                                     c("AUC","clusts","p.value")
+                                 d.param <- mark_gene_heatmap_param(
+                                     values$mark.res,
+                                     unique(colnames(d))
+                                 )
                                  values$mark <- TRUE
-                                 values$marker.genes <- data.frame(new.labels = as.numeric(values$mark.res[,2]),
-                                                                   gene = rownames(values$mark.res),
-                                                                   AUROC = as.numeric(values$mark.res[,1]),
-                                                                   p.value = as.numeric(values$mark.res[,3]),
-                                                                   stringsAsFactors = FALSE)
-                })
-                
+                                 values$marker.genes <- data.frame(
+                                     new.labels = as.numeric(values$mark.res[,2]),
+                                     gene = rownames(values$mark.res),
+                                     AUROC = as.numeric(values$mark.res[,1]),
+                                     p.value = as.numeric(values$mark.res[,3]),
+                                     stringsAsFactors = FALSE
+                                 )
+                            }
+                        )
                 values$plot.mark <- list(d, d.param, col.gaps)
-                
                 return(50 + 10.8*nrow(d.param$mark.res.plot))
             }
             
             output$plot_mark_genes <- renderUI({
-                plotOutput("mark_genes", height = plotHeightMark(), width = "100%")
+                plotOutput(
+                    "mark_genes", 
+                    height = plotHeightMark(), 
+                    width = "100%"
+                )
             })
-            
             output$de_genes <- renderPlot({
                 d <- values$plot.de[[1]]
                 d.param <- values$plot.de[[2]]
                 col.gaps <- values$plot.de[[3]]
-                pheatmap::pheatmap(d[names(head(values$de.res, 50)), , drop = FALSE],
-                                   show_colnames = FALSE,
-                                   cluster_rows = FALSE,
-                                   cluster_cols = FALSE,
-                                   annotation_row = d.param$row.ann,
-                                   annotation_names_row = FALSE,
-                                   gaps_col = col.gaps,
-                                   cellheight = 10)
+                pheatmap::pheatmap(
+                    d[names(head(values$de.res, 50)), , drop = FALSE],
+                    show_colnames = FALSE,
+                    cluster_rows = FALSE,
+                    cluster_cols = FALSE,
+                    annotation_row = d.param$row.ann,
+                    annotation_names_row = FALSE,
+                    gaps_col = col.gaps,
+                    cellheight = 10
+                )
             })
-            
             plotHeightDE <- function() {
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 validate(
                     need(try(!is.null(rownames(input.param$dataset))),
@@ -815,58 +888,66 @@ sc3_interactive <- function(input.param) {
                         d <- values$dataset
                         col.gaps <- values$col.gaps
                     }
-                    
                     values$de <- FALSE
-                    
                     # define de genes
-                    values$de.res <- kruskal_statistics(d, colnames(d), as.numeric(input$p.val.de))
+                    values$de.res <- get_de_genes(
+                        d, 
+                        colnames(d), 
+                        as.numeric(input$p.val.de)
+                    )
                     # check the results of de_genes_main:
                     # global variable de.res
                     validate(
-                        need(try(length(values$de.res) != 0),
-                             "\nUnable to find significant differentially expressed genes from obtained clusters! Please try to change the number of clusters k and run DE analysis again.")
+                        need(
+                            try(length(values$de.res) != 0),
+                            "\nUnable to find significant differentially expressed genes from obtained clusters! Please try to change the number of clusters k and run DE analysis again."
+                        )
                     )
-                    
                     d.param <- de_gene_heatmap_param(head(values$de.res, 50))
-                    
                     values$de <- TRUE
-                    res <- data.frame(gene = names(values$de.res),
-                                      p.value = as.numeric(values$de.res),
-                                      stringsAsFactors = FALSE)
+                    res <- data.frame(
+                        gene = names(values$de.res),
+                        p.value = as.numeric(values$de.res),
+                        stringsAsFactors = FALSE
+                    )
                     rownames(res) <- NULL
                     values$de.genes <- res
                 })
-                
                 values$plot.de <- list(d, d.param, col.gaps)
-                
                 return(50 + 10.8*length(head(values$de.res, 50)))
             }
-            
             output$plot_de_genes <- renderUI({
                 plotOutput("de_genes", height = plotHeightDE(), width = "100%")
             })
-            
             output$outliers <- renderPlot({
                 t <- values$plot.outl[[1]]
                 cols <- values$plot.outl[[2]]
-                ggplot(t, aes(x = t$Cells, y = t$outl,
-                           fill = t$Cluster, color = t$Cluster)) +
-                 geom_bar(stat = "identity") +
-                 geom_point() +
-                 scale_fill_manual(values = cols) +
-                 scale_color_manual(values = cols) +
-                 guides(color = FALSE, fill = FALSE) +
-                 labs(x = "Cells", y = "Outlier score") +
-                 theme_bw()
+                ggplot(t, aes(x = t$Cells,
+                              y = t$outl,
+                              fill = t$Cluster, 
+                              color = t$Cluster)) +
+                    geom_bar(stat = "identity") +
+                    geom_point() +
+                    scale_fill_manual(values = cols) +
+                    scale_color_manual(values = cols) +
+                    guides(color = FALSE, fill = FALSE) +
+                    labs(x = "Cells", y = "Outlier score") +
+                    theme_bw()
             })
-            
             runOutlier <- function() {
                 validate(
-                    need(input$distance, "\nPlease select at least one Distance!"),
-                    need(input$dimRed, "\nPlease select at least one Transformation!")
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
                 )
                 withProgress(message = 'Calculating cell outliers...',
-                             value = 0, {
+                             value = 0, 
+                             {
                                  # prepare dataset for plotting
                                  if(with_svm) {
                                      d <- values$dataset.svm
@@ -877,7 +958,11 @@ sc3_interactive <- function(input.param) {
                                  values$outl <- FALSE
                                  
                                  # compute outlier cells
-                                 values$outl.res <- outl_cells_main(d, input.param$chisq.quantile)
+                                 values$outl.res <- get_outl_cells(
+                                     d,
+                                     colnames(d),
+                                     input.param$chisq.quantile
+                                 )
                                  
                                  t <- as.data.frame(values$outl.res)
                                  colnames(t)[1] <- "outl"
@@ -888,7 +973,9 @@ sc3_interactive <- function(input.param) {
                                             levels =
                                                 unique(
                                                     as.character(
-                                                        sort(as.numeric(t$Cluster)))
+                                                        sort(
+                                                            as.numeric(t$Cluster))
+                                                        )
                                                 )
                                      )
                                  cols <- iwanthue(length(unique(t$Cluster)))
@@ -896,42 +983,53 @@ sc3_interactive <- function(input.param) {
                                  
                                  values$outl <- TRUE
                                  values$cells.outliers <- if(with_svm) {
-                                     data.frame(new.labels = as.numeric(names(values$outl.res)),
-                                                original.labels = values$original.labels.svm,
-                                                MCD.dist = as.numeric(values$outl.res),
-                                                stringsAsFactors = FALSE)
+                                     data.frame(
+                                         new.labels = as.numeric(names(values$outl.res)),
+                                         original.labels = values$original.labels.svm,
+                                         MCD.dist = as.numeric(values$outl.res),
+                                         stringsAsFactors = FALSE
+                                     )
                                  } else {
-                                     data.frame(new.labels = as.numeric(names(values$outl.res)),
-                                                original.labels = values$original.labels,
-                                                MCD.dist = values$outl.res,
-                                                stringsAsFactors = FALSE)
+                                     data.frame(
+                                         new.labels = as.numeric(names(values$outl.res)),
+                                         original.labels = values$original.labels,
+                                         MCD.dist = values$outl.res,
+                                         stringsAsFactors = FALSE
+                                     )
                                  }
                 })
-                
                 values$plot.outl <- list(t, cols)
-                
                 return(plot.height.small)
             }
             
             output$plot_outl <- renderUI({
-                plotOutput("outliers", height = runOutlier(), width = "100%")
+                plotOutput(
+                    "outliers", 
+                    height = runOutlier(), 
+                    width = "100%"
+                )
             })
+
+            # REACTIVE BUTTONS
             
-            ## REACTIVE BUTTONS
-            
+            # SVM button
             observeEvent(input$svm, {
                 withProgress(message = 'Running SVM...', value = 0, {
                     d <- input.param$dataset
                     colnames(d) <- values$new.labels1
-                    
                     original.labels <-
-                        c(values$original.labels1, colnames(input.param$study.dataset))
+                        c(
+                            values$original.labels1,
+                            colnames(input.param$study.dataset)
+                         )
                     
                     values$dataset.svm <- input.param$study.dataset
                     colnames(values$dataset.svm) <-
-                        support_vector_machines(d,
-                                                input.param$study.dataset,
-                                                "linear")
+                        support_vector_machines(
+                            d,
+                            input.param$study.dataset,
+                            "linear"
+                        )
                     
                     tmp <- cbind(d, values$dataset.svm)
                     cols <- colnames(tmp)
@@ -947,17 +1045,20 @@ sc3_interactive <- function(input.param) {
                     values$dataset.svm <- tmp
                     
                     values$col.gaps.svm <-
-                        which(diff(as.numeric(colnames(values$dataset.svm)))
-                              != 0)
+                        which(
+                            diff(as.numeric(colnames(values$dataset.svm))) != 0
+                        )
                     
-                    values$cell.labels <- data.frame(new.labels = values$new.labels.svm,
-                                   original.labels = values$original.labels.svm)
-                    
+                    values$cell.labels <- data.frame(
+                        new.labels = values$new.labels.svm,
+                        original.labels = values$original.labels.svm
+                    )
                     # original ordering of the cells
                     ord <- order(input.param$svm.inds)
                     values$cell.labels1 <- data.frame(
                         original.labels = original.labels[ord],
-                        new.labels = values$new.labels.svm[order(inds)][ord])
+                        new.labels = values$new.labels.svm[order(inds)][ord]
+                    )
                     
                     values$svm <- TRUE
                     values$svm.clusters <- paste(input$clusters, collapse = "_")
@@ -966,6 +1067,7 @@ sc3_interactive <- function(input.param) {
                 })
             })
             
+            # SAVE TO R session button
             observeEvent(input$save, {
                 SC3.results <<- list(
                     cell.labels = values$cell.labels,
@@ -977,6 +1079,7 @@ sc3_interactive <- function(input.param) {
                 )
             })
             
+            # GO button
             observeEvent(input$GO, {
                 open_webgestalt_go(
                     rownames(
@@ -986,25 +1089,22 @@ sc3_interactive <- function(input.param) {
             })
             
             ## OUTPUTS USED FOR CONDITIONAL PANELS
-            
             output$is_svm <- reactive({
                 return(values$svm)
             })
-            
             output$is_mark <- reactive({
                 return(values$mark)
             })
-            
             output$is_de <- reactive({
                 return(values$de)
             })
-            
             output$is_outl <- reactive({
                 return(values$outl)
             })
             
-            ## DOWNLOAD LINKS
+            # DOWNLOAD buttons
             
+            # Save to xls button
             output$excel <- downloadHandler(
                 filename = function() {
                     paste0("k-", input$clusters, "-", input.param$filename, ".xls")
@@ -1025,6 +1125,7 @@ sc3_interactive <- function(input.param) {
                 }
             )
             
+            # Save consensus matrix button
             output$consens_download <- downloadHandler(
                 filename = function() {
                     paste0("k-", input$clusters, "-consensus-", input.param$filename, ".txt")
@@ -1039,14 +1140,18 @@ sc3_interactive <- function(input.param) {
                 }
             )
             
+            # stop App on closing the browser
             session$onSessionEnded(function() {
                 stopApp()
             })
+            
+            # hide panels
             outputOptions(output, 'is_mark', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_de', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_outl', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_svm', suspendWhenHidden = FALSE)
         },
+        # launch App in a browser
         options = list(launch.browser = TRUE)
     )
 }

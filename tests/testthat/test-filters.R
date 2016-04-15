@@ -1,4 +1,3 @@
-
 expect_equal(ncol(SC3:::cell_filter(treutlein, 2000)), 50)
 expect_equal(nrow(SC3:::cell_filter(treutlein, 2000)), 23271)
 

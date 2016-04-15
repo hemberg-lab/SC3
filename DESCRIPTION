@@ -1,8 +1,8 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 0.99.36
-Date: 2016-04-13
+Version: 0.99.37
+Date: 2016-04-15
 Author: Vladimir Kiselev
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 Authors@R: c(person("Vladimir", "Kiselev",
