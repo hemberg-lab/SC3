@@ -111,18 +111,16 @@ sc3 <- function(filename,
     # cell filter
     if(cell.filter) {
         dataset <- cell_filter(dataset, cell.filter.genes)
-        if(dim(dataset)[2] == 0) {
-            cat("All cells were removed after the cell filter! Stopping now...")
-            return()
+        if(ncol(dataset) < 10) {
+            return("Less than 10 cells are left after the cell filter! Stopping now...")
         }
     }
 
     # gene filter
     if(gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction)
-        if(dim(dataset)[1] == 0) {
-            cat("All genes were removed after the gene filter! Stopping now...")
-            return()
+        if(nrow(dataset) < 10) {
+            return("Less than 10 genes are left after the gene filter! Stopping now...")
         }
     }
 
