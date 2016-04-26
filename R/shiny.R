@@ -169,7 +169,7 @@ sc3_interactive <- function(input.param) {
                         column(
                             12,
                             conditionalPanel(
-                                "input.main_panel == 'Markers' && output.is_mark",
+                                "input.main_panel == 'Markers'",
                                 wellPanel(
                                     sliderInput(
                                         "auroc.threshold",
@@ -190,23 +190,26 @@ sc3_interactive <- function(input.param) {
                                         selected = "0.01",
                                         inline = TRUE
                                     ),
-                                    selectInput(
-                                        "cluster",
-                                        "Choose a cluster for GO analysis:",
-                                        c("None" = "NULL")
-                                    ),
-                                    if(input.param$rselenium.installed) {
-                                        actionButton("GO", label = "Analyze!")
-                                    },
-                                    if(input.param$rselenium.installed) {
-                                        HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
-                                    } else {
-                                        HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
-                                    }
+                                    conditionalPanel(
+                                        "output.is_mark",
+                                        selectInput(
+                                            "cluster",
+                                            "Choose a cluster for GO analysis:",
+                                            c("None" = "NULL")
+                                        ),
+                                        if(input.param$rselenium.installed) {
+                                            actionButton("GO", label = "Analyze!")
+                                        },
+                                        if(input.param$rselenium.installed) {
+                                            HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
+                                        } else {
+                                            HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
+                                        }
+                                    )
                                 )
                             ),
                             conditionalPanel(
-                                "input.main_panel == 'DE' && output.is_de",
+                                "input.main_panel == 'DE'",
                                 wellPanel(
                                     radioButtons(
                                         "p.val.de",
@@ -516,13 +519,13 @@ sc3_interactive <- function(input.param) {
                                     cluster centers after <i>log2</i>-scaling.")
                     }
                     if(grepl("tSNE", input$main_panel)) {
-                        res <- HTML("<a href = 'https://lvdmaaten.github.io/tsne/'>tSNE</a> (t-Distributed
+                        res <- HTML("<a href = 'https://lvdmaaten.github.io/tsne/' target='_blank'>tSNE</a> (t-Distributed
                                     Stochastic Neighbor Embedding) method is used to
                                     map high-dimensional data to a 2D 
                                     space while preserving local distances between 
                                     cells. tSNE has become a very popular visualisation
                                     tool. SC3 imports the Rtsne function from the
-                                    <a href='https://cran.r-project.org/web/packages/Rtsne/index.html'>
+                                    <a href='https://cran.r-project.org/web/packages/Rtsne/index.html' target='_blank'>
                                     Rtsne package</a> to perform the tSNE analysis.
                                     The colors on the plot correspond to the clusters
                                     identified by SC3.<br>
@@ -819,7 +822,7 @@ sc3_interactive <- function(input.param) {
                                  validate(
                                      need(
                                          try(dim(values$mark.res)[1] != 0),
-                                         "\nUnable to find significant marker genes from obtained clusters! Please try to change the number of clusters k and run marker analysis again."
+                                         "\nUnable to find significant marker genes from obtained clusters! Try to change either the number of clusters k, the AUROC threshold or the p-value threshold."
                                      )
                                  )
                                  colnames(values$mark.res) <- 
@@ -900,7 +903,7 @@ sc3_interactive <- function(input.param) {
                     validate(
                         need(
                             try(length(values$de.res) != 0),
-                            "\nUnable to find significant differentially expressed genes from obtained clusters! Please try to change the number of clusters k and run DE analysis again."
+                            "\nUnable to find significant differentially expressed genes from obtained clusters! Try to change either the number of clusters k or the p-value threshold."
                         )
                     )
                     d.param <- de_gene_heatmap_param(head(values$de.res, 50))
