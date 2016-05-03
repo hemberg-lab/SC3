@@ -30,8 +30,6 @@
 #' default is 0.04.
 #' @param d.region.max the upper boundary of the optimum region of d, 
 #' default is 0.07.
-#' @param chisq.quantile a threshold used for cell outliers detection, 
-#' default is 0.9999.
 #' @param interactivity defines whether a browser interactive window should be
 #' open after all computation is done. By default it is TRUE. This option can
 #' be used to separate clustering calculations from visualisation,
@@ -81,7 +79,6 @@ sc3 <- function(filename,
                 log.scale = TRUE,
                 d.region.min = 0.04,
                 d.region.max = 0.07,
-                chisq.quantile = 0.9999,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm = FALSE,
@@ -111,16 +108,18 @@ sc3 <- function(filename,
     # cell filter
     if(cell.filter) {
         dataset <- cell_filter(dataset, cell.filter.genes)
-        if(ncol(dataset) < 10) {
-            return("Less than 10 cells are left after the cell filter! Stopping now...")
+        if(dim(dataset)[2] == 0) {
+            cat("All cells were removed after the cell filter! Stopping now...")
+            return()
         }
     }
 
     # gene filter
     if(gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction)
-        if(nrow(dataset) < 10) {
-            return("Less than 10 genes are left after the gene filter! Stopping now...")
+        if(dim(dataset)[1] == 0) {
+            cat("All genes were removed after the gene filter! Stopping now...")
+            return()
         }
     }
 
@@ -307,7 +306,6 @@ sc3 <- function(filename,
                          svm.num.cells = svm.num.cells,
                          svm.inds = svm.inds,
                          show.original.labels = show.original.labels,
-                         chisq.quantile = chisq.quantile,
                          rselenium.installed = rselenium.installed)
 
     if(interactivity) {
