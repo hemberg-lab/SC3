@@ -235,6 +235,22 @@ sc3_interactive <- function(input.param) {
                                         value = floor(ncol(input.param$dataset) / 5)
                                     )
                                 )
+                            ),
+                            conditionalPanel(
+                                "input.main_panel == 'Outliers'",
+                                wellPanel(
+                                    radioButtons(
+                                        "chisq.quantile",
+                                        label = "% of the Chi-squared quantile",
+                                        choices = c(
+                                            "95%" = 0.95,
+                                            "99%" = 0.99,
+                                            "99.99%" = 0.9999
+                                        ),
+                                        selected = "0.9999",
+                                        inline = TRUE
+                                    )
+                                )
                             )
                         )
                     )
@@ -433,8 +449,6 @@ sc3_interactive <- function(input.param) {
                 # update reactive variables used for hiding some panels on the
                 # webpage
                 values$mark <- FALSE
-                values$de <- FALSE
-                values$outl <- FALSE
                 # update the svm reactive variable
                 if(with_svm) {
                     values$svm <- FALSE
@@ -584,7 +598,8 @@ sc3_interactive <- function(input.param) {
                                     and it is defined as the differences between 
                                     the square root of the robust distance and 
                                     the square root of the 99.99% quantile of 
-                                    the chi-squared distribution.")
+                                    the Chi-squared distribution (this parameter
+                                    can be controlled using a panel below).<br><br>")
                     }
                 }
                 return(res)
@@ -669,12 +684,7 @@ sc3_interactive <- function(input.param) {
                             paste0("<font color=\"", col, "\">", j, "</font>")
                     }
                 }
-                labs <- paste0(
-                    "<br/><font size=\"3\">Colours correspond to clusters obtained by clustering the data by <b>",
-                    input$clusters - 1, 
-                    "</b> clusters</font><br/>"
-                )
-                labs <- c(labs, "<br/>")
+                labs <- "<br/><br/>"
                 for(i in 1:input$clusters) {
                     ind <- unlist(
                         strsplit(
@@ -891,7 +901,6 @@ sc3_interactive <- function(input.param) {
                         d <- values$dataset
                         col.gaps <- values$col.gaps
                     }
-                    values$de <- FALSE
                     # define de genes
                     values$de.res <- get_de_genes(
                         d, 
@@ -907,7 +916,6 @@ sc3_interactive <- function(input.param) {
                         )
                     )
                     d.param <- de_gene_heatmap_param(head(values$de.res, 50))
-                    values$de <- TRUE
                     res <- data.frame(
                         gene = names(values$de.res),
                         p.value = as.numeric(values$de.res),
@@ -958,13 +966,11 @@ sc3_interactive <- function(input.param) {
                                      d <- values$dataset
                                  }
                                  
-                                 values$outl <- FALSE
-                                 
                                  # compute outlier cells
                                  values$outl.res <- get_outl_cells(
                                      d,
                                      colnames(d),
-                                     input.param$chisq.quantile
+                                     as.numeric(input$chisq.quantile)
                                  )
                                  
                                  t <- as.data.frame(values$outl.res)
@@ -984,7 +990,6 @@ sc3_interactive <- function(input.param) {
                                  cols <- iwanthue(length(unique(t$Cluster)))
                                  Cells <- outl <- Cluster <- NULL
                                  
-                                 values$outl <- TRUE
                                  values$cells.outliers <- if(with_svm) {
                                      data.frame(
                                          new.labels = as.numeric(names(values$outl.res)),
@@ -1098,13 +1103,7 @@ sc3_interactive <- function(input.param) {
             output$is_mark <- reactive({
                 return(values$mark)
             })
-            output$is_de <- reactive({
-                return(values$de)
-            })
-            output$is_outl <- reactive({
-                return(values$outl)
-            })
-            
+
             # DOWNLOAD buttons
             
             # Save to xls button
@@ -1150,8 +1149,6 @@ sc3_interactive <- function(input.param) {
             
             # hide panels
             outputOptions(output, 'is_mark', suspendWhenHidden = FALSE)
-            outputOptions(output, 'is_de', suspendWhenHidden = FALSE)
-            outputOptions(output, 'is_outl', suspendWhenHidden = FALSE)
             outputOptions(output, 'is_svm', suspendWhenHidden = FALSE)
         },
         # launch App in a browser

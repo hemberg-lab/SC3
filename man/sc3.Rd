@@ -6,9 +6,9 @@
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
-  d.region.min = 0.04, d.region.max = 0.07, chisq.quantile = 0.9999,
-  interactivity = TRUE, show.original.labels = FALSE, svm = FALSE,
-  svm.num.cells = NA, n.cores = NA, seed = 1)
+  d.region.min = 0.04, d.region.max = 0.07, interactivity = TRUE,
+  show.original.labels = FALSE, svm = FALSE, svm.num.cells = NA,
+  n.cores = NA, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -47,9 +47,6 @@ default is 0.04.}
 
 \item{d.region.max}{the upper boundary of the optimum region of d, 
 default is 0.07.}
-
-\item{chisq.quantile}{a threshold used for cell outliers detection, 
-default is 0.9999.}
 
 \item{interactivity}{defines whether a browser interactive window should be
 open after all computation is done. By default it is TRUE. This option can
