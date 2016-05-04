@@ -8,7 +8,7 @@
 #' all precomputed clusterings.
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions tags radioButtons downloadButton
-#' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string xlab ylab geom_rug
+#' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string xlab ylab geom_rug ylim
 #' @importFrom utils head write.table
 #' @importFrom stats as.dendrogram order.dendrogram cutree median
 #' @importFrom graphics plot
@@ -287,6 +287,14 @@ sc3_interactive <- function(input.param) {
                             )
                         ),
                         tabPanel(
+                            "Stability",
+                            plotOutput(
+                                'StabilityPlot',
+                                height = plot.height.small,
+                                width = "100%"
+                            )
+                        ),
+                        tabPanel(
                             "Expression",
                             plotOutput(
                                 'matrix',
@@ -312,7 +320,11 @@ sc3_interactive <- function(input.param) {
                         ),
                         tabPanel(
                             "Outliers",
-                            uiOutput('plot_outl')
+                            plotOutput(
+                                'outliers',
+                                height = plot.height.small,
+                                width = "100%"
+                            )
                         )
                     )
                 } else {
@@ -338,6 +350,14 @@ sc3_interactive <- function(input.param) {
                             div(
                                 htmlOutput('labels'),
                                 style = "font-size:80%"
+                            )
+                        ),
+                        tabPanel(
+                            "Stability",
+                            plotOutput(
+                                'StabilityPlot',
+                                height = plot.height.small,
+                                width = "100%"
                             )
                         ),
                         tabPanel(
@@ -439,6 +459,27 @@ sc3_interactive <- function(input.param) {
                 values$new.labels <- reindex_clusters(colnames(d))
                 colnames(d) <- values$new.labels
                 values$dataset <- d
+                
+                # calculate stability of the clusters
+                stab.res <- input.param$cons.table[
+                    unlist(
+                        lapply(
+                            dist.opts,
+                            function(x){setequal(x, input$distance)}
+                        )
+                    ) & 
+                        unlist(
+                            lapply(
+                                dim.red.opts, 
+                                function(x){setequal(x, input$dimRed)}
+                            )
+                        ), 
+                    3:4]
+                values$stability <- StabilityIndex(
+                    stab.res,
+                    input$clusters
+                )
+                
                 # reorder new cell labels in the same order as cells in the 
                 # input matrix
                 ord <- order(cell.order)
@@ -522,6 +563,13 @@ sc3_interactive <- function(input.param) {
                                     when changing from <i>k</i> - 1 to <i>k</i>, the labels are 
                                     colour-coded corresponding to the custering 
                                     results for <i>k</i> - 1.")
+                    }
+                    if(grepl("Stability", input$main_panel)) {
+                        res <- HTML("Stability index shows how stable each cluster
+                                    is accross the selected range of <i>k</i>s.
+                                    The stability index varies between 0 and 1, where
+                                    1 means that the same cluster appears in every
+                                    solution for different <i>k</i>.")
                     }
                     if(grepl("Expression", input$main_panel)) {
                         res <- HTML("The expression panel represents the original 
@@ -700,6 +748,30 @@ sc3_interactive <- function(input.param) {
                 
                 HTML(paste0(labs))
             })
+            
+            output$StabilityPlot <- renderPlot({
+                validate(
+                    need(
+                        input$distance,
+                        "\nPlease select at least one Distance!"
+                    ),
+                    need(
+                        input$dimRed,
+                        "\nPlease select at least one Transformation!"
+                    )
+                )
+                withProgress(message = 'Plotting...', value = 0, {
+                    d <- data.frame(
+                        Cluster = factor(1:length(values$stability)),
+                        Stability = values$stability)
+                    ggplot(d, aes(x = d$Cluster, y = d$Stability)) +
+                        geom_bar(stat = "identity") +
+                        ylim(0, 1) +
+                        labs(x = "Cluster", y = "Stability Index") +
+                        theme_bw()
+                })
+            })
+            
             output$matrix <- renderPlot({
                 validate(
                     need(
@@ -930,22 +1002,9 @@ sc3_interactive <- function(input.param) {
             output$plot_de_genes <- renderUI({
                 plotOutput("de_genes", height = plotHeightDE(), width = "100%")
             })
+            
+            
             output$outliers <- renderPlot({
-                t <- values$plot.outl[[1]]
-                cols <- values$plot.outl[[2]]
-                ggplot(t, aes(x = t$Cells,
-                              y = t$outl,
-                              fill = t$Cluster, 
-                              color = t$Cluster)) +
-                    geom_bar(stat = "identity") +
-                    geom_point() +
-                    scale_fill_manual(values = cols) +
-                    scale_color_manual(values = cols) +
-                    guides(color = FALSE, fill = FALSE) +
-                    labs(x = "Cells", y = "Outlier score") +
-                    theme_bw()
-            })
-            runOutlier <- function() {
                 validate(
                     need(
                         input$distance,
@@ -956,65 +1015,69 @@ sc3_interactive <- function(input.param) {
                         "\nPlease select at least one Transformation!"
                     )
                 )
-                withProgress(message = 'Calculating cell outliers...',
-                             value = 0, 
-                             {
-                                 # prepare dataset for plotting
-                                 if(with_svm) {
-                                     d <- values$dataset.svm
-                                 } else {
-                                     d <- values$dataset
-                                 }
-                                 
-                                 # compute outlier cells
-                                 values$outl.res <- get_outl_cells(
-                                     d,
-                                     colnames(d),
-                                     as.numeric(input$chisq.quantile)
-                                 )
-                                 
-                                 t <- as.data.frame(values$outl.res)
-                                 colnames(t)[1] <- "outl"
-                                 t$Cluster <- names(values$outl.res)
-                                 t$Cells <- 1:dim(t)[1]
-                                 t$Cluster <-
-                                     factor(t$Cluster,
-                                            levels =
-                                                unique(
-                                                    as.character(
-                                                        sort(
-                                                            as.numeric(t$Cluster))
-                                                        )
-                                                )
-                                     )
-                                 cols <- iwanthue(length(unique(t$Cluster)))
-                                 Cells <- outl <- Cluster <- NULL
-                                 
-                                 values$cells.outliers <- if(with_svm) {
-                                     data.frame(
-                                         new.labels = as.numeric(names(values$outl.res)),
-                                         original.labels = values$original.labels.svm,
-                                         MCD.dist = as.numeric(values$outl.res),
-                                         stringsAsFactors = FALSE
-                                     )
-                                 } else {
-                                     data.frame(
-                                         new.labels = as.numeric(names(values$outl.res)),
-                                         original.labels = values$original.labels,
-                                         MCD.dist = values$outl.res,
-                                         stringsAsFactors = FALSE
-                                     )
-                                 }
-                })
-                values$plot.outl <- list(t, cols)
-                return(plot.height.small)
-            }
-            
-            output$plot_outl <- renderUI({
-                plotOutput(
-                    "outliers", 
-                    height = runOutlier(), 
-                    width = "100%"
+                withProgress(
+                    message = 'Calculating cell outliers...',
+                    value = 0, 
+                    {
+                        # prepare dataset for plotting
+                        if(with_svm) {
+                            d <- values$dataset.svm
+                        } else {
+                            d <- values$dataset
+                        }
+                        
+                        # compute outlier cells
+                        values$outl.res <- get_outl_cells(
+                            d,
+                            colnames(d),
+                            as.numeric(input$chisq.quantile)
+                        )
+                        
+                        t <- as.data.frame(values$outl.res)
+                        colnames(t)[1] <- "outl"
+                        t$Cluster <- names(values$outl.res)
+                        t$Cells <- 1:dim(t)[1]
+                        t$Cluster <-
+                        factor(
+                            t$Cluster,
+                            levels =
+                                unique(
+                                    as.character(
+                                        sort(as.numeric(t$Cluster))
+                                    )
+                                )
+                        )
+                        cols <- iwanthue(length(unique(t$Cluster)))
+                        Cells <- outl <- Cluster <- NULL
+                        
+                        values$cells.outliers <- if(with_svm) {
+                            data.frame(
+                                new.labels = as.numeric(names(values$outl.res)),
+                                original.labels = values$original.labels.svm,
+                                MCD.dist = as.numeric(values$outl.res),
+                                stringsAsFactors = FALSE
+                            )
+                        } else {
+                            data.frame(
+                                new.labels = as.numeric(names(values$outl.res)),
+                                original.labels = values$original.labels,
+                                MCD.dist = values$outl.res,
+                                stringsAsFactors = FALSE
+                            )
+                        }
+                        
+                        ggplot(t, aes(x = t$Cells,
+                                  y = t$outl,
+                                  fill = t$Cluster, 
+                                  color = t$Cluster)) +
+                        geom_bar(stat = "identity") +
+                        geom_point() +
+                        scale_fill_manual(values = cols) +
+                        scale_color_manual(values = cols) +
+                        guides(color = FALSE, fill = FALSE) +
+                        labs(x = "Cells", y = "Outlier score") +
+                        theme_bw()
+                    }
                 )
             })
 

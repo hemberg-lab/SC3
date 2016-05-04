@@ -243,3 +243,49 @@ get_de_genes <- function(dataset, labels, p.val = 0.01) {
     return(ps[order(ps)])
 }
 
+#' Calculate the stability index of the obtained clusters when changing k
+#'
+#' Stability index shows how stable each cluster is accross the selected range of k. 
+#' The stability index varies between 0 and 1, where 
+#' 1 means that the same cluster appears in every solution for different k.
+#' 
+#' Formula (imagine a given cluster with is split into N clusters when k is changed, and
+#' in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
+#' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
+#'
+#' @param stab.res internal matrix of precomputed clustering results
+#' @param k current value of the number of clusters k
+#' @return a numeric vector containing a stability index of each cluster
+StabilityIndex <- function(stab.res, k) {
+    hc <- stab.res[as.numeric(stab.res[ , 1]) == k, 2][[1]][[3]]
+    labs <- cutree(hc, k)
+    labs <- labs[hc$order]
+    labs <- reindex_clusters(labs)
+    
+    kMax <- max(unique(as.numeric(stab.res[ , 1])))
+    kMin <- min(unique(as.numeric(stab.res[ , 1]))) + 1
+    kRange <- kMax - kMin
+    
+    stability <- rep(0, k)
+    
+    for (i in 1:k) {
+        inds <- names(labs[labs == i])
+        # sum over k range
+        for (k2 in kMin:kMax) {
+            if (k2 != k) {
+                hc2 <- stab.res[as.numeric(stab.res[ , 1]) == k2, 2][[1]][[3]]
+                labs2 <- cutree(hc2, k2)
+                clusts <- as.numeric(names(table(labs2[names(labs2) %in% inds])))
+                N <- length(clusts)
+                # sum over new clusters, taking into account new cells from
+                # other clusters
+                for(j in clusts) {
+                    inds2 <- names(labs2[labs2 == j])
+                    s <- length(inds[inds %in% inds2]) / length(inds2) / N / N / kRange
+                    stability[i] <- stability[i] + s
+                }
+            }
+        }
+    }
+    return(stability)
+}
