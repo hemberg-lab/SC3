@@ -11,26 +11,9 @@ vignette: >
 
 ## Introduction
 
-Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently in submission but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
+Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently under review but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
 
-## Installation
-
-Currently, only the "devel" (i.e. development) version of __SC3__ is available through Bioconductor. This means that you will need to be using Bioconductor devel and the development version of R (R 3.3) in order to install __SC3__ from Bioconductor:
-```{r, eval=FALSE}
-## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("SC3")
-```
-
-__SC3__ will become available as a "release" version in the next Bioconductor release in May 2016. At this point the release version of __SC3__ will work with the release version of R and Bioconductor, and development will continue in the devel version of the package.
-
-Meanwhile, if you do not have the development version of R and have any other version of R __>= 2.10__, you can install __SC3__ from [SC3 GitHub](https://github.com/hemberg-lab/SC3) repository (from "R-old" branch):
-```{r, eval=FALSE}
-install.packages("devtools")
-devtools::install_github("hemberg-lab/SC3", ref = "R-old")
-```
-
-## Prerequisite (optional)
+## Prerequisites (optional)
 
 > Note that this prerequisite is only optional. If it is not installed you can still run __SC3__, but the _GO anlaysis_ functionality will be disabled.
 
@@ -88,7 +71,7 @@ sc3_interactive(sc3.interactive.arg)
 
 ## Number of cells
 
-Combining multiple clustering results through the consensus approach is quite computationally expensive. Therefore running __SC3__ on datasets with 1,000 cells may take ~10-15 mins. We do not recommend to use the default options on datasets with more than 1,000 cells. In order to  apply  SC3 to larger datasets, we have implemented a hybrid approach that combines unsupervised and supervised methodologies. When the number of cells is large (N>1,000), SC3 selects a small subset of cells uniformly at random, and obtains clusters from this subset as described above. Subsequently, the inferred labels are used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells. Training the SVM typically takes only a few minutes, thus allowing SC3 to be applied to very large datasets. Based on our results, we set the default of __SC3__ so that when N>1,000 only 20% of the cells are used and when N>5,000 only 1,000 cells are used for clustering before training the SVM. To enable the SVM training please set the _svm_ parameter to __TRUE__:
+Combining multiple clustering results through the consensus approach is quite computationally expensive. Therefore running __SC3__ on datasets with 1,000 cells may take ~10-15 mins. We do not recommend to use the default options on datasets with more than 1,000 cells. In order to  apply  SC3 to larger datasets, we have implemented a hybrid approach that combines unsupervised and supervised methodologies. When the number of cells is large (N>1,000), SC3 selects a small subset of cells uniformly at random, and obtains clusters from this subset. Subsequently, the inferred labels are used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells. Training the SVM typically takes only a few minutes, thus allowing SC3 to be applied to very large datasets. Based on our results, we set the default of __SC3__ so that when N>1,000 only 20% of the cells are used and when N>5,000 only 1,000 cells are used for clustering before training the SVM. To enable the SVM training please set the _svm_ parameter to __TRUE__:
 
 ```{r, eval=FALSE}
 sc3(treutlein, svm = TRUE)
