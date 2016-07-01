@@ -7,8 +7,8 @@
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
   d.region.min = 0.04, d.region.max = 0.07, interactivity = TRUE,
-  show.original.labels = FALSE, svm = FALSE, svm.num.cells = NA,
-  n.cores = NA, seed = 1)
+  show.original.labels = FALSE, svm = FALSE, svm.num.cells = NULL,
+  svm.train.inds = NULL, n.cores = NULL, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -65,7 +65,11 @@ by setting this parameter to TRUE. The default is FALSE.}
 \item{svm}{if TRUE then an SVM prediction will be used. The default is FALSE.}
 
 \item{svm.num.cells}{number of training cells to be used for SVM prediction. 
-The default is NA. If the svm parameter is TRUE and svn.num.cells is not provided,
+The default is NULL. If the svm parameter is TRUE and svn.num.cells is not provided,
+then the svm.train.inds parameter is checked.}
+
+\item{svm.train.inds}{a numeric vector defining indeces of training cells that should be used for SVM training. 
+The default is NULL. If the svm parameter is TRUE and svn.num.cells and svm.train.inds are not provided,
 then the defaults of SC3 will be used: if number of cells is more than 5000,
 then svn.num.cells = 1000, otherwise svn.num.cells = 20 percent of the total number of cells}
 

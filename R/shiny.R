@@ -36,7 +36,7 @@ sc3_interactive <- function(input.param) {
     ## define server global variables
     values <- reactiveValues()
     
-    if(!is.na(input.param$svm.num.cells)) {
+    if(!is.null(input.param$svm.num.cells)) {
         with_svm <- TRUE
         values$svm <- FALSE
     } else {
@@ -115,7 +115,7 @@ sc3_interactive <- function(input.param) {
                                     paste0(
                                         "Your data was clustered based on ",
                                         input.param$svm.num.cells,
-                                        " random cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n"
+                                        " cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n"
                                     )
                                 ),
                                 actionButton(
