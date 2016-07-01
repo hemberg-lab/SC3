@@ -44,7 +44,10 @@
 #' by setting this parameter to TRUE. The default is FALSE.
 #' @param svm if TRUE then an SVM prediction will be used. The default is FALSE.
 #' @param svm.num.cells number of training cells to be used for SVM prediction. 
-#' The default is NA. If the svm parameter is TRUE and svn.num.cells is not provided,
+#' The default is NULL. If the svm parameter is TRUE and svn.num.cells is not provided,
+#' then the svm.train.inds parameter is checked.
+#' @param svm.train.inds a numeric vector defining indeces of training cells that should be used for SVM training. 
+#' The default is NULL. If the svm parameter is TRUE and svn.num.cells and svm.train.inds are not provided,
 #' then the defaults of SC3 will be used: if number of cells is more than 5000,
 #' then svn.num.cells = 1000, otherwise svn.num.cells = 20 percent of the total number of cells
 #' @param n.cores defines the number
@@ -82,8 +85,9 @@ sc3 <- function(filename,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm = FALSE,
-                svm.num.cells = NA,
-                n.cores = NA,
+                svm.num.cells = NULL,
+                svm.train.inds = NULL,
+                n.cores = NULL,
                 seed = 1) {
 
     # initial parameters
@@ -108,7 +112,7 @@ sc3 <- function(filename,
     # cell filter
     if(cell.filter) {
         dataset <- cell_filter(dataset, cell.filter.genes)
-        if(dim(dataset)[2] == 0) {
+        if(ncol(dataset) == 0) {
             cat("All cells were removed after the cell filter! Stopping now...")
             return()
         }
@@ -117,7 +121,7 @@ sc3 <- function(filename,
     # gene filter
     if(gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction)
-        if(dim(dataset)[1] == 0) {
+        if(nrow(dataset) == 0) {
             cat("All genes were removed after the gene filter! Stopping now...")
             return()
         }
@@ -140,30 +144,52 @@ sc3 <- function(filename,
     
     # SVM (optional)
     if(svm) {
-        if(is.na(svm.num.cells)) {
-            svm.num.cells <- round(0.2 * dim(dataset)[2])
-            if(dim(dataset)[2] > 5000) {
-                svm.num.cells <- 1000
-                cat("\n")
-                cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. Your dataset contains more than 5000 cells and by default clustering will be performed on a random sample of ",
-                           svm.num.cells,
-                           " cells, the rest of the cells will be predicted using SVM."))
-                cat("\n")
-                cat("\n")
+        if(is.null(svm.num.cells)) {
+            if(is.null(svm.train.inds)) {
+                svm.num.cells <- round(0.2 * ncol(dataset))
+                if(ncol(dataset) > 5000) {
+                    svm.num.cells <- 1000
+                    cat("\n")
+                    cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. Your dataset contains more than 5000 cells and by default clustering will be performed on a random sample of ",
+                               svm.num.cells,
+                               " cells, the rest of the cells will be predicted using SVM."))
+                    cat("\n")
+                    cat("\n")
+                } else {
+                    cat("\n")
+                    cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. By default clustering will be performed on a random sample of ",
+                               svm.num.cells,
+                               " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
+                    cat("\n")
+                    cat("\n")
+                }
+                svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
+                svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+                study.dataset <- dataset[ , svm.study.inds]
+                dataset <- dataset[, svm.train.inds]
+                svm.inds <- c(svm.train.inds, svm.study.inds)
             } else {
-                cat("\n")
-                cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. By default clustering will be performed on a random sample of ",
-                           svm.num.cells,
-                           " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
-                cat("\n")
-                cat("\n")
+                if(max(svm.train.inds) > ncol(dataset)) {
+                    return(paste0("You have chosen to use SVM for clustering, and provided a logical vector training cells using svm.train.inds parameter. ",
+                               "The length of this vector is larger than the number of cells in your dataset. Please check svm.train.inds parameter."))
+                } else {
+                    cat("\n")
+                    cat(paste0("You have chosen to use SVM for clustering, and provided a logical vector training cells using svm.train.inds parameter."))
+                    cat("\n")
+                    cat("\n")
+                    svm.num.cells <- length(svm.train.inds)
+                    svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+                    study.dataset <- dataset[ , svm.study.inds]
+                    dataset <- dataset[, svm.train.inds]
+                    svm.inds <- c(svm.train.inds, svm.study.inds)
+                }
             }
         } else {
-            if(svm.num.cells >= dim(dataset)[2] - 1) return(
+            if(svm.num.cells >= ncol(dataset) - 1) return(
                 paste0("You have chosen to use SVM for clustering, and provided the number of training cells (svm.num.cells = ",
                        svm.num.cells,
                        ") that is larger (or equal) than the number of cells in your dataset - 1 (",
-                       dim(dataset)[2] - 1,
+                       ncol(dataset) - 1,
                        "). Please adjust svm.num.cells parameter and rerun SC3.")
             ) else {
                 cat("\n")
@@ -172,17 +198,20 @@ sc3 <- function(filename,
                            " cells. This number of cells will be used for SVM training. The rest of the cells will be predicted using SVM."))
                 cat("\n")
                 cat("\n")
+                svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
+                svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+                study.dataset <- dataset[ , svm.study.inds]
+                dataset <- dataset[, svm.train.inds]
+                svm.inds <- c(svm.train.inds, svm.study.inds)
             }
         }
-        svm.train.inds <- sample(1:dim(dataset)[2], svm.num.cells)
-        svm.study.inds <- setdiff(1:dim(dataset)[2], svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
+        if(length(svm.train.inds) < max(ks)) {
+            return("Number of clusters k is larger than number of cells!")
+        }
     }
 
     # define number of cells and region of dimensions
-    n.cells <- dim(dataset)[2]
+    n.cells <- ncol(dataset)
     n.dim <- floor(d.region.min * n.cells) : ceiling(d.region.max * n.cells)
 
     # for large datasets restrict the region of dimensions to 15
@@ -198,9 +227,9 @@ sc3 <- function(filename,
 
     cat("Calculating distance matrices...\n")
     # register computing cluster (N-1 CPUs) on a local machine
-    if(is.na(n.cores)) {
+    if(is.null(n.cores)) {
         n.cores <- parallel::detectCores()
-        if(is.na(n.cores)) {
+        if(is.null(n.cores)) {
             return("Cannot define a number of available CPU cores that can be used by SC3. Try to set the n.cores parameter in the sc3() function call.")
         }
         # leave one core for the user

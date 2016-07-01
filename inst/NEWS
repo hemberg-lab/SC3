@@ -1,3 +1,9 @@
+28/06/2016
+
+Version 1.1.5:
+* Added svm.train.inds parameter - it allows a user to train SVM on a 
+selected subset of cells
+
 15/04/2016
 
 The latest version 0.99.37 contains the following updates
