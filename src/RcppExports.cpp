@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // splits
 std::vector<int> splits(const std::string myString);
-RcppExport SEXP SC3fast_splits(SEXP myStringSEXP) {
+RcppExport SEXP SC3_splits(SEXP myStringSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // calcPWD1
 arma::mat calcPWD1(const arma::mat& x);
-RcppExport SEXP SC3fast_calcPWD1(SEXP xSEXP) {
+RcppExport SEXP SC3_calcPWD1(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // calcPWD2
 NumericMatrix calcPWD2(const NumericMatrix& x);
-RcppExport SEXP SC3fast_calcPWD2(SEXP xSEXP) {
+RcppExport SEXP SC3_calcPWD2(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -41,7 +41,7 @@ END_RCPP
 }
 // consmx
 arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int length);
-RcppExport SEXP SC3fast_consmx(SEXP myStringSEXP, SEXP resSEXP, SEXP lengthSEXP) {
+RcppExport SEXP SC3_consmx(SEXP myStringSEXP, SEXP resSEXP, SEXP lengthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
