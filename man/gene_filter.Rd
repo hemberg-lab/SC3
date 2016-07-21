@@ -4,12 +4,18 @@
 \alias{gene_filter}
 \title{Gene filter}
 \usage{
-gene_filter(data, fraction)
+gene_filter(data, fraction = 0, reads.rare = 0, reads.ubiq = 0)
 }
 \arguments{
 \item{data}{expression matrix}
 
 \item{fraction}{fraction of cells (1 - X/100), default is 0.06.}
+
+\item{reads.rare}{expression value threshold for genes that are expressed in
+less than fraction*N cells (rare genes)}
+
+\item{reads.ubiq}{expression value threshold for genes that are expressed in
+more than (1-fraction)*N cells (ubiquitous genes)}
 }
 \value{
 filtered expression matrix some genes were removed.
