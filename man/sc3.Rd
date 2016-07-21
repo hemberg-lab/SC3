@@ -5,10 +5,11 @@
 \title{SC3 main function}
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
-  gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
-  d.region.min = 0.04, d.region.max = 0.07, interactivity = TRUE,
-  show.original.labels = FALSE, svm = FALSE, svm.num.cells = NULL,
-  svm.train.inds = NULL, n.cores = NULL, seed = 1)
+  gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
+  gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
+  d.region.max = 0.07, interactivity = TRUE, show.original.labels = FALSE,
+  svm = FALSE, svm.num.cells = NULL, svm.train.inds = NULL,
+  n.cores = NULL, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -38,6 +39,12 @@ The gene filter removes genes that are either expressed or absent
 (expression value is less than 2) in at least X % of cells.
 The motivation for the gene filter is that ubiquitous and rare genes most
 often are not informative for the clustering.}
+
+\item{gene.reads.rare}{expression value threshold for genes that are expressed in
+less than gene.filter.fraction*N cells (rare genes)}
+
+\item{gene.reads.ubiq}{expression value threshold for genes that are expressed in
+more than (1-fraction)*N cells (ubiquitous genes)}
 
 \item{log.scale}{defines whether to perform log2 scaling or not. Boolean,
 default is TRUE.}

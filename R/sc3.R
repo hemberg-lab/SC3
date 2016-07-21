@@ -24,6 +24,10 @@
 #' (expression value is less than 2) in at least X % of cells.
 #' The motivation for the gene filter is that ubiquitous and rare genes most
 #' often are not informative for the clustering.
+#' @param gene.reads.rare expression value threshold for genes that are expressed in
+#' less than gene.filter.fraction*N cells (rare genes)
+#' @param gene.reads.ubiq expression value threshold for genes that are expressed in
+#' more than (1-fraction)*N cells (ubiquitous genes)
 #' @param log.scale defines whether to perform log2 scaling or not. Boolean,
 #' default is TRUE.
 #' @param d.region.min the lower boundary of the optimum region of d, 
@@ -79,6 +83,8 @@ sc3 <- function(filename,
                 cell.filter.genes = 2000,
                 gene.filter = TRUE,
                 gene.filter.fraction = 0.06,
+                gene.reads.rare = 2,
+                gene.reads.ubiq = 0,
                 log.scale = TRUE,
                 d.region.min = 0.04,
                 d.region.max = 0.07,
@@ -120,7 +126,7 @@ sc3 <- function(filename,
 
     # gene filter
     if(gene.filter) {
-        dataset <- gene_filter(dataset, gene.filter.fraction)
+        dataset <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
         if(nrow(dataset) == 0) {
             cat("All genes were removed after the gene filter! Stopping now...")
             return()

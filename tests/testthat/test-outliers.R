@@ -1,5 +1,5 @@
 d <- SC3:::cell_filter(treutlein, 2000)
-d <- SC3:::gene_filter(d, 0.06)
+d <- SC3:::gene_filter(d, 0.06, 2, 0)
 
 d1 <- d[ , colnames(d) == "4"]
 res <- SC3:::get_outl_cells(d1, colnames(d1))

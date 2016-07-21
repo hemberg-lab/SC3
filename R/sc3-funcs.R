@@ -58,28 +58,18 @@ cell_filter <- function(data, cell.filter.genes) {
 #'
 #' @param data expression matrix
 #' @param fraction fraction of cells (1 - X/100), default is 0.06.
+#' @param reads.rare expression value threshold for genes that are expressed in
+#' less than fraction*N cells (rare genes)
+#' @param reads.ubiq expression value threshold for genes that are expressed in
+#' more than (1-fraction)*N cells (ubiquitous genes)
 #' @return filtered expression matrix some genes were removed.
-gene_filter <- function(data, fraction) {
+gene_filter <- function(data, fraction = 0, reads.rare = 0, reads.ubiq = 0) {
     cat("Gene filtering...\n")
-    filter.params <- filter_params(data, fraction)
-    min.cells <- filter.params$min.cells
-    max.cells <- filter.params$max.cells
-    min.reads <- filter.params$min.reads
-    d <- data[rowSums(data > min.reads) >= min.cells &
-              rowSums(data > 0) <= dim(data)[2] - max.cells, ]
+    frac.cells <- ceiling(fraction*ncol(data))
+    d <- data[rowSums(data > reads.rare) >= frac.cells &
+                  rowSums(data > reads.ubiq) <= ncol(data) - frac.cells, ]
     d <- unique(d)
     return(d)
-}
-
-filter_params <- function(dataset, fraction) {
-    n.cells <- dim(dataset)[2]
-
-    min.cells <- ceiling(fraction*n.cells)
-    max.cells <- ceiling(fraction*n.cells)
-    min.reads <- 2
-
-    return(list(min.cells = min.cells, max.cells = max.cells,
-                min.reads = min.reads))
 }
 
 #' Calculate a distance matrix
