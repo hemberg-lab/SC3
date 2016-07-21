@@ -71,7 +71,7 @@
 #' @importFrom parallel makeCluster detectCores stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom utils head write.table setTxtProgressBar txtProgressBar combn
-#' @importFrom stats cutree hclust kmeans dist
+#' @importFrom stats cutree hclust kmeans dist as.dist
 #'
 #' @examples
 #' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
