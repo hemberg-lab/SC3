@@ -308,8 +308,10 @@ sc3 <- function(filename,
                  res$k == as.numeric(all.combinations[i, 3]), ]
       
       dat <- consensus_matrix(d$labs)
-      
-      diss <- as.dist(calcPWD2(dat))
+      c <- calcPWD2(dat)
+      colnames(c) <- as.character(colnames(dat))
+      rownames(c) <- as.character(colnames(dat))
+      diss <- as.dist(as.matrix(as.dist(c)))
       clust <- hclust(diss)
       clusts <- cutree(clust, k = as.numeric(all.combinations[i, 3]))
       

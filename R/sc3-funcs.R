@@ -92,7 +92,7 @@ calculate_distance <- function(data, method) {
     as.matrix(1 - cor(data, method = "pearson"))
   } else {
     calcPWD2(data)
-  })
+    })
 }
 
 #' Distance matrix transformation
@@ -164,6 +164,8 @@ consensus_matrix <- function(clusts) {
   j <- length(clusts)
   res <- consmx(clusts, res, j)
   res <- -res/j
+  colnames(res) <- as.character(c(1:n.cells))
+  rownames(res) <- as.character(c(1:n.cells))
   return(res)
 }
 
