@@ -94,7 +94,9 @@ sc3 <- function(filename,
                 svm.num.cells = NULL,
                 svm.train.inds = NULL,
                 n.cores = NULL,
-                seed = 1) {
+                seed = 1,
+                iter.max = 1e+09,
+                nstart = 1000) {
   
   # initial parameters
   set.seed(seed)
@@ -267,8 +269,8 @@ sc3 <- function(filename,
                                                    hash.table[i, 2])[[1]]
                                s <- paste(kmeans(t[, 1:hash.table[i, 4]],
                                                  hash.table[i, 3],
-                                                 iter.max = 1e+09,
-                                                 nstart = 1000)$cluster,
+                                                 iter.max = iter.max,
+                                                 nstart = nstart)$cluster,
                                           collapse = " ")
                                setTxtProgressBar(pb, i)
                                return(s)
