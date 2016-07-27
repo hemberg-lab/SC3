@@ -141,7 +141,8 @@ transformation <- function(dists, method) {
 #' @return graph Laplacian of the adjacency/distance matrix
 norm_laplacian <- function(x, tau) {
   D <- diag(colSums(x)^(-0.5))
-  return(diag(dim(D)[1]) - D %*% x %*% D)
+  dim <- nrow(x)
+  return(diag(dim(D)[1]) - mult(D, x, dim))
 }
 
 #' Calculate consensus matrix

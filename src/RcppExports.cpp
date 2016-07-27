@@ -52,3 +52,16 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// mult
+arma::mat mult(arma::mat D, arma::mat x, int dim);
+RcppExport SEXP SC3_mult(SEXP DSEXP, SEXP xSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
+    __result = Rcpp::wrap(mult(D, x, dim));
+    return __result;
+END_RCPP
+}
