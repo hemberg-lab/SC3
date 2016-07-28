@@ -17,3 +17,7 @@ consmx <- function(myString, res, length) {
     .Call('SC3_consmx', PACKAGE = 'SC3', myString, res, length)
 }
 
+mult <- function(D, x, dim) {
+    .Call('SC3_mult', PACKAGE = 'SC3', D, x, dim)
+}
+
