@@ -237,7 +237,6 @@ sc3 <- function(filename,
                             dim.red = dimensionality.reductions,
                             k = c(min(ks) - 1, ks),
                             n.dim = n.dim, stringsAsFactors = FALSE)
-  
   cat("Calculating distance matrices...\n")
   # register computing cluster (N-1 CPUs) on a local machine
   if(is.null(n.cores)) {
@@ -266,12 +265,21 @@ sc3 <- function(filename,
   # add a progress bar to be able to see the progress
   pb <- txtProgressBar(min = 1, max = dim(hash.table)[1], style = 3)
   cat("Performing dimensionality reduction and kmeans clusterings...\n")
+  
+  lis <- foreach::foreach(i = 1:6, .combine = append) %dopar% {
+    return(list(transformation(get(hash.table[i, 1], dists),
+                               hash.table[i, 2])[[1]]))
+  }
+  
   labs <- foreach::foreach(i = 1:dim(hash.table)[1],
                            .combine = rbind,
                            .options.RNG = seed) %dorng% {
                              try({
-                               t <- transformation(get(hash.table[i, 1], dists),
-                                                   hash.table[i, 2])[[1]]
+                               j <- i %% 6
+                               if (j == 0) {
+                                 j <- 6
+                               }
+                               t <- lis[[j]]
                                s <- paste(kmeans(t[, 1:hash.table[i, 4]],
                                                  hash.table[i, 3],
                                                  iter.max = k.means.iter.max,
@@ -336,7 +344,6 @@ sc3 <- function(filename,
       return(list(dat, labs, clust, silh))
     })
   }
-  
   # stop local cluster
   parallel::stopCluster(cl)
   
