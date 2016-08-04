@@ -21,15 +21,6 @@
 #'
 sc3_interactive <- function(input.param) {
     ## define UI parameters
-    dist.opts <- strsplit(unlist(input.param$cons.table[,1]), " ")
-    dim.red.opts <- strsplit(unlist(input.param$cons.table[,2]), " ")
-    
-    distances <- as.list(input.param$distances)
-    names(distances) <- distances
-    
-    dimensionality.reductions <- as.list(input.param$dimensionality.reductions)
-    names(dimensionality.reductions) <- dimensionality.reductions
-    
     plot.height <- 600
     plot.height.small <- 300
     
@@ -85,24 +76,6 @@ sc3_interactive <- function(input.param) {
                                     loop = FALSE
                                 )
                             )
-                        )
-                    ),
-                    fluidRow(
-                        column(
-                            6,
-                            checkboxGroupInput(
-                                "distance",
-                                label = "Distance",
-                                choices = distances,
-                                selected = distances)
-                        ),
-                        column(
-                            6,
-                            checkboxGroupInput(
-                                "dimRed",
-                                label = "Transformation",
-                                choices = dimensionality.reductions,
-                                selected = dimensionality.reductions)
                         )
                     ),
                     fluidRow(
@@ -394,48 +367,14 @@ sc3_interactive <- function(input.param) {
             # this observer executes whenever any parameter in the left-side
             # parameter panel is changed
             observe({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 # get all results for k
                 res <- input.param$cons.table[
-                    unlist(
-                        lapply(
-                            dist.opts,
-                            function(x){setequal(x, input$distance)}
-                        )
-                    ) & 
-                    unlist(
-                        lapply(
-                            dim.red.opts, 
-                            function(x){setequal(x, input$dimRed)}
-                        )
-                    ) & 
                     as.numeric(input.param$cons.table[ , 3]) == input$clusters, 
                     4][[1]]
                 # get all results for k-1
                 values$labels1 <- NULL
                 if((input$clusters - 1) %in% as.numeric(input.param$cons.table[ , 3])) {
                     res1 <- input.param$cons.table[
-                        unlist(
-                            lapply(
-                                dist.opts, 
-                                function(x){setequal(x, input$distance)}
-                            )
-                        ) & 
-                        unlist(
-                            lapply(
-                                dim.red.opts, 
-                                function(x){setequal(x, input$dimRed)}
-                            )
-                        ) & 
                         as.numeric(input.param$cons.table[ , 3]) == (input$clusters - 1), 
                         4][[1]]
                     values$labels1 <- res1[[2]]
@@ -468,20 +407,7 @@ sc3_interactive <- function(input.param) {
                 # check if there are more than 1 k value in ks range
                 values$stability <- NULL
                 if(length(unique(as.numeric(input.param$cons.table[ , 3]))) > 1) {
-                    stab.res <- input.param$cons.table[
-                        unlist(
-                            lapply(
-                                dist.opts,
-                                function(x){setequal(x, input$distance)}
-                            )
-                        ) & 
-                            unlist(
-                                lapply(
-                                    dim.red.opts, 
-                                    function(x){setequal(x, input$dimRed)}
-                                )
-                            ), 
-                        3:4]
+                    stab.res <- input.param$cons.table[ , 3:4]
                     values$stability <- StabilityIndex(
                         stab.res,
                         input$clusters
@@ -663,16 +589,6 @@ sc3_interactive <- function(input.param) {
             
             ## REACTIVE PANELS
             output$consensus <- renderPlot({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 withProgress(message = 'Plotting...', value = 0, {
                     if(input.param$show.original.labels) {
                         ann <- data.frame(
@@ -703,32 +619,12 @@ sc3_interactive <- function(input.param) {
             })
             
             output$silh <- renderPlot({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 withProgress(message = 'Plotting...', value = 0, {
                     plot(values$silh, col = "black")
                 })
             })
             
             output$labels <- renderUI({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 labs <- "<br/><br/>"
                 if(!is.null(values$labels1)) {
                     labs1 <- list()
@@ -772,14 +668,6 @@ sc3_interactive <- function(input.param) {
             output$StabilityPlot <- renderPlot({
                 validate(
                     need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    ),
-                    need(
                         !is.null(values$stability),
                         "\nStability cannot be calculated for a single k value!"
                     )
@@ -797,16 +685,6 @@ sc3_interactive <- function(input.param) {
             })
             
             output$matrix <- renderPlot({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
                     if(input.param$show.original.labels) {
@@ -838,16 +716,6 @@ sc3_interactive <- function(input.param) {
             })
             
             output$tSNEplot <- renderPlot({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
                     tsne_out <- Rtsne::Rtsne(
@@ -886,16 +754,6 @@ sc3_interactive <- function(input.param) {
                 )
             })
             plotHeightMark <- function() {
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 validate(
                     need(
                         try(!is.null(rownames(input.param$dataset))),
@@ -975,16 +833,6 @@ sc3_interactive <- function(input.param) {
             })
             plotHeightDE <- function() {
                 validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
-                validate(
                     need(try(!is.null(rownames(input.param$dataset))),
                          "\nNo gene names provided in the input expression matrix!")
                 )
@@ -1029,16 +877,6 @@ sc3_interactive <- function(input.param) {
             
             
             output$outliers <- renderPlot({
-                validate(
-                    need(
-                        input$distance,
-                        "\nPlease select at least one Distance!"
-                    ),
-                    need(
-                        input$dimRed,
-                        "\nPlease select at least one Transformation!"
-                    )
-                )
                 withProgress(
                     message = 'Calculating cell outliers...',
                     value = 0, 

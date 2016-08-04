@@ -299,21 +299,12 @@ sc3 <- function(filename,
   # first make another hash table for consensus clustering
   all.combinations <- NULL
   for(k in ks) {
-    for(i in 1:length(distances)) {
-      for(j in 1:length(dimensionality.reductions)) {
-        dist.combs <- combn(distances, i)
-        dim.red.combs <- combn(dimensionality.reductions, j)
-        for(m in 1:dim(dist.combs)[2]) {
-          for(n in 1:dim(dim.red.combs)[2]) {
-            all.combinations <- rbind(
-              all.combinations,
-              cbind(paste(dist.combs[, m], collapse = " "),
-                    paste(dim.red.combs[, n], collapse = " "),
-                    as.numeric(k)))
-          }
-        }
-      }
-    }
+      all.combinations <- rbind(
+          all.combinations,
+          c(paste(distances, collapse = " "),
+            paste(dimensionality.reductions, collapse = " "),
+            as.numeric(k))
+      )
   }
   # run consensus clustering in parallel
   cons <- foreach::foreach(i = 1:dim(all.combinations)[1]) %dorng% {
