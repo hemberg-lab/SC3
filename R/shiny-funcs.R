@@ -266,7 +266,7 @@ StabilityIndex <- function(stab.res, k) {
     labs <- reindex_clusters(labs)
     
     kMax <- max(unique(as.numeric(stab.res[ , 1])))
-    kMin <- min(unique(as.numeric(stab.res[ , 1]))) + 1
+    kMin <- min(unique(as.numeric(stab.res[ , 1])))
     kRange <- kMax - kMin
     
     stability <- rep(0, k)

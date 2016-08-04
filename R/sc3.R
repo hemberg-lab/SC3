@@ -235,7 +235,7 @@ sc3 <- function(filename,
   # create a hash table for running on parallel CPUs
   hash.table <- expand.grid(distan = distances,
                             dim.red = dimensionality.reductions,
-                            k = c(min(ks) - 1, ks),
+                            k = ks,
                             n.dim = n.dim, stringsAsFactors = FALSE)
   cat("Calculating distance matrices...\n")
   # register computing cluster (N-1 CPUs) on a local machine
@@ -298,7 +298,7 @@ sc3 <- function(filename,
   cat("Computing consensus matrix and labels...\n")
   # first make another hash table for consensus clustering
   all.combinations <- NULL
-  for(k in c(min(ks) - 1, ks)) {
+  for(k in ks) {
     for(i in 1:length(distances)) {
       for(j in 1:length(dimensionality.reductions)) {
         dist.combs <- combn(distances, i)
