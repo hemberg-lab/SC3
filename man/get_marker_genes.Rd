@@ -9,7 +9,8 @@ get_marker_genes(dataset, labels, auroc.threshold = 0.85, p.val = 0.01)
 \arguments{
 \item{dataset}{expression matrix}
 
-\item{labels}{cell labels corresponding to the columns of the expression matrix}
+\item{labels}{cell labels corresponding to the columns of the expression matrix.
+Labels must be integers or character integers, e.g. 1, 2, 3 or "1", "2", "3" ect.}
 
 \item{auroc.threshold}{area under the ROC curve threshold, by default it is
 0.85. Values close to 0.5 will include very weak marker genes, values close

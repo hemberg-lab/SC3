@@ -179,7 +179,8 @@ getAUC <- function(gene, labels) {
 #' marker genes manually.
 #'
 #' @param dataset expression matrix
-#' @param labels cell labels corresponding to the columns of the expression matrix
+#' @param labels cell labels corresponding to the columns of the expression matrix.
+#' Labels must be integers or character integers, e.g. 1, 2, 3 or "1", "2", "3" ect.
 #' @param auroc.threshold area under the ROC curve threshold, by default it is
 #' 0.85. Values close to 0.5 will include very weak marker genes, values close
 #' to 1 will only include very strong marker genes.
@@ -197,6 +198,8 @@ get_marker_genes <- function(dataset, labels, auroc.threshold = 0.85, p.val = 0.
                                     byrow=TRUE))
     rownames(geneAUCsdf) <- rownames(dataset)
     colnames(geneAUCsdf) <- c("AUC","clusts", "p.value")
+    # remove genes with ties
+    geneAUCsdf <- geneAUCsdf[geneAUCsdf$clusts != -1, ]
     geneAUCsdf$AUC <- as.numeric(as.character(geneAUCsdf$AUC))
     geneAUCsdf$clusts <- as.numeric(as.character(geneAUCsdf$clusts))
     geneAUCsdf$p.value <- as.numeric(as.character(geneAUCsdf$p.value))
@@ -263,7 +266,7 @@ StabilityIndex <- function(stab.res, k) {
     labs <- reindex_clusters(labs)
     
     kMax <- max(unique(as.numeric(stab.res[ , 1])))
-    kMin <- min(unique(as.numeric(stab.res[ , 1]))) + 1
+    kMin <- min(unique(as.numeric(stab.res[ , 1])))
     kRange <- kMax - kMin
     
     stability <- rep(0, k)

@@ -5,10 +5,11 @@
 \title{SC3 main function}
 \usage{
 sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
-  gene.filter = TRUE, gene.filter.fraction = 0.06, log.scale = TRUE,
-  d.region.min = 0.04, d.region.max = 0.07, interactivity = TRUE,
-  show.original.labels = FALSE, svm = FALSE, svm.num.cells = NULL,
-  svm.train.inds = NULL, n.cores = NULL, seed = 1)
+  gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
+  gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
+  d.region.max = 0.07, k.means.iter.max = 1e+09, k.means.nstart = 1000,
+  interactivity = TRUE, show.original.labels = FALSE, svm = FALSE,
+  svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL, seed = 1)
 }
 \arguments{
 \item{filename}{either an R matrix / data.frame object OR a
@@ -39,6 +40,12 @@ The gene filter removes genes that are either expressed or absent
 The motivation for the gene filter is that ubiquitous and rare genes most
 often are not informative for the clustering.}
 
+\item{gene.reads.rare}{expression value threshold for genes that are expressed in
+less than gene.filter.fraction*N cells (rare genes)}
+
+\item{gene.reads.ubiq}{expression value threshold for genes that are expressed in
+more than (1-fraction)*N cells (ubiquitous genes)}
+
 \item{log.scale}{defines whether to perform log2 scaling or not. Boolean,
 default is TRUE.}
 
@@ -47,6 +54,10 @@ default is 0.04.}
 
 \item{d.region.max}{the upper boundary of the optimum region of d, 
 default is 0.07.}
+
+\item{k.means.iter.max}{iter.max parameter used by kmeans() function. Default is 1e+09.}
+
+\item{k.means.nstart}{nstart parameter used by kmeans() function. Default is 1000.}
 
 \item{interactivity}{defines whether a browser interactive window should be
 open after all computation is done. By default it is TRUE. This option can

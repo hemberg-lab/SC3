@@ -1,5 +1,5 @@
 d <- SC3:::cell_filter(treutlein, 2000)
-d <- SC3:::gene_filter(d, 0.06)
+d <- SC3:::gene_filter(d, 0.06, 2, 0)
 
 res <- get_marker_genes(d, colnames(d))
 expect_is(res, "data.frame")

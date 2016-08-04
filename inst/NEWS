@@ -1,3 +1,10 @@
+04/08/2016
+
+Version 1.1.6:
+* Optimised distance and consensus calculations using Rccp
+* Optimised some other bits and pieces
+* SC3 is now up to 2 times faster for 1000 cells datasets
+
 28/06/2016
 
 Version 1.1.5:
