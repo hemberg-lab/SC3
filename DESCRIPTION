@@ -7,11 +7,11 @@ Author: Vladimir Kiselev
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 Authors@R: c(person("Vladimir", "Kiselev",
              email = "vladimir.yu.kiselev@gmail.com",
+             role=c("cre", "aut")),
              person("Andrew", "Yiu",
-             role=c("aut")),
-             role = c("aut", "cre")),
+             role=c("ctb")),
              person("Tallulah", "Andrews",
-             role=c("aut")),
+             role=c("ctb")),
              person("Martin", "Hemberg",
              role=c("aut")))
 Description: Interactive tool for clustering and analysis of single cell RNA-Seq data.

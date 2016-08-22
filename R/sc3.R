@@ -253,6 +253,9 @@ sc3 <- function(filename,
   cl <- parallel::makeCluster(n.cores, outfile="")
   doParallel::registerDoParallel(cl, cores = n.cores)
   
+  # NULLing the variables to avoid notes in R CMD CHECK
+  i <- j <- NULL
+  
   # calculate distances in parallel
   dists <- foreach::foreach(i = distances) %dorng% {
     try({
