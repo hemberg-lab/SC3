@@ -65,3 +65,14 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// tmult
+arma::mat tmult(arma::mat x);
+RcppExport SEXP SC3_tmult(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    __result = Rcpp::wrap(tmult(x));
+    return __result;
+END_RCPP
+}
