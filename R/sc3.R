@@ -5,7 +5,7 @@
 #' @param filename either an R matrix / data.frame object OR a
 #' path to your input file containing an input expression matrix. The expression
 #' matrix must contain both colnames (cell IDs) and rownames (gene IDs).
-#' @param ks a range of the number of clusters that needs to be tested.
+#' @param k a range of the number of clusters that needs to be tested.
 #' k.min is the minimum number of clusters (default is 3). k.max is the maximum
 #' number of clusters (default is 7).
 #' @param cell.filter defines whether to filter cells that express less than
@@ -82,8 +82,8 @@
 #' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
 #'
 #' @export
-sc3 <- function(filename,
-                ks = 3:7,
+sc3 <- function(dataset,
+                k,
                 cell.filter = FALSE,
                 cell.filter.genes = 2000,
                 gene.filter = TRUE,
@@ -95,7 +95,6 @@ sc3 <- function(filename,
                 d.region.max = 0.07,
                 k.means.iter.max = 1e+09,
                 k.means.nstart = 1000,
-                interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm = FALSE,
                 svm.num.cells = NULL,
@@ -115,21 +114,6 @@ sc3 <- function(filename,
     rselenium.installed <- FALSE
   }
   on.exit(stopSeleniumServer())
-  
-  # get input data
-  dataset <- get_data(filename)
-  
-  # remove duplicated genes
-  dataset <- dataset[!duplicated(rownames(dataset)), ]
-  
-  # cell filter
-  if(cell.filter) {
-    dataset <- cell_filter(dataset, cell.filter.genes)
-    if(ncol(dataset) == 0) {
-      cat("All cells were removed after the cell filter! Stopping now...")
-      return()
-    }
-  }
 
     # gene filter
     if(gene.filter) {
@@ -145,11 +129,6 @@ sc3 <- function(filename,
     cat("log2-scaling...\n")
     dataset <- log2(1 + dataset)
   }
-  
-  # define the output file basename
-  filename <- ifelse(!is.character(filename),
-                     deparse(substitute(filename)),
-                     basename(filename))
   
   # prepare for SVM
   study.dataset <- data.frame()
@@ -218,7 +197,7 @@ sc3 <- function(filename,
         svm.inds <- c(svm.train.inds, svm.study.inds)
       }
     }
-    if(length(svm.train.inds) < max(ks)) {
+    if(length(svm.train.inds) < max(k)) {
       return("Number of clusters k is larger than number of cells!")
     }
   }
@@ -235,7 +214,7 @@ sc3 <- function(filename,
   # create a hash table for running on parallel CPUs
   hash.table <- expand.grid(distan = distances,
                             dim.red = dimensionality.reductions,
-                            k = ks,
+                            k = k,
                             n.dim = n.dim, stringsAsFactors = FALSE)
   cat("Calculating distance matrices...\n")
   # register computing cluster (N-1 CPUs) on a local machine
@@ -298,7 +277,7 @@ sc3 <- function(filename,
   cat("Computing consensus matrix and labels...\n")
   # first make another hash table for consensus clustering
   all.combinations <- NULL
-  for(k in ks) {
+  for(k in k) {
       all.combinations <- rbind(
           all.combinations,
           c(paste(distances, collapse = " "),
@@ -338,8 +317,7 @@ sc3 <- function(filename,
   # stop local cluster
   parallel::stopCluster(cl)
   
-  output.param <- list(filename = filename,
-                       distances = distances,
+  output.param <- list(distances = distances,
                        dimensionality.reductions = dimensionality.reductions,
                        cons.table = cbind(all.combinations, cons),
                        dataset = dataset,
@@ -349,11 +327,5 @@ sc3 <- function(filename,
                        show.original.labels = show.original.labels,
                        rselenium.installed = rselenium.installed)
   
-  if(interactivity) {
-    # start a shiny app in a browser window
-    sc3_interactive(output.param)
-  } else {
-    sc3.interactive.arg <- list()
-    sc3.interactive.arg <<- output.param
-  }
+    return(output.param)
 }

@@ -4,7 +4,7 @@
 \alias{sc3}
 \title{SC3 main function}
 \usage{
-sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
+sc3(dataset, k, cell.filter = FALSE, cell.filter.genes = 2000,
   gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
   gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
   d.region.max = 0.07, k.means.iter.max = 1e+09, k.means.nstart = 1000,
@@ -12,14 +12,6 @@ sc3(filename, ks = 3:7, cell.filter = FALSE, cell.filter.genes = 2000,
   svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL, seed = 1)
 }
 \arguments{
-\item{filename}{either an R matrix / data.frame object OR a
-path to your input file containing an input expression matrix. The expression
-matrix must contain both colnames (cell IDs) and rownames (gene IDs).}
-
-\item{ks}{a range of the number of clusters that needs to be tested.
-k.min is the minimum number of clusters (default is 3). k.max is the maximum
-number of clusters (default is 7).}
-
 \item{cell.filter}{defines whether to filter cells that express less than
 cell.filter.genes genes (lowly expressed cells). By default it is FALSE.
 The cell filter should be used if the quality of data is low, i.e. if one
@@ -91,6 +83,14 @@ of cores to be used on the user's machine. Default is NA.}
 Can be used to check the stability of clustering results: if the results are 
 the same after changing the seed several time, then the clustering solution 
 is stable.}
+
+\item{filename}{either an R matrix / data.frame object OR a
+path to your input file containing an input expression matrix. The expression
+matrix must contain both colnames (cell IDs) and rownames (gene IDs).}
+
+\item{ks}{a range of the number of clusters that needs to be tested.
+k.min is the minimum number of clusters (default is 3). k.max is the maximum
+number of clusters (default is 7).}
 }
 \value{
 Opens a browser window with an interactive shine app and visualize
