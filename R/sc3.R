@@ -252,7 +252,7 @@ sc3 <- function(filename,
   
   cl <- parallel::makeCluster(n.cores, outfile="")
   doParallel::registerDoParallel(cl, cores = n.cores)
-  
+
   # NULLing the variables to avoid notes in R CMD CHECK
   i <- j <- NULL
   
@@ -264,16 +264,17 @@ sc3 <- function(filename,
   }
   names(dists) <- distances
   
-  # perform kmeans in parallel
   # add a progress bar to be able to see the progress
   pb <- txtProgressBar(min = 1, max = dim(hash.table)[1], style = 3)
   cat("Performing dimensionality reduction and kmeans clusterings...\n")
   
-  lis <- foreach::foreach(i = 1:6, .combine = append) %dopar% {
-    return(list(transformation(get(hash.table[i, 1], dists),
-                               hash.table[i, 2])[[1]]))
+  # calculate the 6 distinct transformations in parallel
+  lis <- foreach::foreach(i = 1:6) %dopar% {
+    return(transformation(get(hash.table[i, 1], dists),
+                               hash.table[i, 2])[[1]])
   }
   
+  # perform kmeans in parallel
   labs <- foreach::foreach(i = 1:dim(hash.table)[1],
                            .combine = rbind,
                            .options.RNG = seed) %dorng% {
@@ -338,6 +339,7 @@ sc3 <- function(filename,
       return(list(dat, labs, clust, silh))
     })
   }
+  
   # stop local cluster
   parallel::stopCluster(cl)
   

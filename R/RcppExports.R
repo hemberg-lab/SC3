@@ -21,3 +21,7 @@ mult <- function(D, x, dim) {
     .Call('SC3_mult', PACKAGE = 'SC3', D, x, dim)
 }
 
+tmult <- function(x) {
+    .Call('SC3_tmult', PACKAGE = 'SC3', x)
+}
+

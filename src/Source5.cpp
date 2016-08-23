@@ -9,6 +9,8 @@
 using namespace std;
 using namespace arma;
 using namespace Rcpp;
+
+// split numeric string into numeric vector
 // [[Rcpp::export]]
 std::vector<int> splits(const std::string myString) {
 
@@ -20,6 +22,8 @@ std::vector<int> splits(const std::string myString) {
 		myNumbers.push_back(number);
 	return myNumbers;
 }
+
+// Compute Euclidean distance matrix by rows
 // [[Rcpp::export]]
 arma::mat calcPWD1(const arma::mat & x) {
 	unsigned int outrows = x.n_rows, i = 0, j = 0;
@@ -37,6 +41,8 @@ arma::mat calcPWD1(const arma::mat & x) {
 
 	return out;
 }
+
+// Compute Euclidean distance matrix by cols
 // [[Rcpp::export]]
 NumericMatrix calcPWD2(const NumericMatrix & x) {
 	unsigned int outcols = x.ncol(), i = 0, j = 0;
@@ -55,7 +61,7 @@ NumericMatrix calcPWD2(const NumericMatrix & x) {
 	return out;
 }
 
-
+// Consensus binary matrix computation
 // [[Rcpp::export]]
 arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int length) {
 
