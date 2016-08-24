@@ -318,7 +318,7 @@ sc3 <- function(filename,
                  res$k == as.numeric(all.combinations[i, 3]), ]
       
       dat <- consensus_matrix(d$labs)
-      c <- calcPWD2(dat)
+      c <- ED2(dat)
       colnames(c) <- as.character(colnames(dat))
       rownames(c) <- as.character(colnames(dat))
       diss <- as.dist(as.matrix(as.dist(c)))
