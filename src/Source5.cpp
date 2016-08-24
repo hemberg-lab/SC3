@@ -10,8 +10,13 @@ using namespace std;
 using namespace arma;
 using namespace Rcpp;
 
-// split numeric string into numeric vector
+//' Split integral string into integral vector 
+//' 
+//' Similar to "strsplit" in R but only for integral strings and vectors. 
+//' 
+//' @param myString An integral string.
 // [[Rcpp::export]]
+
 std::vector<int> splits(const std::string myString) {
 
 	std::stringstream iss(myString);
@@ -23,9 +28,13 @@ std::vector<int> splits(const std::string myString) {
 	return myNumbers;
 }
 
-// Compute Euclidean distance matrix by rows
+//' Compute Euclidean distance matrix by rows
+//' 
+//' Used in consmx function
+//' 
+//' @param x A numeric matrix.
 // [[Rcpp::export]]
-arma::mat calcPWD1(const arma::mat & x) {
+arma::mat ED1(const arma::mat & x) {
 	unsigned int outrows = x.n_rows, i = 0, j = 0;
 	double d;
 	mat  out = zeros<mat>(outrows, outrows);
@@ -42,9 +51,14 @@ arma::mat calcPWD1(const arma::mat & x) {
 	return out;
 }
 
-// Compute Euclidean distance matrix by cols
+//' Compute Euclidean distance matrix by columns
+//' 
+//' Used in sc3-funcs.R distance matrix calculation
+//' and within the consensus clustering.
+//' 
+//' @param x A numeric matrix.
 // [[Rcpp::export]]
-NumericMatrix calcPWD2(const NumericMatrix & x) {
+NumericMatrix ED2(const NumericMatrix & x) {
 	unsigned int outcols = x.ncol(), i = 0, j = 0;
 	double d;
 	NumericMatrix out(outcols, outcols);
@@ -61,7 +75,14 @@ NumericMatrix calcPWD2(const NumericMatrix & x) {
 	return out;
 }
 
-// Consensus binary matrix computation
+//' Consensus binary matrix computation
+//' 
+//' Computes binary matrix given cluster labels
+//' 
+//' @param res A square zero matrix, nrows = length. Will become
+//' binary matrix.
+//' @param myString Integral string corresponding to cluster labels.
+//' @param length Integer, number of cells.
 // [[Rcpp::export]]
 arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int length) {
 
@@ -73,7 +94,7 @@ arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int len
 	for (int i = 0; i < length; i += 1) {
 		t = splits(myString[i]);
 		t1 = conv_to<mat>::from(t);
-		s = calcPWD1(t1);
+		s = ED1(t1);
 		r = s.n_rows;
 		for (int j = 0; j < r; j += 1) {
 			for (int k = j; k < r; k += 1) { //we make use of the symmetry of the dist mx

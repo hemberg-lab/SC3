@@ -1,6 +1,8 @@
 #' Estimate the optimal k for k-means clustering
 #' 
-#' Based on random matrix theory
+#' The procedure filters and log-transforms the expression matrix before 
+#' finding the eigenvalues of the sample covariance matrix. It will then return 
+#' the number of significant eigenvalues according to the Tracy-Widom test.
 #' 
 #' @param filename either an R matrix / data.frame object OR a
 #' path to your input file containing an input expression matrix. The expression
@@ -18,7 +20,6 @@
 #' more than (1-fraction)*N cells (ubiquitous genes)
 #' @param log.scale defines whether to perform log2 scaling or not. Boolean,
 #' default is TRUE.
-#
 
 estkTW <- function(filename, 
                  gene.filter = TRUE,
@@ -65,7 +66,7 @@ estkTW <- function(filename,
   evals <- eigen(sigmaHatNaive, symmetric = TRUE, only.values = TRUE)$values
   k <- 0
   for (i in 1:length(evals)) {
-    if (evals[i] > muTW) {
+    if (evals[i] > bd) {
       k <- k + 1
     }
   }

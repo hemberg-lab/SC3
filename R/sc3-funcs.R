@@ -91,7 +91,7 @@ calculate_distance <- function(data, method) {
   } else if (method == "pearson") {
     as.matrix(1 - cor(data, method = "pearson"))
   } else {
-    calcPWD2(data)
+    ED2(data)
     })
 }
 
