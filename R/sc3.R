@@ -130,6 +130,11 @@ sc3 <- function(filename,
       return()
     }
   }
+  
+  if(ncol(dataset) > 2000) {
+      k.means.nstart <- 50
+      cat("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
+  }
 
     # gene filter
     if(gene.filter) {
