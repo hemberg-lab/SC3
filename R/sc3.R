@@ -5,7 +5,7 @@
 #' @param filename either an R matrix / data.frame object OR a
 #' path to your input file containing an input expression matrix. The expression
 #' matrix must contain both colnames (cell IDs) and rownames (gene IDs).
-#' @param ks a range of the number of clusters that needs to be tested.
+#' @param k a range of the number of clusters that needs to be tested.
 #' k.min is the minimum number of clusters (default is 3). k.max is the maximum
 #' number of clusters (default is 7).
 #' @param cell.filter defines whether to filter cells that express less than
@@ -82,8 +82,8 @@
 #' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
 #'
 #' @export
-sc3 <- function(filename,
-                ks = 3:7,
+sc3 <- function(dataset,
+                k,
                 cell.filter = FALSE,
                 cell.filter.genes = 2000,
                 gene.filter = TRUE,
@@ -95,7 +95,6 @@ sc3 <- function(filename,
                 d.region.max = 0.07,
                 k.means.iter.max = 1e+09,
                 k.means.nstart = 1000,
-                interactivity = TRUE,
                 show.original.labels = FALSE,
                 svm.num.cells = NULL,
                 svm.train.inds = NULL,
@@ -114,7 +113,7 @@ sc3 <- function(filename,
     rselenium.installed <- FALSE
   }
   on.exit(stopSeleniumServer())
-  
+
   # get input data
   dataset <- get_data(filename)
   
@@ -134,7 +133,7 @@ sc3 <- function(filename,
       k.means.nstart <- 50
       cat("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
   }
-
+  
     # gene filter
     if(gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
@@ -223,7 +222,7 @@ sc3 <- function(filename,
   # create a hash table for running on parallel CPUs
   hash.table <- expand.grid(distan = distances,
                             dim.red = dimensionality.reductions,
-                            k = ks,
+                            k = k,
                             n.dim = n.dim, stringsAsFactors = FALSE)
   cat("Calculating distance matrices...\n")
   # register computing cluster (N-1 CPUs) on a local machine
@@ -241,6 +240,9 @@ sc3 <- function(filename,
   cl <- parallel::makeCluster(n.cores, outfile="")
   doParallel::registerDoParallel(cl, cores = n.cores)
 
+  # NULLing the variables to avoid notes in R CMD CHECK
+  i <- j <- NULL
+  
   # NULLing the variables to avoid notes in R CMD CHECK
   i <- j <- NULL
   
@@ -290,7 +292,7 @@ sc3 <- function(filename,
   cat("Computing consensus matrix and labels...\n")
   # first make another hash table for consensus clustering
   all.combinations <- NULL
-  for(k in ks) {
+  for(k in k) {
       all.combinations <- rbind(
           all.combinations,
           c(paste(distances, collapse = " "),
@@ -331,8 +333,7 @@ sc3 <- function(filename,
   # stop local cluster
   parallel::stopCluster(cl)
   
-  output.param <- list(filename = filename,
-                       distances = distances,
+  output.param <- list(distances = distances,
                        dimensionality.reductions = dimensionality.reductions,
                        cons.table = cbind(all.combinations, cons),
                        dataset = dataset,
@@ -342,11 +343,5 @@ sc3 <- function(filename,
                        show.original.labels = show.original.labels,
                        rselenium.installed = rselenium.installed)
   
-  if(interactivity) {
-    # start a shiny app in a browser window
-    sc3_interactive(output.param)
-  } else {
-    sc3.interactive.arg <- list()
-    sc3.interactive.arg <<- output.param
-  }
+    return(output.param)
 }
