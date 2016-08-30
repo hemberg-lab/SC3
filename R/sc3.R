@@ -97,7 +97,6 @@ sc3 <- function(filename,
                 k.means.nstart = 1000,
                 interactivity = TRUE,
                 show.original.labels = FALSE,
-                svm = FALSE,
                 svm.num.cells = NULL,
                 svm.train.inds = NULL,
                 n.cores = NULL,
@@ -156,77 +155,61 @@ sc3 <- function(filename,
                      deparse(substitute(filename)),
                      basename(filename))
   
-  # prepare for SVM
-  study.dataset <- data.frame()
-  svm.inds <- NULL
-  
-  # SVM (optional)
-  if(svm) {
-    if(is.null(svm.num.cells)) {
-      if(is.null(svm.train.inds)) {
-        svm.num.cells <- round(0.2 * ncol(dataset))
-        if(ncol(dataset) > 5000) {
-          svm.num.cells <- 1000
-          cat("\n")
-          cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. Your dataset contains more than 5000 cells and by default clustering will be performed on a random sample of ",
-                     svm.num.cells,
-                     " cells, the rest of the cells will be predicted using SVM."))
-          cat("\n")
-          cat("\n")
-        } else {
-          cat("\n")
-          cat(paste0("You have chosen to use SVM for clustering, but have not provided the number of training cells using svm.num.cells parameter. By default clustering will be performed on a random sample of ",
-                     svm.num.cells,
-                     " cells (20% of all cells), the rest of the cells will be predicted using SVM."))
-          cat("\n")
-          cat("\n")
+    # SVM
+    
+    # prepare for SVM
+    study.dataset <- data.frame()
+    svm.inds <- NULL
+    if(
+        !is.null(svm.num.cells) | 
+        !is.null(svm.train.inds) | 
+        ncol(dataset) > 5000
+    ) {
+        # handle all possible errors
+        if(!is.null(svm.num.cells)) {
+            if(!is.null(svm.train.inds)) {
+                return(
+                    message(
+                        "You have set both svm.num.cells and svm.train.inds parameters for SVM. Please set only one of them and rerun SC3."
+                    )
+                )
+            }
+            if(svm.num.cells >= ncol(dataset) - 1) return(
+                message(
+                    "Parameter svm.num.cells is larger (or equal) than the number of cells in your dataset. Please make svm.num.cells smaller and rerun SC3."
+                )
+            )
+            if(svm.num.cells < max(ks)) {
+                return(
+                    message(
+                        "Parameter svm.num.cells is smaller than max(ks). Please make svm.num.cells larger and rerun SC3."
+                    )
+                )
+            }
         }
-        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
-        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
-      } else {
-        if(max(svm.train.inds) > ncol(dataset)) {
-          return(paste0("You have chosen to use SVM for clustering, and provided a logical vector training cells using svm.train.inds parameter. ",
-                        "The length of this vector is larger than the number of cells in your dataset. Please check svm.train.inds parameter."))
-        } else {
-          cat("\n")
-          cat(paste0("You have chosen to use SVM for clustering, and provided a logical vector training cells using svm.train.inds parameter."))
-          cat("\n")
-          cat("\n")
-          svm.num.cells <- length(svm.train.inds)
-          svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-          study.dataset <- dataset[ , svm.study.inds]
-          dataset <- dataset[, svm.train.inds]
-          svm.inds <- c(svm.train.inds, svm.study.inds)
+        if(!is.null(svm.train.inds)) {
+            if(length(svm.train.inds) < max(ks)) {
+                return(
+                    message(
+                        "The length of svm.train.inds is smaller than the number of clusters k you would like to use for clustering. Please make svm.train.inds parameter longer and rerun SC3."
+                    )
+                )
+            }
+            if(max(svm.train.inds) > ncol(dataset) - 1) {
+                return(
+                    message(
+                        "The length of svm.train.inds is larger than the number of cells in your dataset. Please adjust svm.train.inds parameter and rerun SC3."
+                    )
+                )
+            }
         }
-      }
-    } else {
-      if(svm.num.cells >= ncol(dataset) - 1) return(
-        paste0("You have chosen to use SVM for clustering, and provided the number of training cells (svm.num.cells = ",
-               svm.num.cells,
-               ") that is larger (or equal) than the number of cells in your dataset - 1 (",
-               ncol(dataset) - 1,
-               "). Please adjust svm.num.cells parameter and rerun SC3.")
-      ) else {
-        cat("\n")
-        cat(paste0("You have chosen to use SVM for clustering and provided the number of training cells using svm.num.cells parameter: ",
-                   svm.num.cells,
-                   " cells. This number of cells will be used for SVM training. The rest of the cells will be predicted using SVM."))
-        cat("\n")
-        cat("\n")
-        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
-        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
-      }
+        # run SVM
+        tmp <- prepare_for_svm(dataset, svm.num.cells, svm.train.inds)
+        dataset <- tmp$training.cells
+        study.dataset <- tmp$study.cells
+        svm.num.cells <- tmp$svm.num.cells
+        svm.inds <- tmp$svm.inds
     }
-    if(length(svm.train.inds) < max(ks)) {
-      return("Number of clusters k is larger than number of cells!")
-    }
-  }
   
   # define number of cells and region of dimensions
   n.cells <- ncol(dataset)

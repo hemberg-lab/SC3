@@ -191,3 +191,45 @@ support_vector_machines <- function(train, study, kern) {
   pred <- predict(model, t(study))
   return(pred = pred)
 }
+
+prepare_for_svm <- function(dataset, svm.num.cells, svm.train.inds) {
+    
+    svm.inds <- NULL
+    
+    if(!is.null(svm.num.cells)) {
+        cat("Defining training cells for SVM using svm.num.cells parameter...\n")
+        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
+        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+        study.dataset <- dataset[ , svm.study.inds]
+        dataset <- dataset[, svm.train.inds]
+        svm.inds <- c(svm.train.inds, svm.study.inds)
+    }
+    
+    if(is.null(svm.inds) & !is.null(svm.train.inds)) {
+        cat("Defining training cells for SVM using svm.train.inds parameter...\n")
+        svm.num.cells <- length(svm.train.inds)
+        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+        study.dataset <- dataset[ , svm.study.inds]
+        dataset <- dataset[, svm.train.inds]
+        svm.inds <- c(svm.train.inds, svm.study.inds)
+    }
+    
+    if(is.null(svm.inds) & ncol(dataset) > 5000) {
+        cat("Defining training cells for SVM using 5000 random cells...\n")
+        svm.num.cells <- 5000
+        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
+        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
+        study.dataset <- dataset[ , svm.study.inds]
+        dataset <- dataset[, svm.train.inds]
+        svm.inds <- c(svm.train.inds, svm.study.inds)
+    }
+    
+    return(
+        list(
+            training.cells = dataset, 
+            study.cells = study.dataset,
+            svm.num.cells = svm.num.cells,
+            svm.inds = svm.inds
+        )
+    )
+}
