@@ -4,24 +4,18 @@
 \alias{sc3}
 \title{SC3 main function}
 \usage{
-sc3(dataset, k, cell.filter = FALSE, cell.filter.genes = 2000,
-  gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
-  gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
-  d.region.max = 0.07, k.means.iter.max = 1e+09, k.means.nstart = 1000,
-  interactivity = TRUE, show.original.labels = FALSE, svm = FALSE,
+sc3(dataset, ks, gene.filter = TRUE, gene.filter.fraction = 0.06,
+  gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = TRUE,
+  d.region.min = 0.04, d.region.max = 0.07, k.means.iter.max = 1e+09,
+  k.means.nstart = 1000, show.original.labels = FALSE,
   svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL, seed = 1)
 }
 \arguments{
-\item{cell.filter}{defines whether to filter cells that express less than
-cell.filter.genes genes (lowly expressed cells). By default it is FALSE.
-The cell filter should be used if the quality of data is low, i.e. if one
-suspects that some of the cells may be technical outliers with poor coverage.
-Filtering of lowly expressed cells usually improves clustering.}
+\item{dataset}{input expression matrix.}
 
-\item{cell.filter.genes}{if cell.filter is used then this parameter defines
-the minimum number of genes that have to be expressed in each cell
-(expression value > 1e-2). If there are fewer, the cell will be
-removed from the analysis. The default is 2000.}
+\item{ks}{a range of the number of clusters that needs to be tested.
+k.min is the minimum number of clusters (default is 3). k.max is the maximum
+number of clusters (default is 7).}
 
 \item{gene.filter}{defines whether to perform gene filtering or not. Boolean,
 default is TRUE.}
@@ -51,21 +45,9 @@ default is 0.07.}
 
 \item{k.means.nstart}{nstart parameter used by kmeans() function. Default is 1000.}
 
-\item{interactivity}{defines whether a browser interactive window should be
-open after all computation is done. By default it is TRUE. This option can
-be used to separate clustering calculations from visualisation,
-e.g. long and time-consuming clustering of really big datasets can be run
-on a farm cluster and visualisations can be done using a personal
-laptop afterwards. If interactivity is FALSE then all clustering results
-will be saved as "sc3.interactive.arg" list. To run interactive visulisation with
-the precomputed clustering results please use
-sc3_interactive(sc3.interactive.arg).}
-
 \item{show.original.labels}{if cell labels in the dataset are not unique,
 but represent clusters expected from the experiment, they can be visualised
 by setting this parameter to TRUE. The default is FALSE.}
-
-\item{svm}{if TRUE then an SVM prediction will be used. The default is FALSE.}
 
 \item{svm.num.cells}{number of training cells to be used for SVM prediction. 
 The default is NULL. If the svm parameter is TRUE and svn.num.cells is not provided,
@@ -83,14 +65,6 @@ of cores to be used on the user's machine. Default is NA.}
 Can be used to check the stability of clustering results: if the results are 
 the same after changing the seed several time, then the clustering solution 
 is stable.}
-
-\item{filename}{either an R matrix / data.frame object OR a
-path to your input file containing an input expression matrix. The expression
-matrix must contain both colnames (cell IDs) and rownames (gene IDs).}
-
-\item{ks}{a range of the number of clusters that needs to be tested.
-k.min is the minimum number of clusters (default is 3). k.max is the maximum
-number of clusters (default is 7).}
 }
 \value{
 Opens a browser window with an interactive shine app and visualize
@@ -100,7 +74,7 @@ all precomputed clusterings.
 Run SC3 clustering pipeline and starts an interactive session in a web browser.
 }
 \examples{
-sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
+sc3(treutlein, 3:7, n.cores = 2)
 
 }
 

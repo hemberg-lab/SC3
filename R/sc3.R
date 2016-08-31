@@ -2,21 +2,10 @@
 #'
 #' Run SC3 clustering pipeline and starts an interactive session in a web browser.
 #'
-#' @param filename either an R matrix / data.frame object OR a
-#' path to your input file containing an input expression matrix. The expression
-#' matrix must contain both colnames (cell IDs) and rownames (gene IDs).
-#' @param k a range of the number of clusters that needs to be tested.
+#' @param dataset input expression matrix.
+#' @param ks a range of the number of clusters that needs to be tested.
 #' k.min is the minimum number of clusters (default is 3). k.max is the maximum
 #' number of clusters (default is 7).
-#' @param cell.filter defines whether to filter cells that express less than
-#' cell.filter.genes genes (lowly expressed cells). By default it is FALSE.
-#' The cell filter should be used if the quality of data is low, i.e. if one
-#' suspects that some of the cells may be technical outliers with poor coverage.
-#' Filtering of lowly expressed cells usually improves clustering.
-#' @param cell.filter.genes if cell.filter is used then this parameter defines
-#' the minimum number of genes that have to be expressed in each cell
-#' (expression value > 1e-2). If there are fewer, the cell will be
-#' removed from the analysis. The default is 2000.
 #' @param gene.filter defines whether to perform gene filtering or not. Boolean,
 #' default is TRUE.
 #' @param gene.filter.fraction fraction of cells (1 - X/100), default is 0.06.
@@ -36,19 +25,9 @@
 #' default is 0.07.
 #' @param k.means.iter.max iter.max parameter used by kmeans() function. Default is 1e+09.
 #' @param k.means.nstart nstart parameter used by kmeans() function. Default is 1000.
-#' @param interactivity defines whether a browser interactive window should be
-#' open after all computation is done. By default it is TRUE. This option can
-#' be used to separate clustering calculations from visualisation,
-#' e.g. long and time-consuming clustering of really big datasets can be run
-#' on a farm cluster and visualisations can be done using a personal
-#' laptop afterwards. If interactivity is FALSE then all clustering results
-#' will be saved as "sc3.interactive.arg" list. To run interactive visulisation with
-#' the precomputed clustering results please use
-#' sc3_interactive(sc3.interactive.arg).
 #' @param show.original.labels if cell labels in the dataset are not unique,
 #' but represent clusters expected from the experiment, they can be visualised
 #' by setting this parameter to TRUE. The default is FALSE.
-#' @param svm if TRUE then an SVM prediction will be used. The default is FALSE.
 #' @param svm.num.cells number of training cells to be used for SVM prediction. 
 #' The default is NULL. If the svm parameter is TRUE and svn.num.cells is not provided,
 #' then the svm.train.inds parameter is checked.
@@ -79,13 +58,11 @@
 #' @importFrom Rcpp sourceCpp
 #'
 #' @examples
-#' sc3(treutlein, 3:7, interactivity = FALSE, n.cores = 2)
+#' sc3(treutlein, 3:7, n.cores = 2)
 #'
 #' @export
 sc3 <- function(dataset,
-                k,
-                cell.filter = FALSE,
-                cell.filter.genes = 2000,
+                ks,
                 gene.filter = TRUE,
                 gene.filter.fraction = 0.06,
                 gene.reads.rare = 2,
@@ -114,45 +91,28 @@ sc3 <- function(dataset,
   }
   on.exit(stopSeleniumServer())
 
-  # get input data
-  dataset <- get_data(filename)
-  
   # remove duplicated genes
   dataset <- dataset[!duplicated(rownames(dataset)), ]
-  
-  # cell filter
-  if(cell.filter) {
-    dataset <- cell_filter(dataset, cell.filter.genes)
-    if(ncol(dataset) == 0) {
-      cat("All cells were removed after the cell filter! Stopping now...")
-      return()
-    }
-  }
-  
+
   if(ncol(dataset) > 2000) {
       k.means.nstart <- 50
-      cat("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
+      message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
   }
   
     # gene filter
     if(gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
         if(nrow(dataset) == 0) {
-            cat("All genes were removed after the gene filter! Stopping now...")
+            message("All genes were removed after the gene filter! Stopping now...")
             return()
         }
     }
   
   # log2 transformation
   if(log.scale) {
-    cat("log2-scaling...\n")
+    message("log2-scaling...")
     dataset <- log2(1 + dataset)
   }
-  
-  # define the output file basename
-  filename <- ifelse(!is.character(filename),
-                     deparse(substitute(filename)),
-                     basename(filename))
   
     # SVM
     
@@ -222,9 +182,9 @@ sc3 <- function(dataset,
   # create a hash table for running on parallel CPUs
   hash.table <- expand.grid(distan = distances,
                             dim.red = dimensionality.reductions,
-                            k = k,
+                            ks = ks,
                             n.dim = n.dim, stringsAsFactors = FALSE)
-  cat("Calculating distance matrices...\n")
+  message("Calculating distance matrices...")
   # register computing cluster (N-1 CPUs) on a local machine
   if(is.null(n.cores)) {
     n.cores <- parallel::detectCores()
@@ -256,7 +216,7 @@ sc3 <- function(dataset,
   
   # add a progress bar to be able to see the progress
   pb <- txtProgressBar(min = 1, max = dim(hash.table)[1], style = 3)
-  cat("Performing dimensionality reduction and kmeans clusterings...\n")
+  message("Performing dimensionality reduction and kmeans clusterings...")
   
   # calculate the 6 distinct transformations in parallel
   lis <- foreach::foreach(i = 1:6) %dopar% {
@@ -289,10 +249,10 @@ sc3 <- function(dataset,
   rownames(res) <- NULL
   
   # perform consensus clustering in parallel
-  cat("Computing consensus matrix and labels...\n")
+  message("Computing consensus matrix and labels...")
   # first make another hash table for consensus clustering
   all.combinations <- NULL
-  for(k in k) {
+  for(k in ks) {
       all.combinations <- rbind(
           all.combinations,
           c(paste(distances, collapse = " "),

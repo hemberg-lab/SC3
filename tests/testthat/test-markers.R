@@ -1,7 +1,6 @@
-d <- SC3:::cell_filter(treutlein, 2000)
-d <- SC3:::gene_filter(d, 0.06, 2, 0)
-
+d <- SC3:::gene_filter(treutlein, 0.06, 2, 0)
+d <- log2(d + 1)
 res <- get_marker_genes(d, colnames(d))
 expect_is(res, "data.frame")
-expect_equal(dim(res)[1], 95)
-expect_equal(dim(res)[2], 3)
+expect_equal(nrow(res), 96)
+expect_equal(ncol(res), 3)

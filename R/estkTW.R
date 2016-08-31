@@ -4,8 +4,7 @@
 #' finding the eigenvalues of the sample covariance matrix. It will then return 
 #' the number of significant eigenvalues according to the Tracy-Widom test.
 #' 
-#' @param filename either an R matrix / data.frame object OR a
-#' path to your input file containing an input expression matrix. The expression
+#' @param dataset input expression matrix. The expression
 #' matrix must contain both colnames (cell IDs) and rownames (gene IDs).
 #' @param gene.filter defines whether to perform gene filtering or not. Boolean,
 #' default is TRUE.
@@ -21,15 +20,12 @@
 #' @param log.scale defines whether to perform log2 scaling or not. Boolean,
 #' default is TRUE.
 
-estkTW <- function(filename, 
+estkTW <- function(dataset,
                  gene.filter = TRUE,
                  gene.filter.fraction = 0.06,
                  gene.reads.rare = 2,
                  gene.reads.ubiq = 0,
                  log.scale = TRUE) {
-  
-  # get input data
-  dataset <- get_data(filename)
   
   # remove duplicated genes
   dataset <- dataset[!duplicated(rownames(dataset)), ]
@@ -38,22 +34,21 @@ estkTW <- function(filename,
   if(gene.filter) {
     dataset <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
     if(nrow(dataset) == 0) {
-      cat("All genes were removed after the gene filter! Stopping now...")
+      message("All genes were removed after the gene filter! Stopping now...")
       return()
     }
   }
   
   # log2 transformation
   if(log.scale) {
-    cat("log2-scaling...\n")
+    message("log2-scaling...\n")
     dataset <- log2(1 + dataset)
   }
   
   p <- ncol(dataset)
   n <- nrow(dataset)
-  cat("Read file with", n, "genes and", p, "cells.\n")
   
-  cat("Computing eigenvalues...\n")
+  message("Computing eigenvalues...\n")
   
   # compute Tracy-Widom bound
   x <- scale(dataset)
@@ -70,5 +65,5 @@ estkTW <- function(filename,
       k <- k + 1
     }
   }
-  return(cat("Est. k =", k))
+  return(k)
 }

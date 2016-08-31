@@ -50,9 +50,7 @@ sc3_interactive <- function(input.param) {
                 column(
                     12,
                     HTML(
-                        paste0("<h3>SC3 clustering of ", 
-                               input.param$filename, 
-                               "</h3>")
+                        "<br>"
                     )
                 )
             ),
@@ -64,16 +62,27 @@ sc3_interactive <- function(input.param) {
                     fluidRow(
                         column(
                             12,
-                            sliderInput(
-                                "clusters",
-                                label = "Number of clusters k",
-                                min = min(as.numeric(unlist(input.param$cons.table[,3]))),
-                                max = max(as.numeric(unlist(input.param$cons.table[,3]))),
-                                value = median(as.numeric(unlist(input.param$cons.table[,3]))),
-                                step = 1,
-                                animate = animationOptions(
-                                    interval = 2000,
-                                    loop = FALSE
+                            conditionalPanel(
+                                "output.ks_length > 1",
+                                sliderInput(
+                                    "clusters",
+                                    label = "Number of clusters k",
+                                    min = min(as.numeric(unlist(input.param$cons.table[,3]))),
+                                    max = max(as.numeric(unlist(input.param$cons.table[,3]))),
+                                    value = median(as.numeric(unlist(input.param$cons.table[,3]))),
+                                    step = 1,
+                                    animate = animationOptions(
+                                        interval = 2000,
+                                        loop = FALSE
+                                    )
+                                )
+                            )
+                        ),
+                        column(
+                            12,
+                            conditionalPanel(
+                                "output.ks_length = 1",
+                                HTML(paste0("<h4>k = ", unique(as.numeric(unlist(input.param$cons.table[,3]))), "<h4>")
                                 )
                             )
                         )
@@ -368,6 +377,7 @@ sc3_interactive <- function(input.param) {
             # parameter panel is changed
             observe({
                 # get all results for k
+                values$ks_length <- length(unique(as.numeric(input.param$cons.table[ , 3])))
                 res <- input.param$cons.table[
                     as.numeric(input.param$cons.table[ , 3]) == input$clusters, 
                     4][[1]]
@@ -1027,6 +1037,9 @@ sc3_interactive <- function(input.param) {
             })
             output$is_mark <- reactive({
                 return(values$mark)
+            })
+            output$ks_length <- reactive({
+                return(values$ks_length)
             })
 
             # DOWNLOAD buttons

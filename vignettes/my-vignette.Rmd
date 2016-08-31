@@ -2,11 +2,13 @@
 title: "SC3 manual"
 author: "Vladimir Kiselev"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+    BiocStyle::html_document:
+        toc: true
 vignette: >
-  %\VignetteIndexEntry{SC3 manual}
+  %\VignetteIndexEntry{An introduction to the scater package}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
 ## Introduction
@@ -33,16 +35,38 @@ There is one built-in dataset that is automatically loaded with __SC3__:
 --- | --- | --- | --- |
 | [treutlein](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.html) | Distal lung epithelium | 80 | 5 |
 
-## Quick start
+## scater SCESet set
 
-To run __SC3__ with the built-in dataset, start R and then type:
-
-```{r, eval=FALSE}
+```{r, message=FALSE}
 library(SC3)
-sc3(treutlein)
+library(scater)
+d <- treutlein
+
+clusts <- colnames(d)
+colnames(d) <- 1:ncol(d)
+
+pheno_data <- new(
+    "AnnotatedDataFrame", 
+    data.frame(sample_id = colnames(d), clust_id = clusts)
+)
+rownames(pheno_data) <- pheno_data$sample_id
+
+example_sceset <- scater::newSCESet(
+    countData = d,
+    phenoData = pheno_data
+)
 ```
 
-It should open SC3 in a browser window without providing any error.
+## Run SC3
+
+```{r}
+example_sceset <- run_sc3(example_sceset, k = 7, n.cores = 1)
+```
+
+To visualize:
+```{r, eval=FALSE}
+sc3_interactive(example_sceset@consensus)
+```
 
 ## __SC3__ parameters
 
@@ -54,20 +78,6 @@ sc3(dataset, ks = 2:5)
 where __dataset__ is either an R matrix / data.frame / data.table object OR a path to your input file containing an expression matrix.
 
 For the full list of __SC3__ parameters please read the documentation by typing ?sc3.
-
-## Running __SC3__ without interactivity
-
-If you would like to separate clustering calculations from visualisation, e.g. when your dataset is very large and you need to run it on a computing cluster, you can disable interactivity by setting __interactivity__ parameter to FALSE:
-
-```{r, eval=FALSE}
-sc3(treutlein, interactivity = FALSE)
-```
-
-In this case all clustering results will be saved as _sc3.interactive.arg_ variable in your R session. You can then visualise your results by running:
-
-```{r, eval=FALSE}
-sc3_interactive(sc3.interactive.arg)
-```
 
 ## Number of cells
 
