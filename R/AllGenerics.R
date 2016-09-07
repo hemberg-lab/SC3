@@ -44,10 +44,11 @@ setGeneric("sc3_calc_biology", function(
 })
 
 #' @export
-setGeneric("sc3_calc_biology_after_svm", function(
-    object
+setGeneric("sc3_summarise_results", function(
+    object,
+    k
 ){
-    standardGeneric("sc3_calc_biology_after_svm")
+    standardGeneric("sc3_summarise_results")
 })
 
 #' @export

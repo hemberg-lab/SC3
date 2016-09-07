@@ -673,48 +673,38 @@ setMethod("sc3_run_svm", signature(object = "SCESet"),
           })
 
 #' @export
-sc3_calc_biology_after_svm.SCESet <- function(
-    object
+sc3_summarise_results.SCESet <- function(
+    object,
+    k
 ) {
-    svm.labels <- object@consensus$svm_result
-    if ( is.null(svm.labels) ) {
-        warning(paste0("Please rerun sc3 using SVM first!"))
-        return(object)
+    if ( is.null(object@consensus$svm_result) ) {
+        hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
+        clusts <- get_clusts(hc, k)
+    } else {
+        clusts <- object@consensus$svm_result
     }
     
-    dataset <- object@consensus$sc3_processed_dataset
-            
-    markers <- get_marker_genes(
-        dataset,
-        svm.labels
-    )
+    names(clusts) <- rownames(pData(object))
     
-    de.genes <- get_de_genes(
-        dataset,
-        svm.labels
-    )
-    
-    cell.outl <- get_outl_cells(
-        dataset,
-        svm.labels
-    )
-    
-    biol <- list(
-        markers = markers,
-        de.genes = de.genes,
-        cell.outl = cell.outl
+    res <- list(
+        labels = cbind(pData(object), clusts),
+        de.genes = object@consensus$sc3_biology[[as.character(k)]]$de.genes,
+        markers = object@consensus$sc3_biology[[as.character(k)]]$markers,
+        cell.outliers = object@consensus$sc3_biology[[as.character(k)]]$cell.outl
     )
 
-    object@consensus$"sc3_biology_after_svm" <- biol
+    object@consensus$"sc3_results" <- res
     return(object)
 }
 
 #' @export
-setMethod("sc3_calc_biology_after_svm", signature(object = "SCESet"),
+setMethod("sc3_summarise_results", signature(object = "SCESet"),
           function(
-              object
+              object,
+              k
           ) {
-              sc3_calc_biology_after_svm.SCESet(
-                  object
+              sc3_summarise_results.SCESet(
+                  object,
+                  k
               )
           })
