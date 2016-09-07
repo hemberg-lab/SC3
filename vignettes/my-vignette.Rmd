@@ -93,6 +93,7 @@ example_sceset <- sc3_calc_consens(example_sceset)
 example_sceset <- sc3_calc_biology(example_sceset)
 sc3_interactive(example_sceset)
 example_sceset <- sc3_run_svm(example_sceset, 3)
+example_sceset <- sc3_calc_biology_after_svm(example_sceset)
 ```
 
 

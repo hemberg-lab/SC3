@@ -672,3 +672,49 @@ setMethod("sc3_run_svm", signature(object = "SCESet"),
               )
           })
 
+#' @export
+sc3_calc_biology_after_svm.SCESet <- function(
+    object
+) {
+    svm.labels <- object@consensus$svm_result
+    if ( is.null(svm.labels) ) {
+        warning(paste0("Please rerun sc3 using SVM first!"))
+        return(object)
+    }
+    
+    dataset <- object@consensus$sc3_processed_dataset
+            
+    markers <- get_marker_genes(
+        dataset,
+        svm.labels
+    )
+    
+    de.genes <- get_de_genes(
+        dataset,
+        svm.labels
+    )
+    
+    cell.outl <- get_outl_cells(
+        dataset,
+        svm.labels
+    )
+    
+    biol <- list(
+        markers = markers,
+        de.genes = de.genes,
+        cell.outl = cell.outl
+    )
+
+    object@consensus$"sc3_biology_after_svm" <- biol
+    return(object)
+}
+
+#' @export
+setMethod("sc3_calc_biology_after_svm", signature(object = "SCESet"),
+          function(
+              object
+          ) {
+              sc3_calc_biology_after_svm.SCESet(
+                  object
+              )
+          })
