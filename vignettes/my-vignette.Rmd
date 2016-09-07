@@ -83,6 +83,15 @@ sc3_plot_cluster_stability(example_sceset, 3)
 ```
 
 ```{r}
+example_sceset@consensus <- list()
+example_sceset <- sc3_process(example_sceset, svm.num.cells = 50)
+example_sceset <- sc3_estimate_k(example_sceset)
+example_sceset <- sc3_calc_dists(example_sceset)
+example_sceset <- sc3_calc_transfs(example_sceset)
+example_sceset <- sc3_kmeans(example_sceset, 3:5)
+example_sceset <- sc3_calc_consens(example_sceset)
+example_sceset <- sc3_calc_biology(example_sceset)
+sc3_interactive(example_sceset)
 example_sceset <- sc3_run_svm(example_sceset, 3)
 ```
 

@@ -559,6 +559,12 @@ sc3_calc_biology.SCESet <- function(
         return(object)
     }
     
+    dataset <- object@consensus$sc3_processed_dataset
+    # check whether in the SVM regime
+    if(!is.null(object@consensus$svm_train_inds)) {
+        dataset <- dataset[ , object@consensus$svm_train_inds]
+    }
+    
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
@@ -578,17 +584,17 @@ sc3_calc_biology.SCESet <- function(
             clusts <- get_clusts(hc, i)
 
             markers <- get_marker_genes(
-                object@consensus$sc3_processed_dataset,
+                dataset,
                 clusts
             )
             
             de.genes <- get_de_genes(
-                object@consensus$sc3_processed_dataset,
+                dataset,
                 clusts
             )
             
             cell.outl <- get_outl_cells(
-                object@consensus$sc3_processed_dataset,
+                dataset,
                 clusts
             )
             
