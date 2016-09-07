@@ -19,7 +19,18 @@
 #'
 #' @export
 #'
-sc3_interactive <- function(input.param) {
+sc3_interactive.SCESet <- function(object) {
+    
+    consensus <- object@consensus$sc3_consensus
+    if ( is.null(consensus) ) {
+        warning(paste0("Please run sc3_calc_consens() first!"))
+        return()
+    }
+    
+    ks <- as.numeric(names(consensus))
+    dataset <- object@consensus$sc3_processed_dataset
+    show.original.labels <- FALSE
+    
     ## define UI parameters
     plot.height <- 600
     plot.height.small <- 300
@@ -27,12 +38,9 @@ sc3_interactive <- function(input.param) {
     ## define server global variables
     values <- reactiveValues()
     
-    if(!is.null(input.param$svm.num.cells)) {
-        with_svm <- TRUE
-        values$svm <- FALSE
-    } else {
-        with_svm <- FALSE
-        values$svm <- TRUE
+    svm <- FALSE
+    if(!is.null(object@consensus$svm_train_inds)) {
+        svm <- TRUE
     }
     
     shinyApp(
@@ -63,13 +71,13 @@ sc3_interactive <- function(input.param) {
                         column(
                             12,
                             conditionalPanel(
-                                "output.ks_length > 1",
+                                "output.ks_length!='1'",
                                 sliderInput(
                                     "clusters",
                                     label = "Number of clusters k",
-                                    min = min(as.numeric(unlist(input.param$cons.table[,3]))),
-                                    max = max(as.numeric(unlist(input.param$cons.table[,3]))),
-                                    value = median(as.numeric(unlist(input.param$cons.table[,3]))),
+                                    min = min(ks),
+                                    max = max(ks),
+                                    value = median(ks),
                                     step = 1,
                                     animate = animationOptions(
                                         interval = 2000,
@@ -81,8 +89,8 @@ sc3_interactive <- function(input.param) {
                         column(
                             12,
                             conditionalPanel(
-                                "output.ks_length = 1",
-                                HTML(paste0("<h4>k = ", unique(as.numeric(unlist(input.param$cons.table[,3]))), "<h4>")
+                                "output.ks_length=='1'",
+                                HTML(paste0("<h4>k = ", unique(ks), "<h4>")
                                 )
                             )
                         )
@@ -91,62 +99,19 @@ sc3_interactive <- function(input.param) {
                         column(
                             12,
                             conditionalPanel(
-                                "!output.is_svm",
+                                "output.is_svm",
                                 h4("SVM prediction"),
                                 p(
                                     paste0(
                                         "Your data was clustered based on ",
-                                        input.param$svm.num.cells,
-                                        " cells. When you have found the best clustering parameters, press this button to predict labels of the other cells and to perform biological interpretation:\n\n"
+                                        length(object@consensus$svm_train_inds),
+                                        " cells. When you have found the best clustering parameters, go back to your terminal session and run XXX to predict the labels of the other cells."
                                     )
-                                ),
-                                actionButton(
-                                    "svm",
-                                    label = "Run SVM"
                                 )
                             )
                         )
                     )),
-                    h4("Export results"),
-                    wellPanel(
-                        conditionalPanel(
-                            "output.is_svm",
-                            fluidRow(
-                                column(6,
-                                       downloadButton(
-                                           'excel',
-                                           label = "To Excel")
-                                ),
-                                column(6,
-                                       actionButton(
-                                           'save',
-                                           label = "To R session")
-                                )
-                            ),
-                            fluidRow(
-                                column(12,
-                                       HTML("<br>"),
-                                       downloadButton(
-                                           'consens_download',
-                                           label = "Consensus")
-                                )
-                            )
-                        )
-                    )
-                ),
-                column(
-                    6,
-                    uiOutput('mytabs')
-                ),
-                column(
-                    3,
-                    fluidRow(
-                        column(
-                            12,
-                            h4("Panel description"),
-                            htmlOutput("explanation")
-                        )
-                    ),
+                    
                     fluidRow(
                         column(
                             12,
@@ -172,22 +137,19 @@ sc3_interactive <- function(input.param) {
                                         selected = "0.01",
                                         inline = TRUE
                                     ),
-                                    conditionalPanel(
-                                        "output.is_mark",
-                                        selectInput(
-                                            "cluster",
-                                            "Choose a cluster for GO analysis:",
-                                            c("None" = "NULL")
-                                        ),
-                                        if(input.param$rselenium.installed) {
-                                            actionButton("GO", label = "Analyze!")
-                                        },
-                                        if(input.param$rselenium.installed) {
-                                            HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
-                                        } else {
-                                            HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
-                                        }
-                                    )
+                                    selectInput(
+                                        "cluster",
+                                        "Choose a cluster for GO analysis:",
+                                        c("None" = "NULL")
+                                    ),
+                                    if(object@consensus$rselenium) {
+                                        actionButton("GO", label = "Analyze!")
+                                    },
+                                    if(object@consensus$rselenium) {
+                                        HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
+                                    } else {
+                                        HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
+                                    }
                                 )
                             ),
                             conditionalPanel(
@@ -212,28 +174,26 @@ sc3_interactive <- function(input.param) {
                                     sliderInput(
                                         "perplexity",
                                         label = "Perplexity",
-                                        min = floor(0.7 * ncol(input.param$dataset) / 5),
-                                        max = floor(1.3 * ncol(input.param$dataset) / 5),
-                                        value = floor(ncol(input.param$dataset) / 5)
-                                    )
-                                )
-                            ),
-                            conditionalPanel(
-                                "input.main_panel == 'Outliers'",
-                                wellPanel(
-                                    radioButtons(
-                                        "chisq.quantile",
-                                        label = "% of the Chi-squared quantile",
-                                        choices = c(
-                                            "95%" = 0.95,
-                                            "99%" = 0.99,
-                                            "99.99%" = 0.9999
-                                        ),
-                                        selected = "0.9999",
-                                        inline = TRUE
+                                        min = floor(0.7 * ncol(dataset) / 5),
+                                        max = floor(1.3 * ncol(dataset) / 5),
+                                        value = floor(ncol(dataset) / 5)
                                     )
                                 )
                             )
+                        )
+                    )
+                ),
+                column(
+                    6,
+                    uiOutput('mytabs')
+                ),
+                column(
+                    3,
+                    fluidRow(
+                        column(
+                            12,
+                            h4("Panel description"),
+                            htmlOutput("explanation")
                         )
                     )
                 )
@@ -243,123 +203,71 @@ sc3_interactive <- function(input.param) {
         server = function(input, output, session) {
             # render tabpanel
             output$mytabs = renderUI({
-                if(values$svm) {
-                    myTabs <- list(
-                        tabPanel(
-                            "Consensus",
-                            plotOutput(
-                                'consensus', 
-                                height = plot.height, 
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Silhouette",
-                            plotOutput(
-                                'silh',
-                                height = plot.height, 
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Labels",
-                            div(
-                                htmlOutput('labels'),
-                                style = "font-size:80%"
-                            )
-                        ),
-                        tabPanel(
-                            "Stability",
-                            plotOutput(
-                                'StabilityPlot',
-                                height = plot.height.small,
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Expression",
-                            plotOutput(
-                                'matrix',
-                                height = plot.height,
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "tSNE",
-                            plotOutput(
-                                'tSNEplot',
-                                height = plot.height,
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "DE",
-                            uiOutput('plot_de_genes')
-                        ),
-                        tabPanel(
-                            "Markers",
-                            uiOutput('plot_mark_genes')
-                        ),
-                        tabPanel(
-                            "Outliers",
-                            plotOutput(
-                                'outliers',
-                                height = plot.height.small,
-                                width = "100%"
-                            )
+                myTabs <- list(
+                    tabPanel(
+                        "Consensus",
+                        plotOutput(
+                            'consensus',
+                            height = plot.height,
+                            width = "100%"
+                        )
+                    ),
+                    tabPanel(
+                        "Silhouette",
+                        plotOutput(
+                            'silh', 
+                            height = plot.height, 
+                            width = "100%"
+                        )
+                    ),
+                    tabPanel(
+                        "Labels",
+                        div(
+                            htmlOutput('labels'),
+                            style = "font-size:80%"
+                        )
+                    ),
+                    tabPanel(
+                        "Stability",
+                        plotOutput(
+                            'StabilityPlot',
+                            height = plot.height.small,
+                            width = "100%"
+                        )
+                    ),
+                    tabPanel(
+                        "Expression",
+                        plotOutput(
+                            'matrix', 
+                            height = plot.height, 
+                            width = "100%"
+                        )
+                    ),
+                    tabPanel(
+                        "tSNE",
+                        plotOutput(
+                            'tSNEplot', 
+                            height = plot.height, 
+                            width = "100%"
+                        )
+                    ),
+                    tabPanel(
+                        "DE",
+                        uiOutput('plot_de_genes')
+                    ),
+                    tabPanel(
+                        "Markers",
+                        uiOutput('plot_mark_genes')
+                    ),
+                    tabPanel(
+                        "Outliers",
+                        plotOutput(
+                            'outliers',
+                            height = plot.height.small,
+                            width = "100%"
                         )
                     )
-                } else {
-                    myTabs <- list(
-                        tabPanel(
-                            "Consensus",
-                            plotOutput(
-                                'consensus',
-                                height = plot.height,
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Silhouette",
-                            plotOutput(
-                                'silh', 
-                                height = plot.height, 
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Labels",
-                            div(
-                                htmlOutput('labels'),
-                                style = "font-size:80%"
-                            )
-                        ),
-                        tabPanel(
-                            "Stability",
-                            plotOutput(
-                                'StabilityPlot',
-                                height = plot.height.small,
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "Expression",
-                            plotOutput(
-                                'matrix', 
-                                height = plot.height, 
-                                width = "100%"
-                            )
-                        ),
-                        tabPanel(
-                            "tSNE",
-                            plotOutput(
-                                'tSNEplot', 
-                                height = plot.height, 
-                                width = "100%"
-                            )
-                        )
-                    )
-                }
+                )
                 do.call(
                     tabsetPanel,
                     c(
@@ -376,91 +284,36 @@ sc3_interactive <- function(input.param) {
             # this observer executes whenever any parameter in the left-side
             # parameter panel is changed
             observe({
-                # get all results for k
-                values$ks_length <- length(unique(as.numeric(input.param$cons.table[ , 3])))
-                res <- input.param$cons.table[
-                    as.numeric(input.param$cons.table[ , 3]) == input$clusters, 
-                    4][[1]]
-                # get all results for k-1
-                values$labels1 <- NULL
-                if((input$clusters - 1) %in% as.numeric(input.param$cons.table[ , 3])) {
-                    res1 <- input.param$cons.table[
-                        as.numeric(input.param$cons.table[ , 3]) == (input$clusters - 1), 
-                        4][[1]]
-                    values$labels1 <- res1[[2]]
-                }
+                res <- prepare_output(object, input$clusters)
+                
                 # assign results to reactive variables
-                values$consensus <- res[[1]]
-                values$labels <- res[[2]]
-                values$hc <- res[[3]]
-                values$silh <- res[[4]]
-                # order cells according to hierarchical clustering of the
-                # consensus matrix
-                clusts <- cutree(values$hc, input$clusters)
-                cell.order <- order.dendrogram(as.dendrogram(values$hc))
-                d <- input.param$dataset
-                colnames(d) <- clusts
-                d <- d[ , cell.order]
-                values$original.labels <- colnames(input.param$dataset)[cell.order]
-                # prepare a consensus matrix for downloading
-                tmp <- data.frame(values$consensus[cell.order, cell.order])
-                colnames(tmp) <- values$original.labels
-                rownames(tmp) <- seq(length=nrow(tmp))
-                values$consensus.download <- tmp
+                values$consensus <- object@consensus$sc3_consensus[[as.character(input$clusters)]]$consensus
+                values$labels <- res$labels
+                values$labels1 <- res$labels1
+                values$hc <- res$hc
+                values$silh <- res$silh
+                values$new.labels <- res$new.labels
+                values$original.labels <- colnames(dataset)[res$cell.order]
+
                 # reindex the new clusters in ascending order
-                values$new.labels <- reindex_clusters(colnames(d))
+                d <- dataset
+                d <- d[ , res$cell.order]
                 colnames(d) <- values$new.labels
                 values$dataset <- d
                 
-                # calculate stability of the clusters
-                
-                # check if there are more than 1 k value in ks range
-                values$stability <- NULL
-                if(length(unique(as.numeric(input.param$cons.table[ , 3]))) > 1) {
-                    stab.res <- input.param$cons.table[ , 3:4]
-                    values$stability <- StabilityIndex(
-                        stab.res,
-                        input$clusters
-                    )
-                }
-                
                 # reorder new cell labels in the same order as cells in the 
                 # input matrix
-                ord <- order(cell.order)
-                values$original.labels1 <- values$original.labels[ord]
-                values$new.labels1 <- values$new.labels[ord]
-                # define gaps between clusters for the heatmap
-                values$col.gaps <- which(diff(as.numeric(colnames(d))) != 0)
-                # update reactive variables used for hiding some panels on the
-                # webpage
-                values$mark <- FALSE
-                # update the svm reactive variable
-                if(with_svm) {
-                    values$svm <- FALSE
-                }
-                # update output variables
-                values$cells.outliers <- data.frame()
-                values$de.genes <- data.frame()
-                values$marker.genes <- data.frame()
-                SC3.results <- list()
-                # update the output cell labels
-                values$cell.labels <- 
-                    data.frame(new.labels = as.numeric(values$new.labels),
-                               original.labels = values$original.labels,
-                               stringsAsFactors = FALSE)
-                values$cell.labels1 <- 
-                    data.frame(original.labels = values$original.labels1,
-                               new.labels = as.numeric(values$new.labels1),
-                               stringsAsFactors = FALSE)
+                values$original.labels1 <- values$original.labels[res$cell.order]
+                values$new.labels1 <- values$new.labels[res$cell.order]
             })
             # this observer updates the GO drop down menu with current clusters
             # after calculating marker genes
             observe({
-                if(values$mark) {
-                    clusts <- unique(values$mark.res$clusts)
-                    updateSelectInput(session, "cluster", choices = clusts)
-                }
-                
+                markers <- 
+                    object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
+                mark.res.plot <- mark_gene_heatmap_param(markers)
+                clusts <- unique(mark.res.plot$clusts)
+                updateSelectInput(session, "cluster", choices = clusts)
             })
             
             ## REACTIVE PANEL DESCRIPTIONS
@@ -598,11 +451,13 @@ sc3_interactive <- function(input.param) {
             })
             
             ## REACTIVE PANELS
+            
+            # plot consensus matrix
             output$consensus <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    if(input.param$show.original.labels) {
+                    if(show.original.labels) {
                         ann <- data.frame(
-                            Input.Labels = factor(colnames(input.param$dataset))
+                            Input.Labels = factor(colnames(dataset))
                         )
                         pheatmap::pheatmap(
                             values$consensus,
@@ -615,25 +470,22 @@ sc3_interactive <- function(input.param) {
                             show_colnames = FALSE
                         )
                     } else {
-                        pheatmap::pheatmap(
-                            values$consensus,
-                            cluster_rows = values$hc,
-                            cluster_cols = values$hc,
-                            cutree_rows = input$clusters,
-                            cutree_cols = input$clusters,
-                            show_rownames = FALSE,
-                            show_colnames = FALSE
+                        sc3_plot_consensus(
+                            object, 
+                            as.numeric(input$clusters)
                         )
                     }
                 })
             })
             
+            # plot silhouette
             output$silh <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
                     plot(values$silh, col = "black")
                 })
             })
             
+            # output cell labels
             output$labels <- renderUI({
                 labs <- "<br/><br/>"
                 if(!is.null(values$labels1)) {
@@ -675,29 +527,22 @@ sc3_interactive <- function(input.param) {
                 HTML(paste0(labs))
             })
             
+            # plot stability
             output$StabilityPlot <- renderPlot({
                 validate(
                     need(
-                        !is.null(values$stability),
+                        length(object@consensus$sc3_consensus) > 1,
                         "\nStability cannot be calculated for a single k value!"
                     )
                 )
-                withProgress(message = 'Plotting...', value = 0, {
-                    d <- data.frame(
-                        Cluster = factor(1:length(values$stability)),
-                        Stability = values$stability)
-                    ggplot(d, aes(x = d$Cluster, y = d$Stability)) +
-                        geom_bar(stat = "identity") +
-                        ylim(0, 1) +
-                        labs(x = "Cluster", y = "Stability Index") +
-                        theme_bw()
-                })
+                sc3_plot_cluster_stability(object, input$clusters)
             })
             
+            # plot expression matrix
             output$matrix <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
-                    if(input.param$show.original.labels) {
+                    if(show.original.labels) {
                         ann <- data.frame(
                             Input.Labels = factor(values$original.labels)
                         )
@@ -713,110 +558,48 @@ sc3_interactive <- function(input.param) {
                             gaps_col = values$col.gaps
                         )
                     } else {
-                        pheatmap::pheatmap(
-                            values$dataset,
-                            kmeans_k = 100,
-                            cluster_cols = FALSE,
-                            show_rownames = FALSE,
-                            show_colnames = FALSE,
-                            gaps_col = values$col.gaps
-                        )
+                        sc3_plot_expression(object, as.numeric(input$clusters))
                     }
                 })
             })
             
+            # make tSNE plot
             output$tSNEplot <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    set.seed(1234567)
-                    tsne_out <- Rtsne::Rtsne(
-                        t(values$dataset),
-                        perplexity = input$perplexity
+                    sc3_plot_tsne(
+                        object,
+                        input$clusters,
+                        input$perplexity
                     )
-                    df_to_plot <- as.data.frame(tsne_out$Y)
-                    df_to_plot$Cluster <- factor(
-                        colnames(values$dataset),
-                        levels = unique(colnames(values$dataset))
-                    )
-                    comps <- colnames(df_to_plot)[1:2]
-                    ggplot(df_to_plot, aes_string(x = comps[1],
-                                                  y = comps[2],
-                                                  color = "Cluster")) +
-                        geom_point() +
-                        xlab("Dimension 1") +
-                        ylab("Dimension 2") +
-                        theme_bw()
                 })
             })
+            
+            # plot marker genes
             output$mark_genes <- renderPlot({
-                d <- values$plot.mark[[1]]
-                d.param <- values$plot.mark[[2]]
-                col.gaps <- values$plot.mark[[3]]
-                pheatmap::pheatmap(
-                    d[rownames(d.param$mark.res.plot), , drop = FALSE],
-                    show_colnames = FALSE,
-                    cluster_rows = FALSE,
-                    cluster_cols = FALSE,
-                    annotation_row = d.param$row.ann,
-                    annotation_names_row = FALSE,
-                    gaps_row = d.param$row.gaps,
-                    gaps_col = col.gaps,
-                    cellheight = 10
+                sc3_plot_markers(
+                    object, 
+                    as.numeric(input$clusters), 
+                    as.numeric(input$auroc.threshold), 
+                    as.numeric(input$p.val.mark)
                 )
             })
             plotHeightMark <- function() {
                 validate(
                     need(
-                        try(!is.null(rownames(input.param$dataset))),
+                        !is.null(object@consensus$sc3_biology),
+                        "\nPlease run sc3_calc_biology() first!"
+                    )
+                )
+                validate(
+                    need(
+                        try(!is.null(rownames(dataset))),
                         "\nNo gene names provided in the input expression matrix!"
                     )
                 )
-                withProgress(message = 'Calculating Marker genes...',
-                             value = 0,
-                             {
-                                 # prepare dataset for plotting
-                                 if(with_svm) {
-                                     d <- values$dataset.svm
-                                     col.gaps <- values$col.gaps.svm
-                                 } else {
-                                     d <- values$dataset
-                                     col.gaps <- values$col.gaps
-                                 }
-                                 
-                                 values$mark <- FALSE
-                                 
-                                 # define marker genes
-                                 values$mark.res <- get_marker_genes(
-                                     d,
-                                     as.numeric(colnames(d)),
-                                     as.numeric(input$auroc.threshold),
-                                     as.numeric(input$p.val.mark)
-                                 )
-                                 # check the results of mark_genes_main:
-                                 # global variable mark.res
-                                 validate(
-                                     need(
-                                         try(dim(values$mark.res)[1] != 0),
-                                         "\nUnable to find significant marker genes from obtained clusters! Try to change either the number of clusters k, the AUROC threshold or the p-value threshold."
-                                     )
-                                 )
-                                 colnames(values$mark.res) <- 
-                                     c("AUC","clusts","p.value")
-                                 d.param <- mark_gene_heatmap_param(
-                                     values$mark.res,
-                                     unique(colnames(d))
-                                 )
-                                 values$mark <- TRUE
-                                 values$marker.genes <- data.frame(
-                                     new.labels = as.numeric(values$mark.res[,2]),
-                                     gene = rownames(values$mark.res),
-                                     AUROC = as.numeric(values$mark.res[,1]),
-                                     p.value = as.numeric(values$mark.res[,3]),
-                                     stringsAsFactors = FALSE
-                                 )
-                            }
-                        )
-                values$plot.mark <- list(d, d.param, col.gaps)
-                return(50 + 10.8*nrow(d.param$mark.res.plot))
+                markers <- 
+                    object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
+                mark.res.plot <- mark_gene_heatmap_param(markers)
+                return(50 + 10.8*nrow(mark.res.plot))
             }
             
             output$plot_mark_genes <- renderUI({
@@ -826,201 +609,55 @@ sc3_interactive <- function(input.param) {
                     width = "100%"
                 )
             })
+            
+            # plot DE genes
             output$de_genes <- renderPlot({
-                d <- values$plot.de[[1]]
-                d.param <- values$plot.de[[2]]
-                col.gaps <- values$plot.de[[3]]
-                pheatmap::pheatmap(
-                    d[names(head(values$de.res, 50)), , drop = FALSE],
-                    show_colnames = FALSE,
-                    cluster_rows = FALSE,
-                    cluster_cols = FALSE,
-                    annotation_row = d.param$row.ann,
-                    annotation_names_row = FALSE,
-                    gaps_col = col.gaps,
-                    cellheight = 10
+                sc3_plot_de_genes(
+                    object, 
+                    as.numeric(input$clusters), 
+                    as.numeric(input$p.val.de)
                 )
             })
             plotHeightDE <- function() {
                 validate(
-                    need(try(!is.null(rownames(input.param$dataset))),
-                         "\nNo gene names provided in the input expression matrix!")
+                    need(
+                        !is.null(object@consensus$sc3_biology),
+                        "\nPlease run sc3_calc_biology() first!"
+                    )
                 )
-                withProgress(message = 'Calculating DE genes...', value = 0, {
-                    # prepare dataset for plotting
-                    if(with_svm) {
-                        d <- values$dataset.svm
-                        col.gaps <- values$col.gaps.svm
-                    } else {
-                        d <- values$dataset
-                        col.gaps <- values$col.gaps
-                    }
-                    # define de genes
-                    values$de.res <- get_de_genes(
-                        d, 
-                        colnames(d), 
-                        as.numeric(input$p.val.de)
+                validate(
+                    need(
+                        try(!is.null(rownames(dataset))),
+                        "\nNo gene names provided in the input expression matrix!"
                     )
-                    # check the results of de_genes_main:
-                    # global variable de.res
-                    validate(
-                        need(
-                            try(length(values$de.res) != 0),
-                            "\nUnable to find significant differentially expressed genes from obtained clusters! Try to change either the number of clusters k or the p-value threshold."
-                        )
-                    )
-                    d.param <- de_gene_heatmap_param(head(values$de.res, 50))
-                    res <- data.frame(
-                        gene = names(values$de.res),
-                        p.value = as.numeric(values$de.res),
-                        stringsAsFactors = FALSE
-                    )
-                    rownames(res) <- NULL
-                    values$de.genes <- res
-                })
-                values$plot.de <- list(d, d.param, col.gaps)
-                return(50 + 10.8*length(head(values$de.res, 50)))
+                )
+                de.genes <- 
+                    object@consensus$sc3_biology[[as.character(input$clusters)]]$de.genes
+                return(50 + 10.8*nrow(head(de.genes, 50)))
             }
             output$plot_de_genes <- renderUI({
-                plotOutput("de_genes", height = plotHeightDE(), width = "100%")
+                plotOutput(
+                    "de_genes", 
+                    height = plotHeightDE(), 
+                    width = "100%"
+                )
             })
             
-            
+            # plot outliers
             output$outliers <- renderPlot({
-                withProgress(
-                    message = 'Calculating cell outliers...',
-                    value = 0, 
-                    {
-                        # prepare dataset for plotting
-                        if(with_svm) {
-                            d <- values$dataset.svm
-                        } else {
-                            d <- values$dataset
-                        }
-                        
-                        # compute outlier cells
-                        values$outl.res <- get_outl_cells(
-                            d,
-                            colnames(d),
-                            as.numeric(input$chisq.quantile)
-                        )
-                        
-                        t <- as.data.frame(values$outl.res)
-                        colnames(t)[1] <- "outl"
-                        t$Cluster <- names(values$outl.res)
-                        t$Cells <- 1:dim(t)[1]
-                        t$Cluster <-
-                        factor(
-                            t$Cluster,
-                            levels =
-                                unique(
-                                    as.character(
-                                        sort(as.numeric(t$Cluster))
-                                    )
-                                )
-                        )
-                        cols <- iwanthue(length(unique(t$Cluster)))
-                        Cells <- outl <- Cluster <- NULL
-                        
-                        values$cells.outliers <- if(with_svm) {
-                            data.frame(
-                                new.labels = as.numeric(names(values$outl.res)),
-                                original.labels = values$original.labels.svm,
-                                MCD.dist = as.numeric(values$outl.res),
-                                stringsAsFactors = FALSE
-                            )
-                        } else {
-                            data.frame(
-                                new.labels = as.numeric(names(values$outl.res)),
-                                original.labels = values$original.labels,
-                                MCD.dist = values$outl.res,
-                                stringsAsFactors = FALSE
-                            )
-                        }
-                        
-                        ggplot(t, aes(x = t$Cells,
-                                  y = t$outl,
-                                  fill = t$Cluster, 
-                                  color = t$Cluster)) +
-                        geom_bar(stat = "identity") +
-                        geom_point() +
-                        scale_fill_manual(values = cols) +
-                        scale_color_manual(values = cols) +
-                        guides(color = FALSE, fill = FALSE) +
-                        labs(x = "Cells", y = "Outlier score") +
-                        theme_bw()
-                    }
+                validate(
+                    need(
+                        !is.null(object@consensus$sc3_biology),
+                        "\nPlease run sc3_calc_biology() first!"
+                    )
+                )
+                sc3_plot_cell_outliers(
+                    object,
+                    as.numeric(input$clusters)
                 )
             })
 
             # REACTIVE BUTTONS
-            
-            # SVM button
-            observeEvent(input$svm, {
-                withProgress(message = 'Running SVM...', value = 0, {
-                    d <- input.param$dataset
-                    colnames(d) <- values$new.labels1
-                    original.labels <-
-                        c(
-                            values$original.labels1,
-                            colnames(input.param$study.dataset)
-                         )
-                    
-                    values$dataset.svm <- input.param$study.dataset
-                    colnames(values$dataset.svm) <-
-                        support_vector_machines(
-                            d,
-                            input.param$study.dataset,
-                            "linear"
-                        )
-                    
-                    tmp <- cbind(d, values$dataset.svm)
-                    cols <- colnames(tmp)
-                    inds <- NULL
-                    for(i in unique(colnames(tmp))) {
-                        inds <- c(inds, which(cols == i))
-                    }
-                    tmp <- tmp[ , inds]
-                    
-                    values$original.labels.svm <- original.labels[inds]
-                    colnames(tmp) <- reindex_clusters(colnames(tmp))
-                    values$new.labels.svm <- colnames(tmp)
-                    values$dataset.svm <- tmp
-                    
-                    values$col.gaps.svm <-
-                        which(
-                            diff(as.numeric(colnames(values$dataset.svm))) != 0
-                        )
-                    
-                    values$cell.labels <- data.frame(
-                        new.labels = values$new.labels.svm,
-                        original.labels = values$original.labels.svm
-                    )
-                    # original ordering of the cells
-                    ord <- order(input.param$svm.inds)
-                    values$cell.labels1 <- data.frame(
-                        original.labels = original.labels[ord],
-                        new.labels = values$new.labels.svm[order(inds)][ord]
-                    )
-                    
-                    values$svm <- TRUE
-                    values$svm.clusters <- paste(input$clusters, collapse = "_")
-                    values$svm.distance <- paste(input$distance, collapse = "_")
-                    values$svm.dimRed <- paste(input$dimRed, collapse = "_")
-                })
-            })
-            
-            # SAVE TO R session button
-            observeEvent(input$save, {
-                SC3.results <<- list(
-                    cell.labels = values$cell.labels,
-                    cell.labels.original.order = values$cell.labels1,
-                    consensus = values$consensus.download,
-                    de.genes = values$de.genes,
-                    marker.genes = values$marker.genes,
-                    cells.outliers = values$cells.outliers
-                )
-            })
             
             # GO button
             observeEvent(input$GO, {
@@ -1032,64 +669,39 @@ sc3_interactive <- function(input.param) {
             })
             
             ## OUTPUTS USED FOR CONDITIONAL PANELS
-            output$is_svm <- reactive({
-                return(values$svm)
+            ks_length <- reactive({
+                return(as.character(length(ks)))
             })
-            output$is_mark <- reactive({
-                return(values$mark)
-            })
+            
             output$ks_length <- reactive({
-                return(values$ks_length)
+                return(ks_length())
             })
-
-            # DOWNLOAD buttons
             
-            # Save to xls button
-            output$excel <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-", input.param$filename, ".xls")
-                },
-                
-                content = function(file) {
-                    WriteXLS(list(values$cell.labels,
-                                  values$cell.labels1,
-                                  values$de.genes,
-                                  values$marker.genes,
-                                  values$cells.outliers),
-                             ExcelFileName = file,
-                             SheetNames = c("Cell labels",
-                                            "Cell labels (original order)",
-                                            "DE genes",
-                                            "Marker genes",
-                                            "Cell outliers"))
-                }
-            )
+            is_svm <- reactive({
+                return(svm)
+            })
             
-            # Save consensus matrix button
-            output$consens_download <- downloadHandler(
-                filename = function() {
-                    paste0("k-", input$clusters, "-consensus-", input.param$filename, ".txt")
-                },
-                
-                content = function(file) {
-                    write.table(values$consensus.download,
-                                file = file,
-                                row.names = FALSE,
-                                quote = FALSE,
-                                sep = "\t")
-                }
-            )
+            output$is_svm <- reactive({
+                return(is_svm())
+            })
             
             # stop App on closing the browser
             session$onSessionEnded(function() {
                 stopApp()
             })
-            
-            # hide panels
-            outputOptions(output, 'is_mark', suspendWhenHidden = FALSE)
-            outputOptions(output, 'is_svm', suspendWhenHidden = FALSE)
         },
         # launch App in a browser
         options = list(launch.browser = TRUE)
     )
 }
+
+#' @export
+setMethod("sc3_interactive", signature(object = "SCESet"),
+          function(
+              object
+          ) {
+              sc3_interactive.SCESet(
+                  object
+              )
+          })
+

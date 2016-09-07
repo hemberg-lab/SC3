@@ -14,7 +14,7 @@
 #' more than (1-fraction)*N cells (ubiquitous genes)
 #' @return filtered expression matrix some genes were removed.
 gene_filter <- function(data, fraction = 0, reads.rare = 0, reads.ubiq = 0) {
-    cat("Gene filtering...\n")
+    message("Gene filtering...")
     frac.cells <- ceiling(fraction*ncol(data))
     d <- data[rowSums(data > reads.rare) >= frac.cells &
                   rowSums(data > reads.ubiq) <= ncol(data) - frac.cells, ]
@@ -62,23 +62,22 @@ calculate_distance <- function(data, method) {
 #' @importFrom stats prcomp cmdscale
 #'
 transformation <- function(dists, method) {
-  if (method == "PCA") {
+  if (method == "pca") {
     t <- prcomp(dists, center = TRUE, scale. = TRUE)
-    list(t$rotation, t$sdev)
-  } else if (method == "Spectral") {
+    return(t$rotation)
+  } else if (method == "laplacian") {
     L <- norm_laplacian(exp(-dists/max(dists)), 0)
-    # sort eigenvectors by their eigenvalues in increasing order
     l <- eigen(L)
-    list(l$vectors[, order(l$values)],
-         l$values[order(l$values)])
-  } else if (method == "spectral_reg") {
+    # sort eigenvectors by their eigenvalues
+    return(l$vectors[, order(l$values)])
+  } else if (method == "laplacian_reg") {
     L <- norm_laplacian(exp(-dists/max(dists)), 1000)
+    l <- eigen(L)
     # sort eigenvectors by their eigenvalues in increasing order
-    list(eigen(L)$vectors[, order(eigen(L)$values)],
-         eigen(L)$values[order(eigen(L)$values)])
-  } else if (method == "MDS") {
+    return(l$vectors[, order(l$values)])
+  } else if (method == "mds") {
     t <- cmdscale(dists, k = ncol(dists) - 1)
-    list(t)
+    return(t[[1]])
   }
 }
 
@@ -142,44 +141,30 @@ support_vector_machines <- function(train, study, kern) {
   return(pred = pred)
 }
 
-prepare_for_svm <- function(dataset, svm.num.cells, svm.train.inds) {
-    
-    svm.inds <- NULL
+prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
     
     if(!is.null(svm.num.cells)) {
-        cat("Defining training cells for SVM using svm.num.cells parameter...\n")
-        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
-        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
+        message("Defining training cells for SVM using svm.num.cells parameter...")
+        train.inds <- sample(1:N, svm.num.cells)
+        study.inds <- setdiff(1:N, train.inds)
     }
     
-    if(is.null(svm.inds) & !is.null(svm.train.inds)) {
-        cat("Defining training cells for SVM using svm.train.inds parameter...\n")
-        svm.num.cells <- length(svm.train.inds)
-        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
+    if(!is.null(svm.train.inds)) {
+        message("Defining training cells for SVM using svm.train.inds parameter...")
+        train.inds <- svm.train.inds
+        study.inds <- setdiff(1:N, svm.train.inds)
     }
     
-    if(is.null(svm.inds) & ncol(dataset) > 5000) {
-        cat("Defining training cells for SVM using 5000 random cells...\n")
-        svm.num.cells <- 5000
-        svm.train.inds <- sample(1:ncol(dataset), svm.num.cells)
-        svm.study.inds <- setdiff(1:ncol(dataset), svm.train.inds)
-        study.dataset <- dataset[ , svm.study.inds]
-        dataset <- dataset[, svm.train.inds]
-        svm.inds <- c(svm.train.inds, svm.study.inds)
+    if(is.null(svm.num.cells) & is.null(svm.train.inds)) {
+        message("Defining training cells for SVM using 5000 random cells...")
+        train.inds <- sample(1:N, 5000)
+        study.inds <- setdiff(1:N, train.inds)
     }
     
     return(
         list(
-            training.cells = dataset, 
-            study.cells = study.dataset,
-            svm.num.cells = svm.num.cells,
-            svm.inds = svm.inds
+            svm.train.inds = train.inds,
+            svm.study.inds = study.inds
         )
     )
 }

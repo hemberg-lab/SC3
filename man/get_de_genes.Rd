@@ -4,7 +4,7 @@
 \alias{get_de_genes}
 \title{Find differentially expressed genes}
 \usage{
-get_de_genes(dataset, labels, p.val = 0.01)
+get_de_genes(dataset, labels)
 }
 \arguments{
 \item{dataset}{expression matrix}

@@ -4,7 +4,7 @@
 \alias{get_outl_cells}
 \title{Find cell outliers}
 \usage{
-get_outl_cells(dataset, labels, chisq.quantile = 0.9999)
+get_outl_cells(dataset, labels)
 }
 \arguments{
 \item{dataset}{expression matrix}

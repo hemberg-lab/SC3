@@ -4,7 +4,7 @@
 \alias{get_marker_genes}
 \title{Find marker genes}
 \usage{
-get_marker_genes(dataset, labels, auroc.threshold = 0.85, p.val = 0.01)
+get_marker_genes(dataset, labels)
 }
 \arguments{
 \item{dataset}{expression matrix}

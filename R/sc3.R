@@ -164,10 +164,11 @@ sc3 <- function(dataset,
         }
         # run SVM
         tmp <- prepare_for_svm(dataset, svm.num.cells, svm.train.inds)
-        dataset <- tmp$training.cells
-        study.dataset <- tmp$study.cells
+
+        dataset <- dataset[ , tmp$svm.train.inds]
+        study.dataset <- dataset[ , tmp$svm.study.inds]
         svm.num.cells <- tmp$svm.num.cells
-        svm.inds <- tmp$svm.inds
+        svm.inds <- c(tmp$svm.train.inds, tmp$svm.study.inds)
     }
   
   # define number of cells and region of dimensions
@@ -293,9 +294,7 @@ sc3 <- function(dataset,
   # stop local cluster
   parallel::stopCluster(cl)
   
-  output.param <- list(distances = distances,
-                       dimensionality.reductions = dimensionality.reductions,
-                       cons.table = cbind(all.combinations, cons),
+  output.param <- list(cons.table = cbind(all.combinations, cons),
                        dataset = dataset,
                        study.dataset = study.dataset,
                        svm.num.cells = svm.num.cells,

@@ -4,12 +4,12 @@
 \alias{StabilityIndex}
 \title{Calculate the stability index of the obtained clusters when changing k}
 \usage{
-StabilityIndex(stab.res, k)
+StabilityIndex(object, k)
 }
 \arguments{
-\item{stab.res}{internal matrix of precomputed clustering results}
-
 \item{k}{current value of the number of clusters k}
+
+\item{stab.res}{internal matrix of precomputed clustering results}
 }
 \value{
 a numeric vector containing a stability index of each cluster

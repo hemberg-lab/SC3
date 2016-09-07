@@ -1,3 +1,34 @@
+prepare_output <- function(object, k) {
+    consensus <- object@consensus$sc3_consensus
+    ks <- as.numeric(names(consensus))
+    dataset <- object@consensus$sc3_processed_dataset
+    # get all results for k
+    res <- consensus[[as.character(k)]]
+    # get all results for k-1
+    labels1 <- NULL
+    if((k - 1) %in% ks) {
+        labels1 <- consensus[[as.character(k - 1)]]$labels
+    }
+    # assign results to reactive variables
+    labels <- res$labels
+    hc <- res$hc
+    clusts <- cutree(hc, k)
+    
+    silh <- res$silhouette
+
+    # reindex the new clusters in ascending order
+    new.labels <- reindex_clusters(clusts[hc$order])
+    
+    return(list(
+        labels = labels,
+        labels1 = labels1,
+        hc = hc,
+        silh = silh,
+        cell.order = hc$order,
+        new.labels = new.labels
+    ))
+}
+
 reindex_clusters <- function(ordering) {
     new.index <- NULL
     j <- 1
@@ -10,34 +41,18 @@ reindex_clusters <- function(ordering) {
     return(new.index)
 }
 
-de_gene_heatmap_param <- function(res) {
-    row.ann <- data.frame("minus.log10.p.value" = -log10(res))
-    rownames(row.ann) <- names(res)
-
-    return(list(row.ann = row.ann))
-}
-
-mark_gene_heatmap_param <- function(mark.res, labs) {
+mark_gene_heatmap_param <- function(markers) {
     mark.res.plot <- NULL
-    for(i in labs) {
-        tmp <- mark.res[mark.res[,2] == i, ]
-        if(dim(tmp)[1] > 10) {
+    for(i in unique(markers$clusts)) {
+        tmp <- markers[markers$clusts == i, ]
+        if(nrow(tmp) > 10) {
             mark.res.plot <- rbind(mark.res.plot, tmp[1:10, ])
         } else {
             mark.res.plot <- rbind(mark.res.plot, tmp)
         }
     }
 
-    row.ann <- data.frame(Cluster =
-                              factor(mark.res.plot$clusts,levels =
-                                         unique(mark.res.plot$clusts)))
-    rownames(row.ann) <- rownames(mark.res.plot)
-
-    row.gaps <- as.numeric(mark.res.plot$clusts)
-    row.gaps <- which(diff(row.gaps) != 0)
-
-    return(list(mark.res.plot = mark.res.plot, row.ann = row.ann,
-                row.gaps = row.gaps))
+    return(mark.res.plot)
 }
 
 #' Find cell outliers
@@ -60,9 +75,10 @@ mark_gene_heatmap_param <- function(mark.res, labs) {
 #' @importFrom stats qchisq
 #' 
 #' @export
-get_outl_cells <- function(dataset, labels, chisq.quantile = 0.9999) {
-    outl.res <- list()
-    for(i in unique(labels)) {
+get_outl_cells <- function(dataset, labels) {
+    chisq.quantile <- 0.9999
+    out <- rep(0, length(labels))
+    for(i in sort(as.numeric(unique(labels)))) {
         n.cells <- length(labels[labels == i])
         # reduce p dimensions by using robust PCA
         t <- tryCatch({
@@ -79,9 +95,6 @@ get_outl_cells <- function(dataset, labels, chisq.quantile = 0.9999) {
             if(dim(t@loadings)[1] <= 6) {
                 message(paste0("No outliers detected in cluster ", i,
                                ". Small number of cells in the cluster."))
-                out <- rep(0, n.cells)
-                names(out) <- rep(i, n.cells)
-                outl.res[[i]] <- out
             } else {
                 df <- ifelse(dim(t@loadings)[2] > 3, 3, dim(t@loadings)[2])
 
@@ -105,29 +118,15 @@ get_outl_cells <- function(dataset, labels, chisq.quantile = 0.9999) {
                     outliers <-
                         sqrt(mcd$mah) - sqrt(qchisq(chisq.quantile, df = df))
                     outliers[which(outliers < 0)] <- 0
-                    outl.res[[i]] <- outliers
-                } else {
-                    out <- rep(0, n.cells)
-                    names(out) <- rep(i, n.cells)
-                    outl.res[[i]] <- out
+                    out[labels == i] <- outliers
                 }
             }
-        } else {
-            out <- rep(0, n.cells)
-            names(out) <- rep(i, n.cells)
-            outl.res[[i]] <- out
         }
     }
-
-    nams <- NULL
-    vals <- NULL
-    for(i in 1:length(outl.res)) {
-        vals <- c(vals, outl.res[[i]])
-        nams <- c(nams, names(outl.res[[i]]))
-    }
-    names(vals) <- nams
-
-    return(vals)
+    
+    res <- data.frame(clusts = labels, MCD.dist = out, stringsAsFactors = FALSE)
+    
+    return(res)
 }
 
 #' @importFrom RSelenium remoteDriver
@@ -192,7 +191,9 @@ getAUC <- function(gene, labels) {
 #' head(d)
 #' 
 #' @export
-get_marker_genes <- function(dataset, labels, auroc.threshold = 0.85, p.val = 0.01) {
+get_marker_genes <- function(dataset, labels) {
+    auroc.threshold <- 0.5
+    p.val <- 0.1
     geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
     geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow=length(geneAUCs)/3,
                                     byrow=TRUE))
@@ -237,13 +238,17 @@ get_marker_genes <- function(dataset, labels, auroc.threshold = 0.85, p.val = 0.
 #' @importFrom stats kruskal.test p.adjust
 #' 
 #' @export
-get_de_genes <- function(dataset, labels, p.val = 0.01) {
+get_de_genes <- function(dataset, labels) {
+    p.val <- 0.1
     t <- apply(dataset, 1, kruskal.test, g = factor(labels))
     ps <- unlist(lapply(t, "[[", "p.value"))
     ps <- p.adjust(ps)
     ps <- ps[!is.na(ps)]
     ps <- ps[ps < p.val]
-    return(ps[order(ps)])
+    ps <- ps[order(ps)]
+    ps <- as.data.frame(ps, stringsAsFactors = FALSE)
+    colnames(ps) <- "p.value"
+    return(ps)
 }
 
 #' Calculate the stability index of the obtained clusters when changing k
@@ -259,14 +264,15 @@ get_de_genes <- function(dataset, labels, p.val = 0.01) {
 #' @param stab.res internal matrix of precomputed clustering results
 #' @param k current value of the number of clusters k
 #' @return a numeric vector containing a stability index of each cluster
-StabilityIndex <- function(stab.res, k) {
-    hc <- stab.res[as.numeric(stab.res[ , 1]) == k, 2][[1]][[3]]
+StabilityIndex <- function(object, k) {
+    consensus <- object@consensus$sc3_consensus
+    hc <- consensus[[as.character(k)]]$hc
     labs <- cutree(hc, k)
     labs <- labs[hc$order]
     labs <- reindex_clusters(labs)
     
-    kMax <- max(unique(as.numeric(stab.res[ , 1])))
-    kMin <- min(unique(as.numeric(stab.res[ , 1])))
+    kMax <- max(as.numeric(names(consensus)))
+    kMin <- min(as.numeric(names(consensus)))
     kRange <- kMax - kMin
     
     stability <- rep(0, k)
@@ -276,7 +282,7 @@ StabilityIndex <- function(stab.res, k) {
         # sum over k range
         for (k2 in kMin:kMax) {
             if (k2 != k) {
-                hc2 <- stab.res[as.numeric(stab.res[ , 1]) == k2, 2][[1]][[3]]
+                hc2 <- consensus[[as.character(k2)]]$hc
                 labs2 <- cutree(hc2, k2)
                 clusts <- as.numeric(names(table(labs2[names(labs2) %in% inds])))
                 N <- length(clusts)
