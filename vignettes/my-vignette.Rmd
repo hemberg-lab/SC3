@@ -67,8 +67,18 @@ example_sceset <- sc3_calc_transfs(example_sceset)
 example_sceset <- sc3_kmeans(example_sceset, 3:5)
 example_sceset <- sc3_calc_consens(example_sceset)
 example_sceset <- sc3_calc_biology(example_sceset)
-sc3_interactive(example_sceset)
+# sc3_interactive(example_sceset)
 example_sceset <- sc3_summarise_results(example_sceset, 3)
+```
+
+```{r eval=FALSE}
+library(WriteXLS)
+WriteXLS(
+    example_sceset@consensus$sc3_results, 
+    ExcelFileName = "sc3_results.xls",
+    SheetNames = names(example_sceset@consensus$sc3_results),
+    row.names = TRUE
+)
 ```
 
 ## Plot functions
@@ -92,7 +102,7 @@ example_sceset <- sc3_calc_transfs(example_sceset)
 example_sceset <- sc3_kmeans(example_sceset, 3:5)
 example_sceset <- sc3_calc_consens(example_sceset)
 example_sceset <- sc3_calc_biology(example_sceset)
-sc3_interactive(example_sceset)
+# sc3_interactive(example_sceset)
 example_sceset <- sc3_run_svm(example_sceset, 3)
 example_sceset <- sc3_summarise_results(example_sceset, 3)
 ```

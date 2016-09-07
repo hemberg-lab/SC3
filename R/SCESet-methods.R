@@ -680,19 +680,21 @@ sc3_summarise_results.SCESet <- function(
     if ( is.null(object@consensus$svm_result) ) {
         hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
         clusts <- get_clusts(hc, k)
+        names(clusts) <- rownames(pData(object))
+        res <- list(
+            labels = cbind(pData(object), clusts),
+            de.genes = object@consensus$sc3_biology[[as.character(k)]]$de.genes,
+            markers = object@consensus$sc3_biology[[as.character(k)]]$markers,
+            cell.outliers = object@consensus$sc3_biology[[as.character(k)]]$cell.outl
+        )
     } else {
         clusts <- object@consensus$svm_result
+        names(clusts) <- rownames(pData(object))
+        res <- list(
+            labels = cbind(pData(object), clusts)
+        )
     }
     
-    names(clusts) <- rownames(pData(object))
-    
-    res <- list(
-        labels = cbind(pData(object), clusts),
-        de.genes = object@consensus$sc3_biology[[as.character(k)]]$de.genes,
-        markers = object@consensus$sc3_biology[[as.character(k)]]$markers,
-        cell.outliers = object@consensus$sc3_biology[[as.character(k)]]$cell.outl
-    )
-
     object@consensus$"sc3_results" <- res
     return(object)
 }
