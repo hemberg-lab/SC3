@@ -505,16 +505,8 @@ sc3_calc_consens.SCESet <- function(
             rownames(tmp) <- as.character(colnames(dat))
             diss <- as.dist(as.matrix(as.dist(tmp)))
             hc <- hclust(diss)
-            clusts <- cutree(hc, k = i)
-            
-            # reindex clusters so that the cluster indeces in the silhouette 
-            # plot correspond to the clusters of the consensus matrix
-            clusts.labs <- names(clusts)
-            names(clusts) <- 1:length(clusts)
-            clusts <- reindex_clusters(clusts[hc$order])
-            clusts <- clusts[order(as.numeric(names(clusts)))]
-            names(clusts) <- clusts.labs
-            
+            clusts <- get_clusts(hc, i)
+
             silh <- silhouette(clusts, diss)
             
             labs <- NULL
@@ -583,16 +575,8 @@ sc3_calc_biology.SCESet <- function(
     biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
             hc <- consensus[[as.character(i)]]$hc
-            clusts <- cutree(hc, k = i)
-            
-            # reindex clusters so that the cluster indeces in the silhouette 
-            # plot correspond to the clusters of the consensus matrix
-            clusts.labs <- names(clusts)
-            names(clusts) <- 1:length(clusts)
-            clusts <- reindex_clusters(clusts[hc$order])
-            clusts <- clusts[order(as.numeric(names(clusts)))]
-            names(clusts) <- clusts.labs
-            
+            clusts <- get_clusts(hc, i)
+
             markers <- get_marker_genes(
                 object@consensus$sc3_processed_dataset,
                 clusts
@@ -650,16 +634,8 @@ sc3_run_svm.SCESet <- function(
     
     dataset <- object@consensus$sc3_processed_dataset
     hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
-    clusts <- cutree(hc, k)
-    
-    # reindex clusters so that the cluster indeces in the silhouette 
-    # plot correspond to the clusters of the consensus matrix
-    clusts.labs <- names(clusts)
-    names(clusts) <- 1:length(clusts)
-    clusts <- reindex_clusters(clusts[hc$order])
-    clusts <- clusts[order(as.numeric(names(clusts)))]
-    names(clusts) <- clusts.labs
-    
+    clusts <- get_clusts(hc, k)
+
     train.dataset <- dataset[, object@consensus$svm_train_inds]
     colnames(train.dataset) <- clusts
     

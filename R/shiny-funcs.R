@@ -16,8 +16,7 @@ prepare_output <- function(object, k) {
     
     silh <- res$silhouette
 
-    # reindex the new clusters in ascending order
-    new.labels <- reindex_clusters(clusts[hc$order])
+    new.labels <- get_clusts(hc, k)
     
     return(list(
         labels = labels,
@@ -29,7 +28,11 @@ prepare_output <- function(object, k) {
     ))
 }
 
-reindex_clusters <- function(ordering) {
+get_clusts <- function(hc, k) {
+    clusts <- cutree(hc, k)
+    labels <- names(clusts)
+    names(clusts) <- 1:length(clusts)
+    ordering <- clusts[hc$order]
     new.index <- NULL
     j <- 1
     for(i in unique(ordering)) {
@@ -38,7 +41,10 @@ reindex_clusters <- function(ordering) {
         new.index <- c(new.index, tmp)
         j <- j + 1
     }
-    return(new.index)
+    clusts <- new.index
+    clusts <- clusts[order(as.numeric(names(clusts)))]
+    names(clusts) <- labels
+    return(clusts)
 }
 
 mark_gene_heatmap_param <- function(markers) {
@@ -267,9 +273,7 @@ get_de_genes <- function(dataset, labels) {
 StabilityIndex <- function(object, k) {
     consensus <- object@consensus$sc3_consensus
     hc <- consensus[[as.character(k)]]$hc
-    labs <- cutree(hc, k)
-    labs <- labs[hc$order]
-    labs <- reindex_clusters(labs)
+    labs <- get_clusts(hc, k)
     
     kMax <- max(as.numeric(names(consensus)))
     kMin <- min(as.numeric(names(consensus)))
