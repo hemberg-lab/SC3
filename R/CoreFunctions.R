@@ -6,7 +6,6 @@
 #' respresent indexes of cell clusters (known information based on the
 #' experimental protocol). There are 80 cells and 5 clusters in this dataset.
 #'
-#' @return blah blah
 "treutlein"
 
 #' Gene filter
@@ -44,6 +43,9 @@ gene_filter <- function(data, fraction = 0, reads.rare = 0, reads.ubiq = 0) {
 #' @return distance matrix
 #'
 #' @importFrom stats cor dist
+#' 
+#' @useDynLib SC3
+#' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
   return(if (method == "spearman") {
@@ -97,6 +99,10 @@ transformation <- function(dists, method) {
 #'
 #' @param x adjacency/distance matrix
 #' @param tau regularization term
+#' 
+#' @useDynLib SC3
+#' @importFrom Rcpp sourceCpp
+#' 
 #' @return graph Laplacian of the adjacency/distance matrix
 norm_laplacian <- function(x, tau) {
   D <- diag(colSums(x)^(-0.5))
@@ -117,6 +123,9 @@ norm_laplacian <- function(x, tau) {
 #' @return consensus matrix
 #'
 #' @importFrom stats dist
+#' 
+#' @useDynLib SC3
+#' @importFrom Rcpp sourceCpp
 #'
 consensus_matrix <- function(clusts) {
   n.cells <- length(unlist(strsplit(clusts[1], " ")))

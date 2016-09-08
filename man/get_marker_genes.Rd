@@ -11,12 +11,6 @@ get_marker_genes(dataset, labels)
 
 \item{labels}{cell labels corresponding to the columns of the expression matrix.
 Labels must be integers or character integers, e.g. 1, 2, 3 or "1", "2", "3" ect.}
-
-\item{auroc.threshold}{area under the ROC curve threshold, by default it is
-0.85. Values close to 0.5 will include very weak marker genes, values close
-to 1 will only include very strong marker genes.}
-
-\item{p.val}{p-value threshold, by default it is 0.01}
 }
 \value{
 data.frame containing the marker genes

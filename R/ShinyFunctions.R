@@ -1,3 +1,5 @@
+
+#' @importFrom stats cutree
 prepare_output <- function(object, k) {
     consensus <- object@consensus$sc3_consensus
     ks <- as.numeric(names(consensus))
@@ -12,7 +14,7 @@ prepare_output <- function(object, k) {
     # assign results to reactive variables
     labels <- res$labels
     hc <- res$hc
-    clusts <- cutree(hc, k)
+    clusts <- stats::cutree(hc, k)
     
     silh <- res$silhouette
 
@@ -28,8 +30,9 @@ prepare_output <- function(object, k) {
     ))
 }
 
+#' @importFrom stats cutree
 get_clusts <- function(hc, k) {
-    clusts <- cutree(hc, k)
+    clusts <- stats::cutree(hc, k)
     labels <- names(clusts)
     names(clusts) <- 1:length(clusts)
     ordering <- clusts[hc$order]
@@ -68,8 +71,6 @@ mark_gene_heatmap_param <- function(markers) {
 #'
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix
-#' @param chisq.quantile a threshold of the chi-squared distribution used for 
-#' cell outliers detection, default is 0.9999
 #' @return a numeric vector containing the cell labels and 
 #' correspoding outlier scores ordered by the labels
 #' @examples
@@ -186,10 +187,6 @@ getAUC <- function(gene, labels) {
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix.
 #' Labels must be integers or character integers, e.g. 1, 2, 3 or "1", "2", "3" ect.
-#' @param auroc.threshold area under the ROC curve threshold, by default it is
-#' 0.85. Values close to 0.5 will include very weak marker genes, values close
-#' to 1 will only include very strong marker genes.
-#' @param p.val p-value threshold, by default it is 0.01
 #' @return data.frame containing the marker genes
 #' @importFrom stats p.adjust
 #' @examples
@@ -234,7 +231,6 @@ get_marker_genes <- function(dataset, labels) {
 #'
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix
-#' @param p.val p-value threshold, by default it is 0.01
 #' @return a numeric vector containing the differentially expressed genes and 
 #' correspoding p-values
 #' @examples
@@ -267,8 +263,8 @@ get_de_genes <- function(dataset, labels) {
 #' in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
 #' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
 #'
-#' @param stab.res internal matrix of precomputed clustering results
-#' @param k current value of the number of clusters k
+#' @param object an object of "SCESet" class
+#' @param k number of clusters k
 #' @return a numeric vector containing a stability index of each cluster
 StabilityIndex <- function(object, k) {
     consensus <- object@consensus$sc3_consensus

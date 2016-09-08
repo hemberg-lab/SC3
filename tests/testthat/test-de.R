@@ -1,5 +1,0 @@
-d <- SC3:::gene_filter(treutlein, 0.06, 2, 0)
-d <- log2(d + 1)
-res <- get_de_genes(d, colnames(d))
-expect_is(res, "numeric")
-expect_equal(length(res), 156)

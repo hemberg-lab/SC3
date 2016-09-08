@@ -15,9 +15,6 @@ experimental protocol). There are 80 cells and 5 clusters in this dataset.
 \usage{
 treutlein
 }
-\value{
-blah blah
-}
 \description{
 Single cell RNA-Seq data extracted from a publication by Treutlein et al.
 }

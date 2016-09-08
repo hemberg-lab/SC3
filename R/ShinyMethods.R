@@ -1,22 +1,16 @@
-#' SC3 interactive function
+#' Open SC3 results in an interactive session in a web browser
 #'
 #' Runs interactive session of SC3 based on precomputed objects
 #'
-#' @param input.param parameters precomputed by sc3() with interactivity = FALSE (sc3.interactive.arg).
+#' @param object an object of "SCESet" class
 #'
 #' @return Opens a browser window with an interactive shiny app and visualize
 #' all precomputed clusterings.
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions tags radioButtons downloadButton
-#' @importFrom ggplot2 ggplot aes geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string xlab ylab geom_rug ylim
-#' @importFrom utils head write.table
-#' @importFrom stats as.dendrogram order.dendrogram cutree median
+#' @importFrom utils head
+#' @importFrom stats median
 #' @importFrom graphics plot
-#' @importFrom pheatmap pheatmap
-#' @importFrom RColorBrewer brewer.pal
-#' @importFrom WriteXLS WriteXLS
-#' @importFrom Rtsne Rtsne
-#'
 #' @export
 #'
 sc3_interactive.SCESet <- function(object) {
@@ -77,7 +71,7 @@ sc3_interactive.SCESet <- function(object) {
                                     label = "Number of clusters k",
                                     min = min(ks),
                                     max = max(ks),
-                                    value = median(ks),
+                                    value = stats::median(ks),
                                     step = 1,
                                     animate = animationOptions(
                                         interval = 2000,
@@ -325,8 +319,7 @@ sc3_interactive.SCESet <- function(object) {
                                     matrix, where <i>N</i> is the number of cells.
                                     It represents similarity between the cells based 
                                     on the averaging of clustering results from all 
-                                    combinations of clustering parameters 
-                                    (checkboxes in the left panel). Similarity 0  
+                                    combinations of clustering parameters. Similarity 0  
                                     (<font color = 'blue'>blue</font>) means that 
                                     the two cells are always assigned to different clusters. 
                                     In contrast, similarity 1 (<font color = 'red'>red</font>) 
@@ -695,6 +688,9 @@ sc3_interactive.SCESet <- function(object) {
     )
 }
 
+#' @rdname sc3_interactive.SCESet
+#' @aliases sc3_interactive
+#' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_interactive", signature(object = "SCESet"),
           function(

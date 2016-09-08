@@ -10,9 +10,6 @@ get_outl_cells(dataset, labels)
 \item{dataset}{expression matrix}
 
 \item{labels}{cell labels corresponding to the columns of the expression matrix}
-
-\item{chisq.quantile}{a threshold of the chi-squared distribution used for 
-cell outliers detection, default is 0.9999}
 }
 \value{
 a numeric vector containing the cell labels and 

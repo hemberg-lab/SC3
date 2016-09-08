@@ -10,8 +10,6 @@ get_de_genes(dataset, labels)
 \item{dataset}{expression matrix}
 
 \item{labels}{cell labels corresponding to the columns of the expression matrix}
-
-\item{p.val}{p-value threshold, by default it is 0.01}
 }
 \value{
 a numeric vector containing the differentially expressed genes and 

@@ -1,4 +1,11 @@
 #' @export
+setGeneric("sc3_estimate_k", function(
+    object
+){
+    standardGeneric("sc3_estimate_k")
+})
+
+#' @export
 setGeneric("sc3_process", function(
     object,
     ...
@@ -66,16 +73,57 @@ setGeneric("sc3_run_svm", function(
 })
 
 #' @export
-setGeneric("run_sc3", function(
+setGeneric("sc3_plot_consensus", function(
     object,
     ...
 ){
-    standardGeneric("run_sc3")
+    standardGeneric("sc3_plot_consensus")
 })
 
 #' @export
-setGeneric("sc3_estimate_k", function(
-    object
+setGeneric("sc3_plot_expression", function(
+    object,
+    ...
 ){
-    standardGeneric("sc3_estimate_k")
+    standardGeneric("sc3_plot_expression")
+})
+
+#' @export
+setGeneric("sc3_plot_tsne", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_tsne")
+})
+
+#' @export
+setGeneric("sc3_plot_de_genes", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_de_genes")
+})
+
+#' @export
+setGeneric("sc3_plot_markers", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_markers")
+})
+
+#' @export
+setGeneric("sc3_plot_cell_outliers", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_cell_outliers")
+})
+
+#' @export
+setGeneric("sc3_plot_cluster_stability", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_cluster_stability")
 })

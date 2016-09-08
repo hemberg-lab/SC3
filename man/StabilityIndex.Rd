@@ -7,9 +7,9 @@
 StabilityIndex(object, k)
 }
 \arguments{
-\item{k}{current value of the number of clusters k}
+\item{object}{an object of "SCESet" class}
 
-\item{stab.res}{internal matrix of precomputed clustering results}
+\item{k}{number of clusters k}
 }
 \value{
 a numeric vector containing a stability index of each cluster

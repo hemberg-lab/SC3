@@ -12,4 +12,8 @@ splits(myString)
 \description{
 Similar to "strsplit" in R but only for integral strings and vectors.
 }
+\details{
+To remove a note from check change this function using an answer here:
+http://stackoverflow.com/questions/5607589/right-way-to-split-an-stdstring-into-a-vectorstring
+}
 

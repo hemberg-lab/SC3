@@ -1,4 +1,24 @@
-sc3_plot_consensus <- function(object, k) {
+#' Plot consensus matrix as a heatmap
+#' 
+#' The consensus matrix is a NxN 
+#' matrix, where N is the number of cells.
+#' It represents similarity between the cells based 
+#' on the averaging of clustering results from all 
+#' combinations of clustering parameters. Similarity 0 
+#' (blue) means that the two cells are always assigned to different clusters. 
+#' In contrast, similarity 1 (red) means that the two cells are always assigned 
+#' to the same cluster. The consensus matrix is clustered by hierarchical 
+#' clustering and has a diagonal-block structure. Intuitively, the perfect 
+#' clustering is achieved when all diagonal blocks are completely red 
+#' and all off-diagonal elements are completely blue.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' 
+#' @importFrom pheatmap pheatmap
+#' 
+#' @export
+sc3_plot_consensus.SCESet <- function(object, k) {
     
     res <- prepare_output(object, k)
     
@@ -15,7 +35,36 @@ sc3_plot_consensus <- function(object, k) {
     )
 }
 
-sc3_plot_expression <- function(object, k) {
+#' @rdname sc3_plot_consensus.SCESet
+#' @aliases sc3_plot_consensus
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_consensus", signature(object = "SCESet"),
+          function(
+              object,
+              k
+          ) {
+              sc3_plot_consensus.SCESet(
+                  object,
+                  k
+              )
+          })
+
+#' Plot expression matrix used for SC3 clustering as a heatmap
+#' 
+#' The expression panel represents the original input expression matrix 
+#' (cells in columns and genes in rows) after cell and gene filters. 
+#' Genes are clustered by kmeans with k = 100 (dendrogram on the left) and 
+#' the heatmap represents the expression levels of the gene cluster centers 
+#' after log2-scaling.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' 
+#' @importFrom pheatmap pheatmap
+#' 
+#' @export
+sc3_plot_expression.SCESet <- function(object, k) {
     
     res <- prepare_output(object, k)
     
@@ -35,7 +84,49 @@ sc3_plot_expression <- function(object, k) {
     )
 }
 
-sc3_plot_tsne <- function(object, k, perplexity = floor(ncol(object@consensus$sc3_processed_dataset) / 5), seed = 1234567) {
+#' @rdname sc3_plot_expression.SCESet
+#' @aliases sc3_plot_expression
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_expression", signature(object = "SCESet"),
+          function(
+              object,
+              k
+          ) {
+              sc3_plot_expression.SCESet(
+                  object,
+                  k
+              )
+          })
+
+
+#' Plot expression matrix used for SC3 clustering as a heatmap
+#' 
+#' \href{https://lvdmaaten.github.io/tsne/}{tSNE} (t-Distributed Stochastic 
+#' Neighbor Embedding) method is used to map high-dimensional data to a 2D 
+#' space while preserving local distances between cells. tSNE has become a 
+#' very popular visualisation tool. SC3 imports the Rtsne function from the
+#' \href{https://cran.r-project.org/web/packages/Rtsne/index.html}{Rtsne package} 
+#' to perform the tSNE analysis. The colors on the plot correspond to the clusters 
+#' identified by SC3. One of the most sensitive parameters in tSNE analysis is the
+#' so-called perplexity. SC3 defines the default perplexity as N/5, where N is 
+#' the number of cells.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' @param perplexity perplexity parameter used in \code{\link[Rtsne]{Rtsne}} for tSNE tranformation
+#' @param seed random seed used for tSNE transformation
+#' 
+#' @importFrom ggplot2 ggplot aes geom_point theme_bw aes_string xlab ylab
+#' @importFrom Rtsne Rtsne
+#' 
+#' @export
+sc3_plot_tsne.SCESet <- function(
+    object, 
+    k, 
+    perplexity = floor(ncol(object@consensus$sc3_processed_dataset) / 5), 
+    seed = 1234567
+) {
     res <- prepare_output(object, k)
     
     dataset <- object@consensus$sc3_processed_dataset
@@ -67,7 +158,48 @@ sc3_plot_tsne <- function(object, k, perplexity = floor(ncol(object@consensus$sc
         theme_bw()
 }
 
-sc3_plot_de_genes <- function(object, k, p.val = 0.01) {
+#' @rdname sc3_plot_tsne.SCESet
+#' @aliases sc3_plot_tsne
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_tsne", signature(object = "SCESet"),
+          function(
+              object, 
+              k, 
+              perplexity = floor(ncol(object@consensus$sc3_processed_dataset) / 5), 
+              seed = 1234567
+          ) {
+              sc3_plot_tsne.SCESet(
+                  object,
+                  k,
+                  perplexity,
+                  seed
+              )
+          })
+
+#' Plot expression matrix used for SC3 clustering as a heatmap
+#' 
+#' Differential expression is calculated using the non-parametric 
+#' Kruskal-Wallis test. A significant p-value indicates that gene 
+#' expression in at least one cluster stochastically dominates one other cluster. 
+#' SC3 provides a list of all differentially expressed genes with 
+#' adjusted p-values < 0.01 and plots gene expression profiles of the 50 
+#' genes with the lowest p-values. Note that the calculation of differential 
+#' expression after clustering can introduce a bias in the distribution of 
+#' p-values, and thus we advise to use the p-values for ranking the genes only.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' @param p.val significance threshold used for the DE genes
+#' 
+#' @importFrom pheatmap pheatmap
+#' 
+#' @export
+sc3_plot_de_genes.SCESet <- function(
+    object, 
+    k, 
+    p.val = 0.01
+) {
     
     res <- prepare_output(object, k)
     
@@ -95,7 +227,49 @@ sc3_plot_de_genes <- function(object, k, p.val = 0.01) {
     )
 }
 
-sc3_plot_markers <- function(object, k, auroc = 0.85, p.val = 0.01) {
+#' @rdname sc3_plot_de_genes.SCESet
+#' @aliases sc3_plot_de_genes
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_de_genes", signature(object = "SCESet"),
+          function(
+              object, 
+              k, 
+              p.val = 0.01
+          ) {
+              sc3_plot_de_genes.SCESet(
+                  object, 
+                  k, 
+                  p.val
+              )
+          })
+
+
+#' Plot expression of marker genes of the clusters identified by SC3 as a heatmap
+#' 
+#' To find marker genes, for each gene a binary classifier is constructed 
+#' based on the mean cluster expression values. The classifier prediction 
+#' is then calculated using the gene expression ranks. The area under the 
+#' receiver operating characteristic (ROC) curve is used to quantify the accuracy 
+#' of the prediction. A p-value is assigned to each gene by using the Wilcoxon 
+#' signed rank test. By default the genes with the area under the ROC curve (AUROC) > 0.85 
+#' and with the p-value < 0.01 are selected and the top 10 marker 
+#' genes of each cluster are visualized in this heatmap.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' @param auroc area under the ROC curve
+#' @param p.val significance threshold used for the DE genes
+#' 
+#' @importFrom pheatmap pheatmap
+#' 
+#' @export
+sc3_plot_markers.SCESet <- function(
+    object, 
+    k, 
+    auroc = 0.85, 
+    p.val = 0.01
+) {
     
     res <- prepare_output(object, k)
     
@@ -132,7 +306,41 @@ sc3_plot_markers <- function(object, k, auroc = 0.85, p.val = 0.01) {
     )
 }
 
-sc3_plot_cell_outliers <- function(object, k) {
+#' @rdname sc3_plot_markers.SCESet
+#' @aliases sc3_plot_markers
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_markers", signature(object = "SCESet"),
+          function(
+              object, 
+              k, 
+              auroc = 0.85, 
+              p.val = 0.01
+          ) {
+              sc3_plot_markers.SCESet(
+                  object, 
+                  k, 
+                  auroc, 
+                  p.val
+              )
+          })
+
+#' Plot cell outliers
+#' 
+#' Outlier cells in each cluster are detected using robust distances, 
+#' calculated using the minimum covariance determinant (MCD). 
+#' The outlier score shows how different a cell is from all other cells in the 
+#' cluster and it is defined as the differences between the square root of the 
+#' robust distance and the square root of the 99.99% quantile of the 
+#' Chi-squared distribution.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' 
+#' @importFrom ggplot2 ggplot geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string
+#' 
+#' @export
+sc3_plot_cell_outliers.SCESet <- function(object, k) {
     res <- prepare_output(object, k)
     
     outl <- object@consensus$sc3_biology[[as.character(k)]]$cell.outl
@@ -167,7 +375,34 @@ sc3_plot_cell_outliers <- function(object, k) {
         theme_bw()
 }
 
-sc3_plot_cluster_stability <- function(object, k) {
+#' @rdname sc3_plot_cell_outliers.SCESet
+#' @aliases sc3_plot_cell_outliers
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"),
+          function(
+              object, 
+              k
+          ) {
+              sc3_plot_cell_outliers.SCESet(
+                  object, 
+                  k
+              )
+          })
+
+#' Plot stability of the clusters
+#' 
+#' Stability index shows how stable each cluster is accross the selected 
+#' range of ks. The stability index varies between 0 and 1, where 1 means that 
+#' the same cluster appears in every solution for different k.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' 
+#' @importFrom ggplot2 ggplot aes geom_bar theme_bw labs ylim
+#' 
+#' @export
+sc3_plot_cluster_stability.SCESet <- function(object, k) {
     
     if(!as.character(k) %in% names(object@consensus$sc3_consensus)) {
         stop(paste0("Please choose k from: ", paste(names(object@consensus$sc3_consensus), collapse = " "))) 
@@ -193,3 +428,17 @@ sc3_plot_cluster_stability <- function(object, k) {
         theme_bw()
 }
 
+#' @rdname sc3_plot_cluster_stability.SCESet
+#' @aliases sc3_plot_cluster_stability
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"),
+          function(
+              object, 
+              k
+          ) {
+              sc3_plot_cluster_stability.SCESet(
+                  object, 
+                  k
+              )
+          })

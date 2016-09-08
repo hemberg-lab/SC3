@@ -1,92 +1,13 @@
+#' Estimate the optimal k for k-means clustering
+#' 
+#' Uses Tracy-Widom theory on random matrices to estimate the optimal number of
+#' clusters k. Using the function \code{\link{estkTW}} to perform the estimation.
+#' 
+#' @param object an object of "SCESet" class
+#' @return an estimated value of k
+#' 
 #' @export
-run_sc3.SCESet <- function(
-                        object,
-                        ks, 
-                        exprs_values = "counts",
-                        gene.filter = TRUE,
-                        gene.filter.fraction = 0.06,
-                        gene.reads.rare = 2,
-                        gene.reads.ubiq = 0,
-                        log.scale = TRUE,
-                        d.region.min = 0.04,
-                        d.region.max = 0.07,
-                        k.means.iter.max = 1e+09,
-                        k.means.nstart = 1000,
-                        show.original.labels = FALSE,
-                        svm.num.cells = NULL,
-                        svm.train.inds = NULL,
-                        n.cores = NULL,
-                        seed = 1) {
-    dataset <- object@assayData[[exprs_values]]
-    if ( is.null(dataset) ) {
-        warning(paste0("The object does not contain ", exprs_values, " expression values. Returning NULL."))
-        return(object)
-    }
-    res <- sc3(dataset = dataset,
-        ks = ks,
-        gene.filter = gene.filter,
-        gene.filter.fraction = gene.filter.fraction,
-        gene.reads.rare = gene.reads.rare,
-        gene.reads.ubiq = gene.reads.ubiq,
-        log.scale = log.scale,
-        d.region.min = d.region.min,
-        d.region.max = d.region.max,
-        k.means.iter.max = k.means.iter.max,
-        k.means.nstart = k.means.nstart,
-        show.original.labels = show.original.labels,
-        svm.num.cells = svm.num.cells,
-        svm.train.inds = svm.train.inds,
-        n.cores = n.cores,
-        seed = seed)
-    object@consensus <- res
-    return(object)
-}
-
-#' @export
-setMethod("run_sc3", signature(object = "SCESet"),
-          function(
-                object,
-                ks, 
-                exprs_values = "counts",
-                gene.filter = TRUE,
-                gene.filter.fraction = 0.06,
-                gene.reads.rare = 2,
-                gene.reads.ubiq = 0,
-                log.scale = TRUE,
-                d.region.min = 0.04,
-                d.region.max = 0.07,
-                k.means.iter.max = 1e+09,
-                k.means.nstart = 1000,
-                show.original.labels = FALSE,
-                svm.num.cells = NULL,
-                svm.train.inds = NULL,
-                n.cores = NULL,
-                seed = 1
-          ) {
-              run_sc3.SCESet(object,
-                 ks,
-                 exprs_values,
-                 gene.filter,
-                 gene.filter.fraction,
-                 gene.reads.rare,
-                 gene.reads.ubiq,
-                 log.scale,
-                 d.region.min,
-                 d.region.max,
-                 k.means.iter.max,
-                 k.means.nstart,
-                 show.original.labels,
-                 svm.num.cells,
-                 svm.train.inds,
-                 n.cores,
-                 seed)
-          })
-
-
-#' @export
-sc3_estimate_k.SCESet <- function(
-    object
-    ) {
+sc3_estimate_k.SCESet <- function(object) {
     dataset <- object@consensus$sc3_processed_dataset
     if ( is.null(dataset) ) {
         warning(paste0("Please run sc3_process() first!"))
@@ -97,14 +18,79 @@ sc3_estimate_k.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_estimate_k.SCESet
+#' @aliases sc3_estimate_k
+#' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_estimate_k", signature(object = "SCESet"),
-          function(
-              object
-          ) {
-              sc3_estimate_k.SCESet(object)
-          })
+setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
+    sc3_estimate_k.SCESet(object)
+})
 
+#' Prepare the SCESet object for SC3 clustering
+#' 
+#' This function prepares an object of "SCESet" class for SC3 clustering. It
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_processed_dataset - contains the expression matrix to be used for
+#'   SC3 clustering.
+#'   \item sc3_kmeans_nstart - contains a value of nstart parameter to be used
+#'   in kmeans clustering.
+#'   \item sc3_n_dim - contains values of the number of eigenvectors to be used
+#'   in kmeans clustering.
+#'   \item svm_train_inds - if SVM is used this item contains indexes of the 
+#'   training cells to be used for SC3 clustering and further SVM prediction.
+#'   \item svm_study_inds - if SVM is used this item contains indexes of the
+#'    cells to be predicted by SVM.
+#'   \item sc3_n_cores - contains a value of the number of available cores on the
+#'   user's machine.
+#'   \item rselenium - defines whether RSelenium is installed on the user's machine.
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' @param exprs_values character string 
+#' indicating which values should be used
+#' as the expression values for SC3 clustering. Valid arguments are \code{"tpm"}
+#' (default; transcripts per million), \code{"norm_tpm"} (normalised TPM
+#' values), \code{"fpkm"} (FPKM values), \code{"norm_fpkm"} (normalised FPKM
+#' values), \code{"counts"} (counts for each feature), \code{"norm_counts"},
+#' \code{"cpm"} (counts-per-million), \code{"norm_cpm"} (normalised
+#' counts-per-million), \code{"exprs"} (whatever is in the \code{'exprs'} slot
+#' of the \code{SCESet} object; default), \code{"norm_exprs"} (normalised
+#' expression values) or \code{"stand_exprs"} (standardised expression values)
+#' or any other named element of the \code{assayData} slot of the \code{SCESet}
+#' object that can be accessed with the \code{get_exprs} function.
+#' @param gene.filter a boolen variable which defines whether to perform gene 
+#' filtering before SC3 clustering. Default is TRUE. The gene filter removes 
+#' genes/transcripts that are either expressed (expression value is more than 
+#' gene.reads.rare) 
+#' in less than X% of cells (rare genes/transcripts) or expressed 
+#' (expression value is more than gene.reads.ubiq) in at least (100*X)% of 
+#' cells (ubiquitous 
+#' genes/transcripts), where X is the gene.filter.fraction*100. The motivation 
+#' for the gene filter is that ubiquitous and rare genes most
+#' often are not informative for the clustering.
+#' @param gene.filter.fraction fraction of cells. Default is 0.06.
+#' @param gene.reads.rare expression value threshold for rare genes.
+#' Default is 2.
+#' @param gene.reads.ubiq expression value threshold for ubiquitous genes.
+#' Default is 0.
+#' @param log.scale a boolean variable which defines whether to perform log2 
+#' scaling before SC3 clustering. Default is TRUE.
+#' @param d.region.min defines the minimum number of eigenvectors used for 
+#' kmeans clustering as a fraction of the total number of cells. Default is 0.04.
+#' @param d.region.max defines the maximum number of eigenvectors used for 
+#' kmeans clustering as a fraction of the total number of cells. Default is 0.07.
+#' @param svm.num.cells number of randomly selected training cells to be used 
+#' for SVM prediction. The default is NULL.
+#' @param svm.train.inds a numeric vector defining indeces of training cells 
+#' that should be used for SVM training. The default is NULL.
+#' @param n.cores defines the number of cores to be used on the user's machine.
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom RSelenium startServer
+#' @importFrom parallel detectCores
+#' 
 #' @export
 sc3_process.SCESet <- function(
     object,
@@ -239,6 +225,9 @@ sc3_process.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_process.SCESet
+#' @aliases sc3_process
+#' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_process", signature(object = "SCESet"),
           function(
@@ -269,10 +258,28 @@ setMethod("sc3_process", signature(object = "SCESet"),
                                 n.cores)
           })
 
+#' Calculate distances between the cells.
+#' 
+#' This function calculates distances between the cells contained in 
+#' the sc3_processed_dataset item of the object@consensus slot. It then
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_distances - contains a list of distance matrices corresponding to
+#'   Euclidean, Pearson and Spearman distances.
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom doRNG %dorng%
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' 
 #' @export
-sc3_calc_dists.SCESet <- function(
-    object
-) {
+sc3_calc_dists.SCESet <- function(object) {
     dataset <- object@consensus$sc3_processed_dataset
     if ( is.null(dataset) ) {
         warning(paste0("Please run sc3_process() first!"))
@@ -285,7 +292,7 @@ sc3_calc_dists.SCESet <- function(
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
-    i <- j <- NULL
+    i <- NULL
     
     distances <- c("euclidean", "pearson", "spearman")
     
@@ -300,12 +307,12 @@ sc3_calc_dists.SCESet <- function(
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- txtProgressBar(min = 1, max = length(distances), style = 3)
+    pb <- utils::txtProgressBar(min = 1, max = length(distances), style = 3)
     
     # calculate distances in parallel
     dists <- foreach::foreach(i = distances) %dorng% {
         try({
-            setTxtProgressBar(pb, i)
+            utils::setTxtProgressBar(pb, i)
             calculate_distance(dataset, i)
         })
     }
@@ -321,18 +328,36 @@ sc3_calc_dists.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_calc_dists.SCESet
+#' @aliases sc3_calc_dists
+#' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_calc_dists", signature(object = "SCESet"),
-          function(
-              object
-          ) {
-              sc3_calc_dists.SCESet(object)
-          })
+setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
+    sc3_calc_dists.SCESet(object)
+})
 
+#' Calculate transformations of the distance matrices.
+#' 
+#' This function calculates transforamtions of the distance matrices contained in 
+#' the sc3_distances item of the object@consensus slot. It then
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_transformations - contains a list of transformations of the 
+#'   distance matrices corresponding to PCA and graph Laplacian transformations.
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom doRNG %dorng%
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' 
 #' @export
-sc3_calc_transfs.SCESet <- function(
-    object
-) {
+sc3_calc_transfs.SCESet <- function(object) {
     dists <- object@consensus$sc3_distances
     if ( is.null(dists) ) {
         warning(paste0("Please run sc3_calc_dists() first!"))
@@ -340,7 +365,7 @@ sc3_calc_transfs.SCESet <- function(
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
-    i <- j <- NULL
+    i <- NULL
     
     distances <- names(dists)
     transformations <- c("pca", "laplacian")
@@ -362,12 +387,12 @@ sc3_calc_transfs.SCESet <- function(
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
+    pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
     
     # calculate the 6 distinct transformations in parallel
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dopar% {
         try({
-            setTxtProgressBar(pb, i)
+            utils::setTxtProgressBar(pb, i)
             transformation(
                 get(hash.table[i, 1], dists),
                 hash.table[i, 2]
@@ -386,19 +411,53 @@ sc3_calc_transfs.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_calc_transfs.SCESet
+#' @aliases sc3_calc_transfs
+#' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_calc_transfs", signature(object = "SCESet"),
-          function(
-              object
-          ) {
-              sc3_calc_transfs.SCESet(object)
-          })
+setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
+    sc3_calc_transfs.SCESet(object)
+})
 
-
+#' Calculate transformations of the distance matrices.
+#' 
+#' This function calculates transforamtions of the distance matrices contained in 
+#' the sc3_distances item of the object@consensus slot. It then
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_transformations - contains a list of transformations of the 
+#'   distance matrices corresponding to PCA and graph Laplacian transformations.
+#' }
+#' 
+#' By default the nstart parameter passed to \link[stats]{kmeans} is defined
+#' in \code{\link{sc3_process.SCESet}}, is set 1000 and written to 
+#' sc3_kmeans_nstart item of the object@consensus slot.
+#' If the number of cells in the dataset is more than 2000, this parameter is 
+#' set to 50.
+#' 
+#' @param object an object of "SCESet" class
+#' @param ks a range of the number of clusters k used for SC3 clustering.
+#' Can also be a single integer.
+#' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
+#' function. Default is 1e+09.
+#' @param seed sets seed for the random number generator.
+#' Can be used to check the stability of clustering results: if the results are 
+#' the same after changing the seed several time, then the clustering solution 
+#' is stable.
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom doRNG %dorng%
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom stats kmeans
+#' 
 #' @export
 sc3_kmeans.SCESet <- function(
     object,
-    ks,
+    ks = 3:5,
     k.means.iter.max = 1e+09,
     seed = 1
 ) {
@@ -427,15 +486,15 @@ sc3_kmeans.SCESet <- function(
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
+    pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
     
     # calculate the 6 distinct transformations in parallel
     labs <- foreach::foreach(i = 1:nrow(hash.table),
                                 .options.RNG = seed) %dopar% {
         try({
-            setTxtProgressBar(pb, i)
+            utils::setTxtProgressBar(pb, i)
             transf <- get(hash.table$transf[i], transfs)
-            kmeans(
+            stats::kmeans(
                 transf[, 1:hash.table$n.dim[i]],
                 hash.table$ks[i],
                 iter.max = k.means.iter.max,
@@ -455,11 +514,14 @@ sc3_kmeans.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_kmeans.SCESet
+#' @aliases sc3_kmeans
+#' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_kmeans", signature(object = "SCESet"),
           function(
               object,
-              ks,
+              ks = 3:5,
               k.means.iter.max = 1e+09,
               seed = 1
           ) {
@@ -470,10 +532,36 @@ setMethod("sc3_kmeans", signature(object = "SCESet"),
                   seed)
           })
 
+#' Calculate consensus matrix.
+#' 
+#' This function calculates consensus matrices based on the clustering solutions
+#' contained in the sc3_kmeans item of the object@consensus slot. It then
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_consensus - contains a list of consensus matrices. In addition 
+#'   to consensus matrices it also contains the Silhouette
+#'   indeces of the clusters and original cell labels corresponding to the clusters.
+#' }
+#' 
+#' 
+#' 
+#' @param object an object of "SCESet" class
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom doRNG %dorng%
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom cluster silhouette
+#' @importFrom stats hclust dist as.dist
+#' 
+#' @useDynLib SC3
+#' @importFrom Rcpp sourceCpp
+#' 
 #' @export
-sc3_calc_consens.SCESet <- function(
-    object
-) {
+sc3_calc_consens.SCESet <- function(object) {
     k.means <- object@consensus$sc3_kmeans
     if ( is.null(k.means) ) {
         warning(paste0("Please run sc3_kmeans() first!"))
@@ -491,11 +579,11 @@ sc3_calc_consens.SCESet <- function(
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- txtProgressBar(min = 0, max = length(ks), style = 3)
+    pb <- utils::txtProgressBar(min = 0, max = length(ks), style = 3)
 
     cons <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
-            setTxtProgressBar(pb, i)
+            utils::setTxtProgressBar(pb, i)
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
             d <- unlist(lapply(d, function(x) paste(x, collapse = " ")))
 
@@ -503,11 +591,11 @@ sc3_calc_consens.SCESet <- function(
             tmp <- ED2(dat)
             colnames(tmp) <- as.character(colnames(dat))
             rownames(tmp) <- as.character(colnames(dat))
-            diss <- as.dist(as.matrix(as.dist(tmp)))
-            hc <- hclust(diss)
+            diss <- stats::as.dist(as.matrix(stats::as.dist(tmp)))
+            hc <- stats::hclust(diss)
             clusts <- get_clusts(hc, i)
 
-            silh <- silhouette(clusts, diss)
+            silh <- cluster::silhouette(clusts, diss)
             
             labs <- NULL
             for(j in unique(clusts[hc$order])) {
@@ -538,21 +626,38 @@ sc3_calc_consens.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_calc_consens.SCESet
+#' @aliases sc3_calc_consens
+#' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_calc_consens", signature(object = "SCESet"),
-          function(
-              object
-          ) {
-              sc3_calc_consens.SCESet(
-                  object
-              )
-          })
+setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
+    sc3_calc_consens.SCESet(object)
+})
 
 
+#' Calculate DE genes, marker genes and cell outliers.
+#' 
+#' This function calculates DE genes, marker genes and cell outliers based on 
+#' the consensus clusterings
+#' contained in the sc3_consensus item of the object@consensus slot. It then
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_biology - contains lists of DE genes, marker genes and 
+#'   cell outliers data frames.
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @importFrom doRNG %dorng%
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' 
 #' @export
-sc3_calc_biology.SCESet <- function(
-    object
-) {
+sc3_calc_biology.SCESet <- function(object) {
     consensus <- object@consensus$sc3_consensus
     if ( is.null(consensus) ) {
         warning(paste0("Please run sc3_consensus() first!"))
@@ -576,10 +681,11 @@ sc3_calc_biology.SCESet <- function(
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- txtProgressBar(min = 0, max = length(ks), style = 3)
+    pb <- utils::txtProgressBar(min = 0, max = length(ks), style = 3)
     
     biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
+            utils::setTxtProgressBar(pb, i)
             hc <- consensus[[as.character(i)]]$hc
             clusts <- get_clusts(hc, i)
 
@@ -617,17 +723,32 @@ sc3_calc_biology.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_calc_biology.SCESet
+#' @aliases sc3_calc_biology
+#' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_calc_biology", signature(object = "SCESet"),
-          function(
-              object
-          ) {
-              sc3_calc_biology.SCESet(
-                  object
-              )
-          })
+setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object) {
+    sc3_calc_biology.SCESet(object)
+})
 
 
+#' Run SVM on training cells
+#' 
+#' This function performs training of the SVM classifier on the training cells,
+#' which indeces are  
+#' contained in the svm_train_inds item of the object@consensus slot. Then it 
+#' predicts the labels of the remaining cells using the SVM classifier. Finally it
+#' creates and populates the following items of the object@consensus slot:
+#' \itemize{
+#'   \item svm_result - contains labels of the cells predicted by the SVM ordered
+#'   as the cells in the original dataset.
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' @param k the number of clusters k for which the SVM should be run
+#' 
+#' @return an object of "SCESet" class
+#' 
 #' @export
 sc3_run_svm.SCESet <- function(
     object,
@@ -656,10 +777,13 @@ sc3_run_svm.SCESet <- function(
     
     ord <- order(c(object@consensus$svm_train_inds, object@consensus$svm_study_inds))
     
-    object@consensus$svm_result <- svm.labs[ord]
+    object@consensus$"svm_result" <- svm.labs[ord]
     return(object)
 }
 
+#' @rdname sc3_run_svm.SCESet
+#' @aliases sc3_run_svm
+#' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_run_svm", signature(object = "SCESet"),
           function(
@@ -672,6 +796,19 @@ setMethod("sc3_run_svm", signature(object = "SCESet"),
               )
           })
 
+#' Summarise SC3 results
+#' 
+#' This function summarised all SC3 results into a single list and populates 
+#' it to the following item of the object@consensus slot:
+#' \itemize{
+#'   \item sc3_results - contains all SC3 results
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' @param k the number of clusters k for which the results should be summarised
+#' 
+#' @return an object of "SCESet" class
+#' 
 #' @export
 sc3_summarise_results.SCESet <- function(
     object,
@@ -680,18 +817,18 @@ sc3_summarise_results.SCESet <- function(
     if ( is.null(object@consensus$svm_result) ) {
         hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
         clusts <- get_clusts(hc, k)
-        names(clusts) <- rownames(pData(object))
+        names(clusts) <- rownames(object@phenoData@data)
         res <- list(
-            labels = cbind(pData(object), clusts),
+            labels = cbind(object@phenoData@data, clusts),
             de.genes = object@consensus$sc3_biology[[as.character(k)]]$de.genes,
             markers = object@consensus$sc3_biology[[as.character(k)]]$markers,
             cell.outliers = object@consensus$sc3_biology[[as.character(k)]]$cell.outl
         )
     } else {
         clusts <- object@consensus$svm_result
-        names(clusts) <- rownames(pData(object))
+        names(clusts) <- rownames(object@phenoData@data)
         res <- list(
-            labels = cbind(pData(object), clusts)
+            labels = cbind(object@phenoData@data, clusts)
         )
     }
     
@@ -699,6 +836,9 @@ sc3_summarise_results.SCESet <- function(
     return(object)
 }
 
+#' @rdname sc3_summarise_results.SCESet
+#' @aliases sc3_summarise_results
+#' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_summarise_results", signature(object = "SCESet"),
           function(
