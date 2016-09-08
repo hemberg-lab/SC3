@@ -23,7 +23,6 @@ setGeneric("sc3_calc_transfs", function(
 #' @export
 setGeneric("sc3_kmeans", function(
     object,
-    ks,
     ...
 ){
     standardGeneric("sc3_kmeans")
@@ -45,8 +44,8 @@ setGeneric("sc3_calc_biology", function(
 
 #' @export
 setGeneric("sc3_summarise_results", function(
-    object,
-    k
+    object, 
+    ...
 ){
     standardGeneric("sc3_summarise_results")
 })
@@ -61,7 +60,7 @@ setGeneric("sc3_interactive", function(
 #' @export
 setGeneric("sc3_run_svm", function(
     object,
-    k
+    ...
 ){
     standardGeneric("sc3_run_svm")
 })
@@ -69,7 +68,6 @@ setGeneric("sc3_run_svm", function(
 #' @export
 setGeneric("run_sc3", function(
     object,
-    ks,
     ...
 ){
     standardGeneric("run_sc3")
