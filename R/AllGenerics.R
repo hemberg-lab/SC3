@@ -14,11 +14,11 @@ setGeneric("sc3_estimate_k", function(
 })
 
 #' @export
-setGeneric("sc3_process", function(
+setGeneric("sc3_prepare", function(
     object,
     ...
 ){
-    standardGeneric("sc3_process")
+    standardGeneric("sc3_prepare")
 })
 
 #' @export

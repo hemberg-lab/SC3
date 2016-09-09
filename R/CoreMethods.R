@@ -77,7 +77,7 @@ sc3.SCESet <- function(
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
-    object <- sc3_process(
+    object <- sc3_prepare(
         object,
         exprs_values,
         gene.filter,
@@ -158,7 +158,7 @@ setMethod("sc3", signature(object = "SCESet"), function(
 sc3_estimate_k.SCESet <- function(object) {
     dataset <- object@consensus$sc3_processed_dataset
     if ( is.null(dataset) ) {
-        warning(paste0("Please run sc3_process() first!"))
+        warning(paste0("Please run sc3_prepare() first!"))
         return(object)
     }
     res <- estkTW(dataset = dataset)
@@ -254,7 +254,7 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @importFrom parallel detectCores
 #' 
 #' @export
-sc3_process.SCESet <- function(
+sc3_prepare.SCESet <- function(
     object,
     exprs_values = "counts",
     gene.filter = TRUE,
@@ -339,13 +339,13 @@ sc3_process.SCESet <- function(
             if(!is.null(svm.train.inds)) {
                 return(
                     message(
-                        "You have set both svm.num.cells and svm.train.inds parameters for SVM training. Please set only one of them and rerun sc3_process()."
+                        "You have set both svm.num.cells and svm.train.inds parameters for SVM training. Please set only one of them and rerun sc3_prepare()."
                     )
                 )
             }
             if(svm.num.cells >= ncol(dataset) - 1) return(
                 message(
-                    "Number of cells used for SVM training is larger (or equal) than the total number of cells in your dataset. Please make svm.num.cells parameter smaller and rerun sc3_process()."
+                    "Number of cells used for SVM training is larger (or equal) than the total number of cells in your dataset. Please make svm.num.cells parameter smaller and rerun sc3_prepare()."
                 )
             )
             if(svm.num.cells < 10) {
@@ -367,7 +367,7 @@ sc3_process.SCESet <- function(
             if(max(svm.train.inds) > ncol(dataset) - 1) {
                 return(
                     message(
-                        "Number of cells used for SVM training is larger than the total number of cells in your dataset. Please adjust svm.train.inds parameter and rerun sc3_process()."
+                        "Number of cells used for SVM training is larger than the total number of cells in your dataset. Please adjust svm.train.inds parameter and rerun sc3_prepare()."
                     )
                 )
             }
@@ -405,11 +405,11 @@ sc3_process.SCESet <- function(
     return(object)
 }
 
-#' @rdname sc3_process.SCESet
-#' @aliases sc3_process
+#' @rdname sc3_prepare.SCESet
+#' @aliases sc3_prepare
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_process", signature(object = "SCESet"),
+setMethod("sc3_prepare", signature(object = "SCESet"),
           function(
               object,
               exprs_values = "counts",
@@ -428,7 +428,7 @@ setMethod("sc3_process", signature(object = "SCESet"),
               k.means.iter.max = 1e+09,
               seed = 1
           ) {
-              sc3_process.SCESet(object,
+              sc3_prepare.SCESet(object,
                                 exprs_values,
                                 gene.filter,
                                 gene.filter.fraction,
@@ -470,7 +470,7 @@ setMethod("sc3_process", signature(object = "SCESet"),
 sc3_calc_dists.SCESet <- function(object) {
     dataset <- object@consensus$sc3_processed_dataset
     if ( is.null(dataset) ) {
-        warning(paste0("Please run sc3_process() first!"))
+        warning(paste0("Please run sc3_prepare() first!"))
         return(object)
     }
     
@@ -607,7 +607,7 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' }
 #' 
 #' By default the nstart parameter passed to \link[stats]{kmeans} is defined
-#' in \code{\link{sc3_process.SCESet}}, is set 1000 and written to 
+#' in \code{\link{sc3_prepare.SCESet}}, is set 1000 and written to 
 #' sc3_kmeans_nstart item of the object@consensus slot.
 #' If the number of cells in the dataset is more than 2000, this parameter is 
 #' set to 50.
@@ -915,7 +915,7 @@ sc3_run_svm.SCESet <- function(
     k
 ) {
     if ( is.null(object@consensus$svm_train_inds) ) {
-        warning(paste0("Please rerun sc3_process() defining the training cells!"))
+        warning(paste0("Please rerun sc3_prepare() defining the training cells!"))
         return(object)
     }
     

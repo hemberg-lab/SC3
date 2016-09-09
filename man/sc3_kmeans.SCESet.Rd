@@ -39,7 +39,7 @@ creates and populates the following items of the object@consensus slot:
 }
 \details{
 By default the nstart parameter passed to \link[stats]{kmeans} is defined
-in \code{\link{sc3_process.SCESet}}, is set 1000 and written to 
+in \code{\link{sc3_prepare.SCESet}}, is set 1000 and written to 
 sc3_kmeans_nstart item of the object@consensus slot.
 If the number of cells in the dataset is more than 2000, this parameter is 
 set to 50.
