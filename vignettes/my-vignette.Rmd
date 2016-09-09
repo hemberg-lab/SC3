@@ -60,6 +60,11 @@ Note that `sc_example_cell_info` data frame can contain more information about t
 
 ## Run SC3
 
+```{r, include=FALSE}
+# this is only for this vignette - otherwise will not compile
+# example_sceset@consensus$sc3_n_cores <- 1
+```
+
 ```{r, message=FALSE, warning=FALSE}
 example_sceset <- sc3(example_sceset, ks = 3:5)
 ```
@@ -105,8 +110,6 @@ sc3_plot_cluster_stability(example_sceset, 3)
 ```{r, include=FALSE}
 example_sceset <- sc3_prepare(example_sceset)
 example_sceset <- sc3_estimate_k(example_sceset)
-# this is only for this vignette - otherwise will not compile
-# example_sceset@consensus$sc3_n_cores <- 1
 example_sceset <- sc3_calc_dists(example_sceset)
 example_sceset <- sc3_calc_transfs(example_sceset)
 example_sceset <- sc3_kmeans(example_sceset)
