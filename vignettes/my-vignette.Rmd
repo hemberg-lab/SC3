@@ -11,62 +11,70 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+
+```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
+```
+
 # Introduction
 
 Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently under review but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/09/02/036558).
 
 # `scater` and QC
 
-__SC3__ does not perform any type of the sequencing quality control (QC). Therefore we recommend the users to perform their own QC analysis. To facilitate the QC, __SC3__ is build on top of the Bioconductor’s `scater` package. The `scater` package contains tools to help with the analysis and QC of single-cell RNA-Seq data.
+__SC3__ does not perform any type of the sequencing quality control (QC). Therefore we recommend the users to perform their own QC analysis. To encourage the QC, __SC3__ is built on top of the Bioconductor’s `scater` package. The `scater` package contains tools to help with the analysis and QC of single-cell RNA-Seq data.
 
 The basic data container that is used in `scater` is an `SCESet` object. __SC3__ implements several methods that allow one to perform clustering of the expression data contained in the `SCESet` object.
 
-# "Built-in" datasets
+# Quick Start
 
-There is one built-in dataset that is automatically loaded with __SC3__:
+## SC3 Input
 
-| Dataset | Source | __N__ cells | __k__ clusters |
---- | --- | --- | --- |
-| [treutlein](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.html) | Distal lung epithelium | 80 | 5 |
+If you already have an `SCESet` object created and QCed using `scater` then proceed to the next chapter.
 
-# scater SCESet set
+If you have a matrix containing expression data that was QCed by some other tool, then we first need to form an `SCESet` object containing the data. For this we will use an example of expression matrix provided with `SC3`. The dataset represent gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.htm)) had computationally identified 5 clusters in this dataset. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
 
-```{r, message=FALSE}
-library(SC3)
+```{r}
 library(scater)
-d <- treutlein
-
-clusts <- colnames(d)
-colnames(d) <- 1:ncol(d)
-
-pheno_data <- new(
-    "AnnotatedDataFrame", 
-    data.frame(sample_id = colnames(d), clust_id = clusts)
-)
-rownames(pheno_data) <- pheno_data$sample_id
-
-example_sceset <- scater::newSCESet(
-    countData = d,
-    phenoData = pheno_data
-)
+library(SC3)
+treutlein[1:3, 1:3]
 ```
 
-# Run SC3
+Let us prepare our dataset for `SCESet` object creation. Here we follow the [`scater` manual](https://www.bioconductor.org/packages/release/bioc/vignettes/scater/inst/doc/vignette.html):
 
-```{r, include=FALSE}
-example_sceset <- sc3_process(example_sceset)
-example_sceset <- sc3_estimate_k(example_sceset)
-# this is only for this vignette - otherwise will not compile
-# example_sceset@consensus$sc3_n_cores <- 1
-example_sceset <- sc3_calc_dists(example_sceset)
-example_sceset <- sc3_calc_transfs(example_sceset)
-example_sceset <- sc3_kmeans(example_sceset, ks = 3:5)
-example_sceset <- sc3_calc_consens(example_sceset)
-example_sceset <- sc3_calc_biology(example_sceset)
-# sc3_interactive(example_sceset)
+```{r}
+sc_example_cell_info <- data.frame(Author_Cluster = colnames(treutlein))
+sc_example_counts <- treutlein
+cell_inds <- paste("Cell", 1:80, sep = "_")
+rownames(sc_example_cell_info) <- cell_inds
+colnames(sc_example_counts) <- cell_inds
+```
+
+```{r}
+pd <- new("AnnotatedDataFrame", data = sc_example_cell_info)
+example_sceset <- newSCESet(countData = sc_example_counts, phenoData = pd)
+```
+
+Note that `sc_example_cell_info` data frame can contain more information about the cells, such as plate, run, date etc.
+
+## Run SC3
+
+```{r, message=FALSE, warning=FALSE}
+example_sceset <- sc3(example_sceset, ks = 3:5)
+```
+
+You can then visualise the results using an interactive Shiny application:
+```{r, eval=FALSE}
+sc3_interactive(example_sceset)
+```
+
+Visual exploration can provide a reasonable estimate of the number of clusters k. You can then summarise all results into a single list:
+```{r}
 example_sceset <- sc3_summarise_results(example_sceset, 3)
 ```
 
+This will write to .... You can also export the results into Excel file:
 ```{r eval=FALSE}
 library(WriteXLS)
 WriteXLS(
@@ -79,8 +87,12 @@ WriteXLS(
 
 # Plot functions
 
+SC3 provides methods for plotting all figures from the interactive session:
 ```{r}
 sc3_plot_consensus(example_sceset, 3)
+
+sc3_plot_silhouette(example_sceset, 3)
+
 sc3_plot_expression(example_sceset, 3)
 sc3_plot_tsne(example_sceset, 3)
 sc3_plot_de_genes(example_sceset, 3)
@@ -88,6 +100,22 @@ sc3_plot_markers(example_sceset, 3)
 sc3_plot_cell_outliers(example_sceset, 3)
 sc3_plot_cluster_stability(example_sceset, 3)
 ```
+
+
+```{r, include=FALSE}
+example_sceset <- sc3_process(example_sceset)
+example_sceset <- sc3_estimate_k(example_sceset)
+# this is only for this vignette - otherwise will not compile
+# example_sceset@consensus$sc3_n_cores <- 1
+example_sceset <- sc3_calc_dists(example_sceset)
+example_sceset <- sc3_calc_transfs(example_sceset)
+example_sceset <- sc3_kmeans(example_sceset)
+example_sceset <- sc3_calc_consens(example_sceset)
+example_sceset <- sc3_calc_biology(example_sceset)
+# sc3_interactive(example_sceset)
+example_sceset <- sc3_summarise_results(example_sceset, 3)
+```
+
 
 ```{r, include=FALSE}
 example_sceset@consensus <- list()

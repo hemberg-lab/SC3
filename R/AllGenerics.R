@@ -1,4 +1,12 @@
 #' @export
+setGeneric("sc3", function(
+    object,
+    ...
+){
+    standardGeneric("sc3")
+})
+
+#' @export
 setGeneric("sc3_estimate_k", function(
     object
 ){
@@ -29,8 +37,7 @@ setGeneric("sc3_calc_transfs", function(
 
 #' @export
 setGeneric("sc3_kmeans", function(
-    object,
-    ...
+    object
 ){
     standardGeneric("sc3_kmeans")
 })

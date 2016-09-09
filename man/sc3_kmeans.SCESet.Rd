@@ -7,10 +7,9 @@
 \alias{sc3_kmeans.SCESet}
 \title{Calculate transformations of the distance matrices.}
 \usage{
-sc3_kmeans.SCESet(object, ks = 3:5, k.means.iter.max = 1e+09, seed = 1)
+sc3_kmeans.SCESet(object)
 
-\S4method{sc3_kmeans}{SCESet}(object, ks = 3:5, k.means.iter.max = 1e+09,
-  seed = 1)
+\S4method{sc3_kmeans}{SCESet}(object)
 }
 \arguments{
 \item{object}{an object of "SCESet" class}

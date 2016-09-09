@@ -1,3 +1,151 @@
+#' Run all steps of SC3 in one go
+#' 
+#' This function is a wrapper that executes all steps of SC3 analysis in one go.
+#' 
+#' @param object an object of "SCESet" class
+#' @param exprs_values character string 
+#' indicating which values should be used
+#' as the expression values for SC3 clustering. Valid arguments are \code{"tpm"}
+#' (default; transcripts per million), \code{"norm_tpm"} (normalised TPM
+#' values), \code{"fpkm"} (FPKM values), \code{"norm_fpkm"} (normalised FPKM
+#' values), \code{"counts"} (counts for each feature), \code{"norm_counts"},
+#' \code{"cpm"} (counts-per-million), \code{"norm_cpm"} (normalised
+#' counts-per-million), \code{"exprs"} (whatever is in the \code{'exprs'} slot
+#' of the \code{SCESet} object; default), \code{"norm_exprs"} (normalised
+#' expression values) or \code{"stand_exprs"} (standardised expression values)
+#' or any other named element of the \code{assayData} slot of the \code{SCESet}
+#' object that can be accessed with the \code{get_exprs} function.
+#' @param gene.filter a boolen variable which defines whether to perform gene 
+#' filtering before SC3 clustering. Default is TRUE. The gene filter removes 
+#' genes/transcripts that are either expressed (expression value is more than 
+#' gene.reads.rare) 
+#' in less than X% of cells (rare genes/transcripts) or expressed 
+#' (expression value is more than gene.reads.ubiq) in at least (100*X)% of 
+#' cells (ubiquitous 
+#' genes/transcripts), where X is the gene.filter.fraction*100. The motivation 
+#' for the gene filter is that ubiquitous and rare genes most
+#' often are not informative for the clustering.
+#' @param gene.filter.fraction fraction of cells. Default is 0.06.
+#' @param gene.reads.rare expression value threshold for rare genes.
+#' Default is 2.
+#' @param gene.reads.ubiq expression value threshold for ubiquitous genes.
+#' Default is 0.
+#' @param log.scale a boolean variable which defines whether to perform log2 
+#' scaling before SC3 clustering. Default is TRUE.
+#' @param d.region.min defines the minimum number of eigenvectors used for 
+#' kmeans clustering as a fraction of the total number of cells. Default is 0.04.
+#' @param d.region.max defines the maximum number of eigenvectors used for 
+#' kmeans clustering as a fraction of the total number of cells. Default is 0.07.
+#' @param svm.num.cells number of randomly selected training cells to be used 
+#' for SVM prediction. The default is NULL.
+#' @param svm.train.inds a numeric vector defining indeces of training cells 
+#' that should be used for SVM training. The default is NULL.
+#' @param n.cores defines the number of cores to be used on the user's machine.
+#' @param ks a range of the number of clusters k used for SC3 clustering.
+#' Can also be a single integer.
+#' @param k.means.nstart nstart parameter used by kmeans() function. Default is 
+#' 1000 for up to 2000 cells and 50 for more than 2000 cells.
+#' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
+#' function. Default is 1e+09.
+#' @param seed sets seed for the random number generator.
+#' Can be used to check the stability of clustering results: if the results are 
+#' the same after changing the seed several time, then the clustering solution 
+#' is stable.
+#' 
+#' @return an object of "SCESet" class
+#' 
+#' @export
+sc3.SCESet <- function(
+    object,
+    exprs_values = "counts",
+    gene.filter = TRUE,
+    gene.filter.fraction = 0.06,
+    gene.reads.rare = 2,
+    gene.reads.ubiq = 0,
+    log.scale = TRUE,
+    d.region.min = 0.04,
+    d.region.max = 0.07,
+    svm.num.cells = NULL,
+    svm.train.inds = NULL,
+    n.cores = NULL,
+    ks = NULL,
+    k.means.nstart = NULL,
+    k.means.iter.max = 1e+09,
+    seed = 1
+) {
+    if ( is.null(ks) ) {
+        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
+        return(object)
+    }
+    object <- sc3_process(
+        object,
+        exprs_values,
+        gene.filter,
+        gene.filter.fraction,
+        gene.reads.rare,
+        gene.reads.ubiq,
+        log.scale,
+        d.region.min,
+        d.region.max,
+        svm.num.cells,
+        svm.train.inds,
+        n.cores,
+        ks,
+        k.means.nstart,
+        k.means.iter.max,
+        seed
+    )
+    object <- sc3_estimate_k(object)
+    object <- sc3_calc_dists(object)
+    object <- sc3_calc_transfs(object)
+    object <- sc3_kmeans(object)
+    object <- sc3_calc_consens(object)
+    object <- sc3_calc_biology(object)
+    return(object)
+}
+
+#' @rdname sc3.SCESet
+#' @aliases sc3
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3", signature(object = "SCESet"), function(
+    object,
+    exprs_values = "counts",
+    gene.filter = TRUE,
+    gene.filter.fraction = 0.06,
+    gene.reads.rare = 2,
+    gene.reads.ubiq = 0,
+    log.scale = TRUE,
+    d.region.min = 0.04,
+    d.region.max = 0.07,
+    svm.num.cells = NULL,
+    svm.train.inds = NULL,
+    n.cores = NULL,
+    ks = NULL,
+    k.means.nstart = NULL,
+    k.means.iter.max = 1e+09,
+    seed = 1
+) {
+    sc3.SCESet(
+        object,
+        exprs_values,
+        gene.filter,
+        gene.filter.fraction,
+        gene.reads.rare,
+        gene.reads.ubiq,
+        log.scale,
+        d.region.min,
+        d.region.max,
+        svm.num.cells,
+        svm.train.inds,
+        n.cores,
+        ks,
+        k.means.nstart,
+        k.means.iter.max,
+        seed
+    )
+})
+
 #' Estimate the optimal k for k-means clustering
 #' 
 #' Uses Tracy-Widom theory on random matrices to estimate the optimal number of
@@ -14,7 +162,7 @@ sc3_estimate_k.SCESet <- function(object) {
         return(object)
     }
     res <- estkTW(dataset = dataset)
-    object@consensus$"sc3_k_prediction" <- res
+    object@consensus$sc3_k_prediction <- res
     return(object)
 }
 
@@ -33,6 +181,10 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' \itemize{
 #'   \item sc3_processed_dataset - contains the expression matrix to be used for
 #'   SC3 clustering.
+#'   \item sc3_ks - contains a range of the number of clusters k to be used by SC3
+#'   \item sc3_kmeans_iter_max - contains a value of iter.max parameter to be used
+#'   in kmeans clustering.
+#'   \item sc3_rand_seed - contains a random seed to be used by SC3
 #'   \item sc3_kmeans_nstart - contains a value of nstart parameter to be used
 #'   in kmeans clustering.
 #'   \item sc3_n_dim - contains values of the number of eigenvectors to be used
@@ -85,6 +237,16 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @param svm.train.inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is NULL.
 #' @param n.cores defines the number of cores to be used on the user's machine.
+#' @param ks a range of the number of clusters k used for SC3 clustering.
+#' Can also be a single integer.
+#' @param k.means.nstart nstart parameter used by kmeans() function. Default is 
+#' 1000 for up to 2000 cells and 50 for more than 2000 cells.
+#' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
+#' function. Default is 1e+09.
+#' @param seed sets seed for the random number generator.
+#' Can be used to check the stability of clustering results: if the results are 
+#' the same after changing the seed several time, then the clustering solution 
+#' is stable.
 #' 
 #' @return an object of "SCESet" class
 #' 
@@ -104,10 +266,20 @@ sc3_process.SCESet <- function(
     d.region.max = 0.07,
     svm.num.cells = NULL,
     svm.train.inds = NULL,
-    n.cores = NULL) {
+    n.cores = NULL,
+    ks = NULL,
+    k.means.nstart = NULL,
+    k.means.iter.max = 1e+09,
+    seed = 1
+) {
     dataset <- object@assayData[[exprs_values]]
     if ( is.null(dataset) ) {
-        warning(paste0("The object does not contain ", exprs_values, " expression values. Returning NULL."))
+        warning(paste0("The object does not contain ", exprs_values, " expression values."))
+        return(object)
+    }
+    
+    if ( is.null(ks) ) {
+        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
     # remove duplicated genes
@@ -129,13 +301,21 @@ sc3_process.SCESet <- function(
         dataset <- log2(1 + dataset)
     }
     
-    object@consensus$"sc3_processed_dataset" <- dataset
+    object@consensus$sc3_processed_dataset <- dataset
     
-    if(ncol(dataset) > 2000) {
-        object@consensus$"sc3_kmeans_nstart" <- 50
-        message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
+    object@consensus$sc3_ks <- ks
+    object@consensus$sc3_kmeans_iter_max <- k.means.iter.max
+    object@consensus$sc3_rand_seed <- seed
+    
+    if(is.null(k.means.nstart)) {
+        if(ncol(dataset) > 2000) {
+            object@consensus$sc3_kmeans_nstart <- 50
+            message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
+        } else {
+            object@consensus$sc3_kmeans_nstart <- 1000
+        }
     } else {
-        object@consensus$"sc3_kmeans_nstart" <- 1000
+        object@consensus$sc3_kmeans_nstart <- k.means.nstart
     }
     
     # define number of cells and region of dimensions
@@ -146,7 +326,7 @@ sc3_process.SCESet <- function(
         n.dim <- sample(n.dim, 15)
     }
     
-    object@consensus$"sc3_n_dim" <- n.dim
+    object@consensus$sc3_n_dim <- n.dim
     
     # prepare for SVM
     if(
@@ -195,8 +375,8 @@ sc3_process.SCESet <- function(
         # run SVM
         tmp <- prepare_for_svm(ncol(dataset), svm.num.cells, svm.train.inds)
         
-        object@consensus$"svm_train_inds" <- tmp$svm.train.inds
-        object@consensus$"svm_study_inds" <- tmp$svm.study.inds
+        object@consensus$svm_train_inds <- tmp$svm.train.inds
+        object@consensus$svm_study_inds <- tmp$svm.study.inds
     }
     
     # register computing cluster (N-1 CPUs) on a local machine
@@ -211,14 +391,14 @@ sc3_process.SCESet <- function(
         }
     }
     
-    object@consensus$"sc3_n_cores" <- n.cores
+    object@consensus$sc3_n_cores <- n.cores
     
     if(file.exists(paste0(file.path(find.package("RSelenium"),
                                     "bin/selenium-server-standalone.jar")))) {
         RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
-        object@consensus$"rselenium" <- TRUE
+        object@consensus$rselenium <- TRUE
     } else {
-        object@consensus$"rselenium" <- FALSE
+        object@consensus$rselenium <- FALSE
     }
     on.exit(stopSeleniumServer())
     
@@ -242,7 +422,11 @@ setMethod("sc3_process", signature(object = "SCESet"),
               d.region.max = 0.07,
               svm.num.cells = NULL,
               svm.train.inds = NULL,
-              n.cores = NULL
+              n.cores = NULL,
+              ks = NULL,
+              k.means.nstart = NULL,
+              k.means.iter.max = 1e+09,
+              seed = 1
           ) {
               sc3_process.SCESet(object,
                                 exprs_values,
@@ -255,7 +439,12 @@ setMethod("sc3_process", signature(object = "SCESet"),
                                 d.region.max,
                                 svm.num.cells,
                                 svm.train.inds,
-                                n.cores)
+                                n.cores,
+                                ks,
+                                k.means.nstart,
+                                k.means.iter.max,
+                                seed
+              )
           })
 
 #' Calculate distances between the cells.
@@ -318,7 +507,7 @@ sc3_calc_dists.SCESet <- function(object) {
     
     names(dists) <- distances
     
-    object@consensus$"sc3_distances" <- dists
+    object@consensus$sc3_distances <- dists
     return(object)
 }
 
@@ -395,7 +584,7 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     names(transfs) <- paste(hash.table[ , 1], hash.table[ , 2], sep = "_")
     
-    object@consensus$"sc3_transformations" <- transfs
+    object@consensus$sc3_transformations <- transfs
     return(object)
 }
 
@@ -443,12 +632,7 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' @importFrom stats kmeans
 #' 
 #' @export
-sc3_kmeans.SCESet <- function(
-    object,
-    ks = 3:5,
-    k.means.iter.max = 1e+09,
-    seed = 1
-) {
+sc3_kmeans.SCESet <- function(object) {
     transfs <- object@consensus$sc3_transformations
     if ( is.null(transfs) ) {
         warning(paste0("Please run sc3_calc_transfs() first!"))
@@ -462,7 +646,7 @@ sc3_kmeans.SCESet <- function(
 
     hash.table <- expand.grid(
         transf = names(transfs),
-        ks = ks,
+        ks = object@consensus$sc3_ks,
         n.dim = n.dim, 
         stringsAsFactors = FALSE
     )
@@ -478,15 +662,15 @@ sc3_kmeans.SCESet <- function(
     
     # calculate the 6 distinct transformations in parallel
     labs <- foreach::foreach(i = 1:nrow(hash.table),
-                                .options.RNG = seed) %dopar% {
+                                .options.RNG = object@consensus$sc3_rand_seed) %dopar% {
         try({
             utils::setTxtProgressBar(pb, i)
             transf <- get(hash.table$transf[i], transfs)
             stats::kmeans(
                 transf[, 1:hash.table$n.dim[i]],
                 hash.table$ks[i],
-                iter.max = k.means.iter.max,
-                nstart = object@consensus$"sc3_kmeans_nstart"
+                iter.max = object@consensus$sc3_kmeans_iter_max,
+                nstart = object@consensus$sc3_kmeans_nstart
             )$cluster
         })
     }
@@ -498,7 +682,7 @@ sc3_kmeans.SCESet <- function(
     
     names(labs) <- paste(hash.table$transf, hash.table$ks, hash.table$n.dim, sep = "_")
     
-    object@consensus$"sc3_kmeans" <- labs
+    object@consensus$sc3_kmeans <- labs
     return(object)
 }
 
@@ -506,19 +690,9 @@ sc3_kmeans.SCESet <- function(
 #' @aliases sc3_kmeans
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_kmeans", signature(object = "SCESet"),
-          function(
-              object,
-              ks = 3:5,
-              k.means.iter.max = 1e+09,
-              seed = 1
-          ) {
-              sc3_kmeans.SCESet(
-                  object,
-                  ks,
-                  k.means.iter.max,
-                  seed)
-          })
+setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
+    sc3_kmeans.SCESet(object)
+})
 
 #' Calculate consensus matrix.
 #' 
@@ -559,7 +733,12 @@ sc3_calc_consens.SCESet <- function(object) {
     i <- NULL
     
     ks <- as.numeric(unique(unlist(lapply(strsplit(names(k.means), "_"), "[[", 3))))
-    n.cores <- object@consensus$sc3_n_cores
+    
+    if(object@consensus$sc3_n_cores > length(ks)) {
+        n.cores <- length(ks)
+    } else {
+        n.cores <- object@consensus$sc3_n_cores
+    }
     
     message("Calculate consensus matrix...")
     
@@ -604,7 +783,7 @@ sc3_calc_consens.SCESet <- function(object) {
     
     names(cons) <- ks
     
-    object@consensus$"sc3_consensus" <- cons
+    object@consensus$sc3_consensus <- cons
     return(object)
 }
 
@@ -655,7 +834,12 @@ sc3_calc_biology.SCESet <- function(object) {
     i <- NULL
     
     ks <- names(consensus)
-    n.cores <- object@consensus$sc3_n_cores
+    
+    if(object@consensus$sc3_n_cores > length(ks)) {
+        n.cores <- length(ks)
+    } else {
+        n.cores <- object@consensus$sc3_n_cores
+    }
     
     message("Calculate consensus matrix...")
     
@@ -695,7 +879,7 @@ sc3_calc_biology.SCESet <- function(object) {
     
     names(biol) <- ks
     
-    object@consensus$"sc3_biology" <- biol
+    object@consensus$sc3_biology <- biol
     return(object)
 }
 
@@ -753,7 +937,7 @@ sc3_run_svm.SCESet <- function(
     
     ord <- order(c(object@consensus$svm_train_inds, object@consensus$svm_study_inds))
     
-    object@consensus$"svm_result" <- svm.labs[ord]
+    object@consensus$svm_result <- svm.labs[ord]
     return(object)
 }
 
@@ -808,7 +992,7 @@ sc3_summarise_results.SCESet <- function(
         )
     }
     
-    object@consensus$"sc3_results" <- res
+    object@consensus$sc3_results <- res
     return(object)
 }
 
