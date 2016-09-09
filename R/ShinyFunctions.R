@@ -137,20 +137,14 @@ get_outl_cells <- function(dataset, labels) {
 }
 
 #' @importFrom RSelenium remoteDriver
-open_webgestalt_go <- function(genes) {
+open_gprofiler <- function(genes) {
     remDr <- remoteDriver(remoteServerAddr = "localhost"
                           , port = 4444
                           , browserName = "firefox"
     )
     remDr$open()
-    remDr$navigate("http://bioinfo.vanderbilt.edu/webgestalt/login.php")
-    webElem <- remDr$findElement(using = 'id', value = "email")
-    webElem$sendKeysToElement(list("vk6@sanger.ac.uk"))
-    webElem <- remDr$findElement(using = 'name', "remember")
-    webElem$clickElement()
-    webElem <- remDr$findElement(using = 'name', "submit")
-    webElem$clickElement()
-    webElem <- remDr$findElement(using = 'name', "pastefile")
+    remDr$navigate("http://biit.cs.ut.ee/gprofiler")
+    webElem <- remDr$findElement(using = 'id', "query")
     webElem$sendKeysToElement(as.list(paste0(genes, "\n")))
 }
 

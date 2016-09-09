@@ -37,6 +37,11 @@ sc3_interactive.SCESet <- function(object) {
         svm <- TRUE
     }
     
+    biology <- FALSE
+    if(!is.null(object@consensus$sc3_biology)) {
+        biology <- TRUE
+    }
+    
     shinyApp(
         ui = fluidPage(
             tags$head(
@@ -94,13 +99,12 @@ sc3_interactive.SCESet <- function(object) {
                             12,
                             conditionalPanel(
                                 "output.is_svm",
-                                h4("SVM prediction"),
                                 p(
-                                    paste0(
-                                        "Your data was clustered based on ",
+                                    HTML(paste0(
+                                        "<font color = 'red'>Your data was clustered in the SVM regime based on ",
                                         length(object@consensus$svm_train_inds),
-                                        " cells. When you have found the best clustering parameters, go back to your terminal session and run XXX to predict the labels of the other cells."
-                                    )
+                                        " cells. When you have found the best clustering parameters, go back to your terminal session and run sc3_run_svm() to predict the labels of the other cells.</font>"
+                                    ))
                                 )
                             )
                         )
@@ -110,7 +114,7 @@ sc3_interactive.SCESet <- function(object) {
                         column(
                             12,
                             conditionalPanel(
-                                "input.main_panel == 'Markers'",
+                                "input.main_panel == 'Markers' && output.is_biology",
                                 wellPanel(
                                     sliderInput(
                                         "auroc.threshold",
@@ -130,24 +134,11 @@ sc3_interactive.SCESet <- function(object) {
                                         ),
                                         selected = "0.01",
                                         inline = TRUE
-                                    ),
-                                    selectInput(
-                                        "cluster",
-                                        "Choose a cluster for GO analysis:",
-                                        c("None" = "NULL")
-                                    ),
-                                    if(object@consensus$rselenium) {
-                                        actionButton("GO", label = "Analyze!")
-                                    },
-                                    if(object@consensus$rselenium) {
-                                        HTML("<br>(opens <a href = 'http://bioinfo.vanderbilt.edu/webgestalt/' target='_blank'>WebGestalt</a> in Firefox)")
-                                    } else {
-                                        HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
-                                    }
+                                    )
                                 )
                             ),
                             conditionalPanel(
-                                "input.main_panel == 'DE'",
+                                "input.main_panel == 'DE' && output.is_biology",
                                 wellPanel(
                                     radioButtons(
                                         "p.val.de",
@@ -187,7 +178,25 @@ sc3_interactive.SCESet <- function(object) {
                         column(
                             12,
                             h4("Panel description"),
-                            htmlOutput("explanation")
+                            htmlOutput("explanation"),
+                            conditionalPanel(
+                                "input.main_panel == 'Markers' && output.is_biology",
+                                wellPanel(
+                                    selectInput(
+                                        "cluster",
+                                        "Choose a cluster for GO analysis:",
+                                        c("None" = "NULL")
+                                    ),
+                                    if(object@consensus$rselenium) {
+                                        actionButton("GO", label = "Analyze!")
+                                    },
+                                    if(object@consensus$rselenium) {
+                                        HTML("<br>(opens <a href = 'http://biit.cs.ut.ee/gprofiler' target='_blank'>g:Profiler</a> in Firefox)")
+                                    } else {
+                                        HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
+                                    }
+                                )
+                            )
                         )
                     )
                 )
@@ -272,42 +281,40 @@ sc3_interactive.SCESet <- function(object) {
                 )
             })
             
-            # MAIN OBSERVER
-            # used for extraction of precalculated variables and
-            # updating the reactive variables
-            # this observer executes whenever any parameter in the left-side
-            # parameter panel is changed
+            # observer for labels
             observe({
                 res <- prepare_output(object, input$clusters)
-                
-                # assign results to reactive variables
-                values$consensus <- object@consensus$sc3_consensus[[as.character(input$clusters)]]$consensus
                 values$labels <- res$labels
                 values$labels1 <- res$labels1
-                values$hc <- res$hc
                 values$silh <- res$silh
-                values$new.labels <- res$new.labels
-                values$original.labels <- colnames(dataset)[res$cell.order]
-
-                # reindex the new clusters in ascending order
-                d <- dataset
-                d <- d[ , res$cell.order]
-                colnames(d) <- values$new.labels
-                values$dataset <- d
-                
-                # reorder new cell labels in the same order as cells in the 
-                # input matrix
-                values$original.labels1 <- values$original.labels[res$cell.order]
-                values$new.labels1 <- values$new.labels[res$cell.order]
             })
-            # this observer updates the GO drop down menu with current clusters
-            # after calculating marker genes
+            # observer for marker genes
             observe({
-                markers <- 
-                    object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
-                mark.res.plot <- mark_gene_heatmap_param(markers)
-                clusts <- unique(mark.res.plot$clusts)
-                updateSelectInput(session, "cluster", choices = clusts)
+                if(biology) {
+                    markers <- 
+                        object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
+                    markers <- markers[markers$AUC >= as.numeric(input$auroc.threshold) & markers$p.value < as.numeric(input$p.val.mark), ]
+                    values$n.markers <- nrow(markers)
+                    mark.res.plot <- mark_gene_heatmap_param(markers)
+                    clusts <- unique(mark.res.plot$clusts)
+                    if(is.null(clusts)) clusts <- "None"
+                    values$mark.res <- mark.res.plot
+                    updateSelectInput(session, "cluster", choices = clusts)
+                } else {
+                    values$n.markers <- 0
+                }
+            })
+            
+            # observer for DE genes
+            observe({
+                if(biology) {
+                    de.genes <- object@consensus$sc3_biology[[as.character(input$clusters)]]$de.genes
+                    de.genes <- de.genes[de.genes$p.value < as.numeric(input$p.val.de), , drop = FALSE]
+                    values$n.de.genes <- nrow(de.genes)
+                    values$n.de.plot.height <- nrow(head(de.genes, 50))
+                } else {
+                    values$n.de.genes <- 0
+                }
             })
             
             ## REACTIVE PANEL DESCRIPTIONS
@@ -385,10 +392,10 @@ sc3_interactive.SCESet <- function(object) {
                                     so-called <i>perplexity</i>. SC3 defines the default
                                     <i>perplexity</i> as <i>N</i>/5, where <i>N</i> is
                                     the number of cells, but also allows to change it
-                                    in a reasonable interval using the slider below.<br><br>")
+                                    in a reasonable interval using the slider in the <b>Parameters</b> panel.")
                     }
                     if(grepl("DE", input$main_panel)) {
-                        res <- HTML(paste0("SC3 found <b>", length(values$de.res), "</b> differentially expressed genes based
+                        res <- HTML(paste0("SC3 found <b>", values$n.de.genes, "</b> differentially expressed genes based
                                            on the obtained clustering.<br>",
                                     "Differential expression is calculated using 
                                     the non-parametric Kruskal-Wallis test. 
@@ -404,10 +411,10 @@ sc3_interactive.SCESet <- function(object) {
                                     a bias in the distribution of <i>p</i>-values, 
                                     and thus we advise to use the <i>p</i>-values for 
                                     ranking the genes only.<br>The <i>p</i>-value threshold 
-                                    can be changed using the radio buttons below.<br><br>"))
+                                    can be changed using the radio buttons in the <b>Parameters</b> panel."))
                     }
                     if(grepl("Markers", input$main_panel)) {
-                        res <- HTML(paste0("SC3 found <b>", nrow(values$mark.res), "</b> marker genes based
+                        res <- HTML(paste0("SC3 found <b>", values$n.markers, "</b> marker genes based
                                            on the obtained clustering.<br>",
                                     "To find marker genes, for each gene a binary classifier is constructed 
                                     based on the mean cluster expression values. 
@@ -423,9 +430,9 @@ sc3_interactive.SCESet <- function(object) {
                                     top 10 marker genes of each cluster are 
                                     visualized in this panel. The AUROC and the 
                                     p-value thresholds can be changed using the 
-                                    slider and radio buttons below.<br>
+                                    slider and radio buttons in the <b>Parameters</b> panel.<br>
                                     In addition, SC3 allows you to run a Gene 
-                                    Ontology (GO) analysis using a panel below.<br><br>"))
+                                    Ontology (GO) and Pathway Enrichment analysis using a panel below.<br><br>"))
                     }
                     if(grepl("Outliers", input$main_panel)) {
                         res <- HTML("Outlier cells in each cluster are detected 
@@ -436,8 +443,7 @@ sc3_interactive.SCESet <- function(object) {
                                     and it is defined as the differences between 
                                     the square root of the robust distance and 
                                     the square root of the 99.99% quantile of 
-                                    the Chi-squared distribution (this parameter
-                                    can be controlled using a panel below).<br><br>")
+                                    the Chi-squared distribution.<br><br>")
                     }
                 }
                 return(res)
@@ -569,14 +575,6 @@ sc3_interactive.SCESet <- function(object) {
             
             # plot marker genes
             output$mark_genes <- renderPlot({
-                sc3_plot_markers(
-                    object, 
-                    as.numeric(input$clusters), 
-                    as.numeric(input$auroc.threshold), 
-                    as.numeric(input$p.val.mark)
-                )
-            })
-            plotHeightMark <- function() {
                 validate(
                     need(
                         !is.null(object@consensus$sc3_biology),
@@ -585,17 +583,46 @@ sc3_interactive.SCESet <- function(object) {
                 )
                 validate(
                     need(
+                        !is.null(values$mark.res),
+                        "\nThere were no marker genes found! Try change the parameters."
+                    )
+                )
+                validate(
+                    need(
                         try(!is.null(rownames(dataset))),
                         "\nNo gene names provided in the input expression matrix!"
                     )
                 )
-                markers <- 
-                    object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
-                mark.res.plot <- mark_gene_heatmap_param(markers)
-                return(50 + 10.8*nrow(mark.res.plot))
+                sc3_plot_markers(
+                    object, 
+                    as.numeric(input$clusters), 
+                    as.numeric(input$auroc.threshold), 
+                    as.numeric(input$p.val.mark)
+                )
+            })
+            plotHeightMark <- function() {
+                return(70 + 10.8*nrow(values$mark.res))
             }
             
             output$plot_mark_genes <- renderUI({
+                validate(
+                    need(
+                        !is.null(object@consensus$sc3_biology),
+                        "\nPlease run sc3_calc_biology() first!"
+                    )
+                )
+                validate(
+                    need(
+                        !is.null(values$mark.res),
+                        "\nThere were no marker genes found! Try change the parameters."
+                    )
+                )
+                validate(
+                    need(
+                        try(!is.null(rownames(dataset))),
+                        "\nNo gene names provided in the input expression matrix!"
+                    )
+                )
                 plotOutput(
                     "mark_genes", 
                     height = plotHeightMark(), 
@@ -605,13 +632,6 @@ sc3_interactive.SCESet <- function(object) {
             
             # plot DE genes
             output$de_genes <- renderPlot({
-                sc3_plot_de_genes(
-                    object, 
-                    as.numeric(input$clusters), 
-                    as.numeric(input$p.val.de)
-                )
-            })
-            plotHeightDE <- function() {
                 validate(
                     need(
                         !is.null(object@consensus$sc3_biology),
@@ -620,15 +640,44 @@ sc3_interactive.SCESet <- function(object) {
                 )
                 validate(
                     need(
+                        values$n.de.genes > 0,
+                        "\nThere were no DE genes found! Try change the parameters."
+                    )
+                )
+                validate(
+                    need(
                         try(!is.null(rownames(dataset))),
                         "\nNo gene names provided in the input expression matrix!"
                     )
                 )
-                de.genes <- 
-                    object@consensus$sc3_biology[[as.character(input$clusters)]]$de.genes
-                return(50 + 10.8*nrow(head(de.genes, 50)))
+                sc3_plot_de_genes(
+                    object, 
+                    as.numeric(input$clusters), 
+                    as.numeric(input$p.val.de)
+                )
+            })
+            plotHeightDE <- function() {
+                return(70 + 10.8*values$n.de.plot.height)
             }
             output$plot_de_genes <- renderUI({
+                validate(
+                    need(
+                        !is.null(object@consensus$sc3_biology),
+                        "\nPlease run sc3_calc_biology() first!"
+                    )
+                )
+                validate(
+                    need(
+                        values$n.de.genes > 0,
+                        "\nThere were no DE genes found! Try change the parameters."
+                    )
+                )
+                validate(
+                    need(
+                        try(!is.null(rownames(dataset))),
+                        "\nNo gene names provided in the input expression matrix!"
+                    )
+                )
                 plotOutput(
                     "de_genes", 
                     height = plotHeightDE(), 
@@ -654,11 +703,13 @@ sc3_interactive.SCESet <- function(object) {
             
             # GO button
             observeEvent(input$GO, {
-                open_webgestalt_go(
-                    rownames(
-                        values$mark.res[values$mark.res[,2] == input$cluster, ]
+                if(!is.null(values$mark.res)) {
+                    open_gprofiler(
+                        rownames(
+                            values$mark.res[values$mark.res$clusts == as.numeric(input$cluster), ]
+                        )
                     )
-                )
+                }
             })
             
             ## OUTPUTS USED FOR CONDITIONAL PANELS
@@ -678,10 +729,21 @@ sc3_interactive.SCESet <- function(object) {
                 return(is_svm())
             })
             
+            is_biology <- reactive({
+                return(biology)
+            })
+            
+            output$is_biology <- reactive({
+                return(is_biology())
+            })
+            
             # stop App on closing the browser
             session$onSessionEnded(function() {
                 stopApp()
             })
+            outputOptions(output, 'ks_length', suspendWhenHidden = FALSE)
+            outputOptions(output, 'is_svm', suspendWhenHidden = FALSE)
+            outputOptions(output, 'is_biology', suspendWhenHidden = FALSE)
         },
         # launch App in a browser
         options = list(launch.browser = TRUE)

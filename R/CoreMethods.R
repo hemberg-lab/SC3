@@ -276,7 +276,6 @@ setMethod("sc3_process", signature(object = "SCESet"),
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom utils setTxtProgressBar txtProgressBar
 #' 
 #' @export
 sc3_calc_dists.SCESet <- function(object) {
@@ -307,18 +306,13 @@ sc3_calc_dists.SCESet <- function(object) {
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- utils::txtProgressBar(min = 1, max = length(distances), style = 3)
-    
     # calculate distances in parallel
     dists <- foreach::foreach(i = distances) %dorng% {
         try({
-            utils::setTxtProgressBar(pb, i)
             calculate_distance(dataset, i)
         })
     }
-    
-    close(pb)
-    
+
     # stop local cluster
     parallel::stopCluster(cl)
     
@@ -354,7 +348,6 @@ setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom utils setTxtProgressBar txtProgressBar
 #' 
 #' @export
 sc3_calc_transfs.SCESet <- function(object) {
@@ -386,22 +379,17 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
-    
-    pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
-    
+
     # calculate the 6 distinct transformations in parallel
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dopar% {
         try({
-            utils::setTxtProgressBar(pb, i)
             transformation(
                 get(hash.table[i, 1], dists),
                 hash.table[i, 2]
             )
         })
     }
-    
-    close(pb)
-    
+
     # stop local cluster
     parallel::stopCluster(cl)
     
@@ -553,7 +541,6 @@ setMethod("sc3_kmeans", signature(object = "SCESet"),
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom cluster silhouette
 #' @importFrom stats hclust dist as.dist
 #' 
@@ -578,12 +565,9 @@ sc3_calc_consens.SCESet <- function(object) {
     
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
-    
-    pb <- utils::txtProgressBar(min = 0, max = length(ks), style = 3)
 
     cons <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
-            utils::setTxtProgressBar(pb, i)
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
             d <- unlist(lapply(d, function(x) paste(x, collapse = " ")))
 
@@ -614,9 +598,7 @@ sc3_calc_consens.SCESet <- function(object) {
             )
         })
     }
-    
-    close(pb)
-    
+
     # stop local cluster
     parallel::stopCluster(cl)
     
@@ -654,7 +636,6 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom utils setTxtProgressBar txtProgressBar
 #' 
 #' @export
 sc3_calc_biology.SCESet <- function(object) {
@@ -681,11 +662,8 @@ sc3_calc_biology.SCESet <- function(object) {
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
-    pb <- utils::txtProgressBar(min = 0, max = length(ks), style = 3)
-    
     biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
-            utils::setTxtProgressBar(pb, i)
             hc <- consensus[[as.character(i)]]$hc
             clusts <- get_clusts(hc, i)
 
@@ -711,9 +689,7 @@ sc3_calc_biology.SCESet <- function(object) {
             )
         })
     }
-    
-    close(pb)
-    
+
     # stop local cluster
     parallel::stopCluster(cl)
     
