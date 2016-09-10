@@ -133,7 +133,7 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"),
           })
 
 
-#' Plot expression matrix used for SC3 clustering as a heatmap
+#' Plot tSNE map of the cells and highlight SC3 clusters with colors
 #' 
 #' \href{https://lvdmaaten.github.io/tsne/}{tSNE} (t-Distributed Stochastic 
 #' Neighbor Embedding) method is used to map high-dimensional data to a 2D 
@@ -210,7 +210,7 @@ setMethod("sc3_plot_tsne", signature(object = "SCESet"),
               )
           })
 
-#' Plot expression matrix used for SC3 clustering as a heatmap
+#' Plot expression of DE genes of the clusters identified by SC3 as a heatmap
 #' 
 #' Differential expression is calculated using the non-parametric 
 #' Kruskal-Wallis test. A significant p-value indicates that gene 
