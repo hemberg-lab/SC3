@@ -50,6 +50,39 @@ setMethod("sc3_plot_consensus", signature(object = "SCESet"),
               )
           })
 
+#' Plot silhouette indexes of the cells
+#' 
+#' A silhouette is a quantitative measure of the diagonality of the consensus 
+#' matrix. An average silhouette width (shown at the bottom left of the silhouette 
+#' plot) varies from 0 to 1, where 1 represents a perfectly block-diagonal 
+#' consensus matrix and 0 represents a situation where there is no 
+#' block-diagonal structure. The best clustering is achieved when the average 
+#' silhouette width is close to 1.
+#' 
+#' @param object an object of "SCESet" class
+#' @param k number of clusters
+#' 
+#' @export
+sc3_plot_silhouette.SCESet <- function(object, k) {
+    res <- prepare_output(object, k)
+    plot(res$silh, col = "black")
+}
+
+#' @rdname sc3_plot_silhouette.SCESet
+#' @aliases sc3_plot_silhouette
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_plot_silhouette", signature(object = "SCESet"),
+          function(
+              object,
+              k
+          ) {
+              sc3_plot_silhouette.SCESet(
+                  object,
+                  k
+              )
+          })
+
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
 #' The expression panel represents the original input expression matrix 

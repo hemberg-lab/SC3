@@ -286,7 +286,6 @@ sc3_interactive.SCESet <- function(object) {
                 res <- prepare_output(object, input$clusters)
                 values$labels <- res$labels
                 values$labels1 <- res$labels1
-                values$silh <- res$silh
             })
             # observer for marker genes
             observe({
@@ -479,9 +478,7 @@ sc3_interactive.SCESet <- function(object) {
             
             # plot silhouette
             output$silh <- renderPlot({
-                withProgress(message = 'Plotting...', value = 0, {
-                    plot(values$silh, col = "black")
-                })
+                sc3_plot_silhouette(object, as.numeric(input$clusters))
             })
             
             # output cell labels

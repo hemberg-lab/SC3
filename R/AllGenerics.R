@@ -88,6 +88,14 @@ setGeneric("sc3_plot_consensus", function(
 })
 
 #' @export
+setGeneric("sc3_plot_silhouette", function(
+    object,
+    ...
+){
+    standardGeneric("sc3_plot_silhouette")
+})
+
+#' @export
 setGeneric("sc3_plot_expression", function(
     object,
     ...

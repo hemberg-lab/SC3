@@ -95,9 +95,7 @@ WriteXLS(
 SC3 provides methods for plotting all figures from the interactive session:
 ```{r}
 sc3_plot_consensus(example_sceset, 3)
-
 sc3_plot_silhouette(example_sceset, 3)
-
 sc3_plot_expression(example_sceset, 3)
 sc3_plot_tsne(example_sceset, 3)
 sc3_plot_de_genes(example_sceset, 3)
