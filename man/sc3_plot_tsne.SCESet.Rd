@@ -5,15 +5,13 @@
 \alias{sc3_plot_tsne}
 \alias{sc3_plot_tsne,SCESet-method}
 \alias{sc3_plot_tsne.SCESet}
-\title{Plot expression matrix used for SC3 clustering as a heatmap}
+\title{Plot tSNE map of the cells and highlight SC3 clusters with colors}
 \usage{
 sc3_plot_tsne.SCESet(object, k,
-  perplexity = floor(ncol(object@consensus$sc3_processed_dataset)/5),
-  seed = 1234567)
+  perplexity = floor(ncol(object@sc3$processed_dataset)/5), seed = 1234567)
 
 \S4method{sc3_plot_tsne}{SCESet}(object, k,
-  perplexity = floor(ncol(object@consensus$sc3_processed_dataset)/5),
-  seed = 1234567)
+  perplexity = floor(ncol(object@sc3$processed_dataset)/5), seed = 1234567)
 }
 \arguments{
 \item{object}{an object of "SCESet" class}

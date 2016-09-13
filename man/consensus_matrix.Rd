@@ -7,14 +7,15 @@
 consensus_matrix(clusts)
 }
 \arguments{
-\item{clusts}{a list clustering labels (separated by a space)}
+\item{clusts}{a list of clustering solutions. Labels in each solutions 
+should be separated by a space.}
 }
 \value{
 consensus matrix
 }
 \description{
 Consensus matrix is calculated using the Cluster-based Similarity 
-Partitioning Algorithm (CSPA). For each clustering result a binary 
+Partitioning Algorithm (CSPA). For each clustering solution a binary 
 similarity matrix is constructed from the corresponding cell labels: 
 if two cells belong to the same cluster, their similarity is 1, otherwise 
 the similarity is 0. A consensus matrix is calculated by averaging all 

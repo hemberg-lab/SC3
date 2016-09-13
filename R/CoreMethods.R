@@ -90,12 +90,12 @@ sc3.SCESet <- function(
         svm.num.cells,
         svm.train.inds,
         n.cores,
-        ks,
         k.means.nstart,
         k.means.iter.max,
         seed
     )
     object <- sc3_estimate_k(object)
+    object <- sc3_set_ks(object, ks)
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
     object <- sc3_kmeans(object)
@@ -149,20 +149,24 @@ setMethod("sc3", signature(object = "SCESet"), function(
 #' Estimate the optimal k for k-means clustering
 #' 
 #' Uses Tracy-Widom theory on random matrices to estimate the optimal number of
-#' clusters k. Using the function \code{\link{estkTW}} to perform the estimation.
+#' clusters k. Using the function \code{\link{estkTW}} to perform the estimation. 
+#' It creates and populates the following items of the `sc3` slot:
+#' \itemize{
+#'   \item k_prediction - contains the estimated value of `k`.
+#' }
 #' 
 #' @param object an object of "SCESet" class
 #' @return an estimated value of k
 #' 
 #' @export
 sc3_estimate_k.SCESet <- function(object) {
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     if ( is.null(dataset) ) {
         warning(paste0("Please run sc3_prepare() first!"))
         return(object)
     }
     res <- estkTW(dataset = dataset)
-    object@consensus$sc3_k_prediction <- res
+    object@sc3$k_prediction <- res
     return(object)
 }
 
@@ -177,23 +181,22 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' Prepare the SCESet object for SC3 clustering
 #' 
 #' This function prepares an object of "SCESet" class for SC3 clustering. It
-#' creates and populates the following items of the object@consensus slot:
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_processed_dataset - contains the expression matrix to be used for
+#'   \item processed_dataset - contains the expression matrix to be used for
 #'   SC3 clustering.
-#'   \item sc3_ks - contains a range of the number of clusters k to be used by SC3
-#'   \item sc3_kmeans_iter_max - contains a value of iter.max parameter to be used
+#'   \item kmeans_iter_max - contains a value of iter.max parameter to be used
 #'   in kmeans clustering.
-#'   \item sc3_rand_seed - contains a random seed to be used by SC3
-#'   \item sc3_kmeans_nstart - contains a value of nstart parameter to be used
+#'   \item rand_seed - contains a random seed to be used by SC3
+#'   \item kmeans_nstart - contains a value of nstart parameter to be used
 #'   in kmeans clustering.
-#'   \item sc3_n_dim - contains values of the number of eigenvectors to be used
+#'   \item n_dim - contains values of the number of eigenvectors to be used
 #'   in kmeans clustering.
 #'   \item svm_train_inds - if SVM is used this item contains indexes of the 
 #'   training cells to be used for SC3 clustering and further SVM prediction.
 #'   \item svm_study_inds - if SVM is used this item contains indexes of the
 #'    cells to be predicted by SVM.
-#'   \item sc3_n_cores - contains a value of the number of available cores on the
+#'   \item n_cores - contains a value of the number of available cores on the
 #'   user's machine.
 #'   \item rselenium - defines whether RSelenium is installed on the user's machine.
 #' }
@@ -237,8 +240,6 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @param svm.train.inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is NULL.
 #' @param n.cores defines the number of cores to be used on the user's machine.
-#' @param ks a range of the number of clusters k used for SC3 clustering.
-#' Can also be a single integer.
 #' @param k.means.nstart nstart parameter used by kmeans() function. Default is 
 #' 1000 for up to 2000 cells and 50 for more than 2000 cells.
 #' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
@@ -267,7 +268,6 @@ sc3_prepare.SCESet <- function(
     svm.num.cells = NULL,
     svm.train.inds = NULL,
     n.cores = NULL,
-    ks = NULL,
     k.means.nstart = NULL,
     k.means.iter.max = 1e+09,
     seed = 1
@@ -278,10 +278,6 @@ sc3_prepare.SCESet <- function(
         return(object)
     }
     
-    if ( is.null(ks) ) {
-        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
-        return(object)
-    }
     # remove duplicated genes
     message("Removing duplicated genes...")
     dataset <- dataset[!duplicated(rownames(dataset)), ]
@@ -301,21 +297,20 @@ sc3_prepare.SCESet <- function(
         dataset <- log2(1 + dataset)
     }
     
-    object@consensus$sc3_processed_dataset <- dataset
+    object@sc3$processed_dataset <- dataset
     
-    object@consensus$sc3_ks <- ks
-    object@consensus$sc3_kmeans_iter_max <- k.means.iter.max
-    object@consensus$sc3_rand_seed <- seed
+    object@sc3$kmeans_iter_max <- k.means.iter.max
+    object@sc3$rand_seed <- seed
     
     if(is.null(k.means.nstart)) {
         if(ncol(dataset) > 2000) {
-            object@consensus$sc3_kmeans_nstart <- 50
+            object@sc3$kmeans_nstart <- 50
             message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
         } else {
-            object@consensus$sc3_kmeans_nstart <- 1000
+            object@sc3$kmeans_nstart <- 1000
         }
     } else {
-        object@consensus$sc3_kmeans_nstart <- k.means.nstart
+        object@sc3$kmeans_nstart <- k.means.nstart
     }
     
     # define number of cells and region of dimensions
@@ -326,7 +321,7 @@ sc3_prepare.SCESet <- function(
         n.dim <- sample(n.dim, 15)
     }
     
-    object@consensus$sc3_n_dim <- n.dim
+    object@sc3$n_dim <- n.dim
     
     # prepare for SVM
     if(
@@ -375,8 +370,8 @@ sc3_prepare.SCESet <- function(
         # run SVM
         tmp <- prepare_for_svm(ncol(dataset), svm.num.cells, svm.train.inds)
         
-        object@consensus$svm_train_inds <- tmp$svm.train.inds
-        object@consensus$svm_study_inds <- tmp$svm.study.inds
+        object@sc3$svm_train_inds <- tmp$svm.train.inds
+        object@sc3$svm_study_inds <- tmp$svm.study.inds
     }
     
     # register computing cluster (N-1 CPUs) on a local machine
@@ -391,14 +386,14 @@ sc3_prepare.SCESet <- function(
         }
     }
     
-    object@consensus$sc3_n_cores <- n.cores
+    object@sc3$n_cores <- n.cores
     
     if(file.exists(paste0(file.path(find.package("RSelenium"),
                                     "bin/selenium-server-standalone.jar")))) {
         RSelenium::startServer(args=paste("-log", tempfile()), log=FALSE)
-        object@consensus$rselenium <- TRUE
+        object@sc3$rselenium <- TRUE
     } else {
-        object@consensus$rselenium <- FALSE
+        object@sc3$rselenium <- FALSE
     }
     on.exit(stopSeleniumServer())
     
@@ -423,7 +418,6 @@ setMethod("sc3_prepare", signature(object = "SCESet"),
               svm.num.cells = NULL,
               svm.train.inds = NULL,
               n.cores = NULL,
-              ks = NULL,
               k.means.nstart = NULL,
               k.means.iter.max = 1e+09,
               seed = 1
@@ -440,20 +434,60 @@ setMethod("sc3_prepare", signature(object = "SCESet"),
                                 svm.num.cells,
                                 svm.train.inds,
                                 n.cores,
-                                ks,
                                 k.means.nstart,
                                 k.means.iter.max,
                                 seed
               )
           })
 
+#' Sets a range of the number of clusters k used for SC3 clustering.
+#' 
+#' This function creates and populates the following items of the object@sc3 slot:
+#' \itemize{
+#'   \item ks - contains a range of the number of clusters k to be used by SC3
+#' }
+#' 
+#' @param object an object of "SCESet" class
+#' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
+#' Can also be a single integer.
+#' 
+#' @export
+sc3_set_ks.SCESet <- function(
+    object,
+    ks = NULL
+) {
+    if ( is.null(ks) ) {
+        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
+        return(object)
+    }
+    object@sc3$ks <- ks
+    return(object)
+}
+
+#' @rdname sc3_set_ks.SCESet
+#' @aliases sc3_set_ks
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_set_ks", signature(object = "SCESet"),
+          function(
+              object,
+              ks = NULL
+          ) {
+              sc3_set_ks.SCESet(
+                  object,
+                  ks
+              )
+          })
+
+
+
 #' Calculate distances between the cells.
 #' 
 #' This function calculates distances between the cells contained in 
-#' the sc3_processed_dataset item of the object@consensus slot. It then
-#' creates and populates the following items of the object@consensus slot:
+#' the processed_dataset item of the object@sc3 slot. It then
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_distances - contains a list of distance matrices corresponding to
+#'   \item distances - contains a list of distance matrices corresponding to
 #'   Euclidean, Pearson and Spearman distances.
 #' }
 #' 
@@ -468,15 +502,15 @@ setMethod("sc3_prepare", signature(object = "SCESet"),
 #' 
 #' @export
 sc3_calc_dists.SCESet <- function(object) {
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     if ( is.null(dataset) ) {
         warning(paste0("Please run sc3_prepare() first!"))
         return(object)
     }
     
     # check whether in the SVM regime
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
@@ -486,10 +520,10 @@ sc3_calc_dists.SCESet <- function(object) {
     
     message("Calculating distances between the cells...")
     
-    if(object@consensus$sc3_n_cores > length(distances)) {
+    if(object@sc3$n_cores > length(distances)) {
         n.cores <- length(distances)
     } else {
-        n.cores <- object@consensus$sc3_n_cores
+        n.cores <- object@sc3$n_cores
     }
     
     cl <- parallel::makeCluster(n.cores, outfile="")
@@ -507,7 +541,7 @@ sc3_calc_dists.SCESet <- function(object) {
     
     names(dists) <- distances
     
-    object@consensus$sc3_distances <- dists
+    object@sc3$distances <- dists
     return(object)
 }
 
@@ -522,10 +556,10 @@ setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
 #' Calculate transformations of the distance matrices.
 #' 
 #' This function calculates transforamtions of the distance matrices contained in 
-#' the sc3_distances item of the object@consensus slot. It then
-#' creates and populates the following items of the object@consensus slot:
+#' the sc3_distances item of the object@sc3 slot. It then
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_transformations - contains a list of transformations of the 
+#'   \item transformations - contains a list of transformations of the 
 #'   distance matrices corresponding to PCA and graph Laplacian transformations.
 #' }
 #' 
@@ -540,7 +574,7 @@ setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
 #' 
 #' @export
 sc3_calc_transfs.SCESet <- function(object) {
-    dists <- object@consensus$sc3_distances
+    dists <- object@sc3$distances
     if ( is.null(dists) ) {
         warning(paste0("Please run sc3_calc_dists() first!"))
         return(object)
@@ -560,10 +594,10 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     message("Performing transformations...")
     
-    if(object@consensus$sc3_n_cores > nrow(hash.table)) {
+    if(object@sc3$n_cores > nrow(hash.table)) {
         n.cores <- nrow(hash.table)
     } else {
-        n.cores <- object@consensus$sc3_n_cores
+        n.cores <- object@sc3$n_cores
     }
     
     cl <- parallel::makeCluster(n.cores, outfile="")
@@ -584,7 +618,7 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     names(transfs) <- paste(hash.table[ , 1], hash.table[ , 2], sep = "_")
     
-    object@consensus$sc3_transformations <- transfs
+    object@sc3$transformations <- transfs
     return(object)
 }
 
@@ -596,31 +630,23 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
     sc3_calc_transfs.SCESet(object)
 })
 
-#' Calculate transformations of the distance matrices.
+#' kmeans clustering of the transformed distance matrices.
 #' 
-#' This function calculates transforamtions of the distance matrices contained in 
-#' the sc3_distances item of the object@consensus slot. It then
-#' creates and populates the following items of the object@consensus slot:
+#' This function performs kmeans clustering of the transformed distance matrices 
+#' contained in the transformations item of the object@sc3 slot. It then
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_transformations - contains a list of transformations of the 
-#'   distance matrices corresponding to PCA and graph Laplacian transformations.
+#'   \item kmeans - contains a list of kmeans clusterings.
 #' }
 #' 
 #' By default the nstart parameter passed to \link[stats]{kmeans} is defined
-#' in \code{\link{sc3_prepare.SCESet}}, is set 1000 and written to 
-#' sc3_kmeans_nstart item of the object@consensus slot.
+#' in \code{\link{sc3_prepare.SCESet}}, is set to 1000 and written to 
+#' kmeans_nstart item of the object@sc3 slot.
 #' If the number of cells in the dataset is more than 2000, this parameter is 
-#' set to 50.
+#' set to 50. A user can also manually define this parameter by changing the 
+#' value of the kmeans_nstart item of the object@sc3 slot.
 #' 
 #' @param object an object of "SCESet" class
-#' @param ks a range of the number of clusters k used for SC3 clustering.
-#' Can also be a single integer.
-#' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
-#' function. Default is 1e+09.
-#' @param seed sets seed for the random number generator.
-#' Can be used to check the stability of clustering results: if the results are 
-#' the same after changing the seed several time, then the clustering solution 
-#' is stable.
 #' 
 #' @return an object of "SCESet" class
 #' 
@@ -633,7 +659,7 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' 
 #' @export
 sc3_kmeans.SCESet <- function(object) {
-    transfs <- object@consensus$sc3_transformations
+    transfs <- object@sc3$transformations
     if ( is.null(transfs) ) {
         warning(paste0("Please run sc3_calc_transfs() first!"))
         return(object)
@@ -642,18 +668,18 @@ sc3_kmeans.SCESet <- function(object) {
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    n.dim <- object@consensus$sc3_n_dim
+    n.dim <- object@sc3$n_dim
 
     hash.table <- expand.grid(
         transf = names(transfs),
-        ks = object@consensus$sc3_ks,
+        ks = object@sc3$ks,
         n.dim = n.dim, 
         stringsAsFactors = FALSE
     )
     
-    message("Performing transformations...")
+    message("Performing kmeans clustering...")
     
-    n.cores <- object@consensus$sc3_n_cores
+    n.cores <- object@sc3$n_cores
 
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
@@ -662,15 +688,15 @@ sc3_kmeans.SCESet <- function(object) {
     
     # calculate the 6 distinct transformations in parallel
     labs <- foreach::foreach(i = 1:nrow(hash.table),
-                                .options.RNG = object@consensus$sc3_rand_seed) %dopar% {
+                                .options.RNG = object@sc3$rand_seed) %dopar% {
         try({
             utils::setTxtProgressBar(pb, i)
             transf <- get(hash.table$transf[i], transfs)
             stats::kmeans(
                 transf[, 1:hash.table$n.dim[i]],
                 hash.table$ks[i],
-                iter.max = object@consensus$sc3_kmeans_iter_max,
-                nstart = object@consensus$sc3_kmeans_nstart
+                iter.max = object@sc3$kmeans_iter_max,
+                nstart = object@sc3$kmeans_nstart
             )$cluster
         })
     }
@@ -682,7 +708,7 @@ sc3_kmeans.SCESet <- function(object) {
     
     names(labs) <- paste(hash.table$transf, hash.table$ks, hash.table$n.dim, sep = "_")
     
-    object@consensus$sc3_kmeans <- labs
+    object@sc3$kmeans <- labs
     return(object)
 }
 
@@ -697,15 +723,13 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
 #' Calculate consensus matrix.
 #' 
 #' This function calculates consensus matrices based on the clustering solutions
-#' contained in the sc3_kmeans item of the object@consensus slot. It then
-#' creates and populates the following items of the object@consensus slot:
+#' contained in the sc3_kmeans item of the object@sc3 slot. It then
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_consensus - contains a list of consensus matrices. In addition 
+#'   \item consensus - contains a list of consensus matrices. In addition 
 #'   to consensus matrices it also contains the Silhouette
 #'   indeces of the clusters and original cell labels corresponding to the clusters.
 #' }
-#' 
-#' 
 #' 
 #' @param object an object of "SCESet" class
 #' 
@@ -723,7 +747,7 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
 #' 
 #' @export
 sc3_calc_consens.SCESet <- function(object) {
-    k.means <- object@consensus$sc3_kmeans
+    k.means <- object@sc3$kmeans
     if ( is.null(k.means) ) {
         warning(paste0("Please run sc3_kmeans() first!"))
         return(object)
@@ -734,10 +758,10 @@ sc3_calc_consens.SCESet <- function(object) {
     
     ks <- as.numeric(unique(unlist(lapply(strsplit(names(k.means), "_"), "[[", 3))))
     
-    if(object@consensus$sc3_n_cores > length(ks)) {
+    if(object@sc3$n_cores > length(ks)) {
         n.cores <- length(ks)
     } else {
-        n.cores <- object@consensus$sc3_n_cores
+        n.cores <- object@sc3$n_cores
     }
     
     message("Calculate consensus matrix...")
@@ -783,7 +807,7 @@ sc3_calc_consens.SCESet <- function(object) {
     
     names(cons) <- ks
     
-    object@consensus$sc3_consensus <- cons
+    object@sc3$consensus <- cons
     return(object)
 }
 
@@ -800,10 +824,10 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' 
 #' This function calculates DE genes, marker genes and cell outliers based on 
 #' the consensus clusterings
-#' contained in the sc3_consensus item of the object@consensus slot. It then
-#' creates and populates the following items of the object@consensus slot:
+#' contained in the consensus item of the object@sc3 slot. It then
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_biology - contains lists of DE genes, marker genes and 
+#'   \item biology - contains lists of DE genes, marker genes and 
 #'   cell outliers data frames.
 #' }
 #' 
@@ -818,16 +842,16 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' 
 #' @export
 sc3_calc_biology.SCESet <- function(object) {
-    consensus <- object@consensus$sc3_consensus
+    consensus <- object@sc3$consensus
     if ( is.null(consensus) ) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
     
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     # check whether in the SVM regime
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
@@ -835,14 +859,12 @@ sc3_calc_biology.SCESet <- function(object) {
     
     ks <- names(consensus)
     
-    if(object@consensus$sc3_n_cores > length(ks)) {
+    if(object@sc3$n_cores > length(ks)) {
         n.cores <- length(ks)
     } else {
-        n.cores <- object@consensus$sc3_n_cores
+        n.cores <- object@sc3$n_cores
     }
-    
-    message("Calculate consensus matrix...")
-    
+
     cl <- parallel::makeCluster(n.cores, outfile="")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
@@ -879,7 +901,7 @@ sc3_calc_biology.SCESet <- function(object) {
     
     names(biol) <- ks
     
-    object@consensus$sc3_biology <- biol
+    object@sc3$biology <- biol
     return(object)
 }
 
@@ -896,9 +918,9 @@ setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object) {
 #' 
 #' This function performs training of the SVM classifier on the training cells,
 #' which indeces are  
-#' contained in the svm_train_inds item of the object@consensus slot. Then it 
+#' contained in the svm_train_inds item of the object@sc3 slot. Then it 
 #' predicts the labels of the remaining cells using the SVM classifier. Finally it
-#' creates and populates the following items of the object@consensus slot:
+#' creates and populates the following items of the object@sc3 slot:
 #' \itemize{
 #'   \item svm_result - contains labels of the cells predicted by the SVM ordered
 #'   as the cells in the original dataset.
@@ -914,30 +936,30 @@ sc3_run_svm.SCESet <- function(
     object,
     k
 ) {
-    if ( is.null(object@consensus$svm_train_inds) ) {
+    if ( is.null(object@sc3$svm_train_inds) ) {
         warning(paste0("Please rerun sc3_prepare() defining the training cells!"))
         return(object)
     }
     
-    dataset <- object@consensus$sc3_processed_dataset
-    hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
+    dataset <- object@sc3$processed_dataset
+    hc <- object@sc3$consensus[[as.character(k)]]$hc
     clusts <- get_clusts(hc, k)
 
-    train.dataset <- dataset[, object@consensus$svm_train_inds]
+    train.dataset <- dataset[, object@sc3$svm_train_inds]
     colnames(train.dataset) <- clusts
     
     study.labs <-
         support_vector_machines(
             train.dataset,
-            dataset[, object@consensus$svm_study_inds],
+            dataset[, object@sc3$svm_study_inds],
             "linear"
         )
     
     svm.labs <- c(clusts, study.labs)
     
-    ord <- order(c(object@consensus$svm_train_inds, object@consensus$svm_study_inds))
+    ord <- order(c(object@sc3$svm_train_inds, object@sc3$svm_study_inds))
     
-    object@consensus$svm_result <- svm.labs[ord]
+    object@sc3$svm_result <- svm.labs[ord]
     return(object)
 }
 
@@ -959,13 +981,15 @@ setMethod("sc3_run_svm", signature(object = "SCESet"),
 #' Summarise SC3 results
 #' 
 #' This function summarised all SC3 results into a single list and populates 
-#' it to the following item of the object@consensus slot:
+#' it to the following item of the object@sc3 slot:
 #' \itemize{
-#'   \item sc3_results - contains all SC3 results
+#'   \item results - contains all SC3 results
 #' }
 #' 
 #' @param object an object of "SCESet" class
 #' @param k the number of clusters k for which the results should be summarised
+#' 
+#' @importFrom scater pData<-
 #' 
 #' @return an object of "SCESet" class
 #' 
@@ -974,25 +998,58 @@ sc3_summarise_results.SCESet <- function(
     object,
     k
 ) {
-    if ( is.null(object@consensus$svm_result) ) {
-        hc <- object@consensus$sc3_consensus[[as.character(k)]]$hc
+    if ( is.null(object@sc3$consensus) ) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    
+    p_data <- object@phenoData@data
+    if ( is.null(object@sc3$svm_result) ) {
+        hc <- object@sc3$consensus[[as.character(k)]]$hc
         clusts <- get_clusts(hc, k)
-        names(clusts) <- rownames(object@phenoData@data)
+        if(!is.null(object@sc3$svm_train_inds)) {
+            tmp <- rep(NA, nrow(p_data))
+            tmp[object@sc3$svm_train_inds] <- clusts
+            clusts <- tmp
+        }
+        p_data$sc3_clusters <- clusts
+        pData(object) <- new("AnnotatedDataFrame", data = p_data)
+        
+        cell_outliers <- NULL
+        de_genes <- NULL
+        markers <- NULL
+        
+        if( !is.null(object@sc3$biology) ) {
+            cell_outliers <- object@sc3$biology[[as.character(k)]]$cell.outl
+            rownames(cell_outliers) <- rownames(p_data)[!is.na(p_data$sc3_clusters)]
+            de_genes <- object@sc3$biology[[as.character(k)]]$de.genes
+            markers <- object@sc3$biology[[as.character(k)]]$markers
+        }
+        
+        clusts <- as.data.frame(clusts)
+        colnames(clusts) <- "sc3_clusters"
+        
         res <- list(
-            labels = cbind(object@phenoData@data, clusts),
-            de.genes = object@consensus$sc3_biology[[as.character(k)]]$de.genes,
-            markers = object@consensus$sc3_biology[[as.character(k)]]$markers,
-            cell.outliers = object@consensus$sc3_biology[[as.character(k)]]$cell.outl
+            clusters = clusts,
+            de_genes = de_genes,
+            markers = markers,
+            cell_outliers = cell_outliers
         )
     } else {
-        clusts <- object@consensus$svm_result
-        names(clusts) <- rownames(object@phenoData@data)
+        clusts <- object@sc3$svm_result
+        # names(clusts) <- rownames(p_data)
+        p_data$sc3_clusters <- clusts
+        pData(object) <- new("AnnotatedDataFrame", data = p_data)
+        
+        clusts <- as.data.frame(clusts)
+        colnames(clusts) <- "sc3_clusters"
+        
         res <- list(
-            labels = cbind(object@phenoData@data, clusts)
+            clusters = clusts
         )
     }
     
-    object@consensus$sc3_results <- res
+    object@sc3$results <- res
     return(object)
 }
 
@@ -1008,5 +1065,46 @@ setMethod("sc3_summarise_results", signature(object = "SCESet"),
               sc3_summarise_results.SCESet(
                   object,
                   k
+              )
+          })
+
+#' Write SC3 results to Excel file
+#' 
+#' This function writes SC3 results contained in the object@sc3$results
+#' list to an excel file.
+#' 
+#' @param object an object of "SCESet" class
+#' @param filename name of the excel file, to which the results will be written
+#' 
+#' @importFrom WriteXLS WriteXLS
+#' 
+#' @export
+sc3_export_results_xls.SCESet <- function(
+    object,
+    filename = "sc3_results.xls"
+) {
+    if ( is.null(object@sc3$results) ) {
+        stop(paste0("Please run sc3_summarise_results() first!"))
+    }
+    WriteXLS(
+        object@sc3$results, 
+        ExcelFileName = filename,
+        SheetNames = names(object@sc3$results),
+        row.names = TRUE
+    )
+}
+
+#' @rdname sc3_export_results_xls.SCESet
+#' @aliases sc3_export_results_xls
+#' @importClassesFrom scater SCESet
+#' @export
+setMethod("sc3_export_results_xls", signature(object = "SCESet"),
+          function(
+              object,
+              filename = "sc3_results.xls"
+          ) {
+              sc3_export_results_xls.SCESet(
+                  object,
+                  filename
               )
           })

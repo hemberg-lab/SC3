@@ -21,9 +21,9 @@ an object of "SCESet" class
 }
 \description{
 This function summarised all SC3 results into a single list and populates 
-it to the following item of the object@consensus slot:
+it to the following item of the object@sc3 slot:
 \itemize{
-  \item sc3_results - contains all SC3 results
+  \item results - contains all SC3 results
 }
 }
 

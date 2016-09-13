@@ -15,14 +15,14 @@
 #'
 sc3_interactive.SCESet <- function(object) {
     
-    consensus <- object@consensus$sc3_consensus
+    consensus <- object@sc3$consensus
     if ( is.null(consensus) ) {
         warning(paste0("Please run sc3_calc_consens() first!"))
         return()
     }
     
     ks <- as.numeric(names(consensus))
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     show.original.labels <- FALSE
     
     ## define UI parameters
@@ -33,12 +33,12 @@ sc3_interactive.SCESet <- function(object) {
     values <- reactiveValues()
     
     svm <- FALSE
-    if(!is.null(object@consensus$svm_train_inds)) {
+    if(!is.null(object@sc3$svm_train_inds)) {
         svm <- TRUE
     }
     
     biology <- FALSE
-    if(!is.null(object@consensus$sc3_biology)) {
+    if(!is.null(object@sc3$biology)) {
         biology <- TRUE
     }
     
@@ -102,8 +102,8 @@ sc3_interactive.SCESet <- function(object) {
                                 p(
                                     HTML(paste0(
                                         "<font color = 'red'>Your data was clustered in the SVM regime based on ",
-                                        length(object@consensus$svm_train_inds),
-                                        " cells. When you have found the best clustering parameters, go back to your terminal session and run sc3_run_svm() to predict the labels of the other cells.</font>"
+                                        length(object@sc3$svm_train_inds),
+                                        " cells. When you have found the best number of clusters <b><em>k</em></b>, go back to your terminal session and run sc3_run_svm() to predict the labels of the other cells.</font>"
                                     ))
                                 )
                             )
@@ -187,10 +187,10 @@ sc3_interactive.SCESet <- function(object) {
                                         "Choose a cluster for GO analysis:",
                                         c("None" = "NULL")
                                     ),
-                                    if(object@consensus$rselenium) {
+                                    if(object@sc3$rselenium) {
                                         actionButton("GO", label = "Analyze!")
                                     },
-                                    if(object@consensus$rselenium) {
+                                    if(object@sc3$rselenium) {
                                         HTML("<br>(opens <a href = 'http://biit.cs.ut.ee/gprofiler' target='_blank'>g:Profiler</a> in Firefox)")
                                     } else {
                                         HTML("<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>.")
@@ -291,11 +291,11 @@ sc3_interactive.SCESet <- function(object) {
             observe({
                 if(biology) {
                     markers <- 
-                        object@consensus$sc3_biology[[as.character(input$clusters)]]$markers
+                        object@sc3$biology[[as.character(input$clusters)]]$markers
                     markers <- markers[markers$AUC >= as.numeric(input$auroc.threshold) & markers$p.value < as.numeric(input$p.val.mark), ]
                     values$n.markers <- nrow(markers)
                     mark.res.plot <- mark_gene_heatmap_param(markers)
-                    clusts <- unique(mark.res.plot$clusts)
+                    clusts <- unique(mark.res.plot$sc3_clusters)
                     if(is.null(clusts)) clusts <- "None"
                     values$mark.res <- mark.res.plot
                     updateSelectInput(session, "cluster", choices = clusts)
@@ -307,7 +307,7 @@ sc3_interactive.SCESet <- function(object) {
             # observer for DE genes
             observe({
                 if(biology) {
-                    de.genes <- object@consensus$sc3_biology[[as.character(input$clusters)]]$de.genes
+                    de.genes <- object@sc3$biology[[as.character(input$clusters)]]$de.genes
                     de.genes <- de.genes[de.genes$p.value < as.numeric(input$p.val.de), , drop = FALSE]
                     values$n.de.genes <- nrow(de.genes)
                     values$n.de.plot.height <- nrow(head(de.genes, 50))
@@ -527,7 +527,7 @@ sc3_interactive.SCESet <- function(object) {
             output$StabilityPlot <- renderPlot({
                 validate(
                     need(
-                        length(object@consensus$sc3_consensus) > 1,
+                        length(object@sc3$consensus) > 1,
                         "\nStability cannot be calculated for a single k value!"
                     )
                 )
@@ -574,7 +574,7 @@ sc3_interactive.SCESet <- function(object) {
             output$mark_genes <- renderPlot({
                 validate(
                     need(
-                        !is.null(object@consensus$sc3_biology),
+                        !is.null(object@sc3$biology),
                         "\nPlease run sc3_calc_biology() first!"
                     )
                 )
@@ -604,7 +604,7 @@ sc3_interactive.SCESet <- function(object) {
             output$plot_mark_genes <- renderUI({
                 validate(
                     need(
-                        !is.null(object@consensus$sc3_biology),
+                        !is.null(object@sc3$biology),
                         "\nPlease run sc3_calc_biology() first!"
                     )
                 )
@@ -631,7 +631,7 @@ sc3_interactive.SCESet <- function(object) {
             output$de_genes <- renderPlot({
                 validate(
                     need(
-                        !is.null(object@consensus$sc3_biology),
+                        !is.null(object@sc3$biology),
                         "\nPlease run sc3_calc_biology() first!"
                     )
                 )
@@ -659,7 +659,7 @@ sc3_interactive.SCESet <- function(object) {
             output$plot_de_genes <- renderUI({
                 validate(
                     need(
-                        !is.null(object@consensus$sc3_biology),
+                        !is.null(object@sc3$biology),
                         "\nPlease run sc3_calc_biology() first!"
                     )
                 )
@@ -686,7 +686,7 @@ sc3_interactive.SCESet <- function(object) {
             output$outliers <- renderPlot({
                 validate(
                     need(
-                        !is.null(object@consensus$sc3_biology),
+                        !is.null(object@sc3$biology),
                         "\nPlease run sc3_calc_biology() first!"
                     )
                 )

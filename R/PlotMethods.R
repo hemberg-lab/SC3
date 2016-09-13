@@ -22,7 +22,7 @@ sc3_plot_consensus.SCESet <- function(object, k) {
     
     res <- prepare_output(object, k)
     
-    consensus <- object@consensus$sc3_consensus[[as.character(k)]]$consensus
+    consensus <- object@sc3$consensus[[as.character(k)]]$consensus
     
     pheatmap::pheatmap(
         consensus,
@@ -101,10 +101,10 @@ sc3_plot_expression.SCESet <- function(object, k) {
     
     res <- prepare_output(object, k)
     
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
     pheatmap::pheatmap(
@@ -157,15 +157,15 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"),
 sc3_plot_tsne.SCESet <- function(
     object, 
     k, 
-    perplexity = floor(ncol(object@consensus$sc3_processed_dataset) / 5), 
+    perplexity = floor(ncol(object@sc3$processed_dataset) / 5), 
     seed = 1234567
 ) {
     res <- prepare_output(object, k)
     
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
     dataset <- dataset[ , res$hc$order]
@@ -199,7 +199,7 @@ setMethod("sc3_plot_tsne", signature(object = "SCESet"),
           function(
               object, 
               k, 
-              perplexity = floor(ncol(object@consensus$sc3_processed_dataset) / 5), 
+              perplexity = floor(ncol(object@sc3$processed_dataset) / 5), 
               seed = 1234567
           ) {
               sc3_plot_tsne.SCESet(
@@ -236,13 +236,13 @@ sc3_plot_de_genes.SCESet <- function(
     
     res <- prepare_output(object, k)
     
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
-    de.genes <- object@consensus$sc3_biology[[as.character(k)]]$de.genes
+    de.genes <- object@sc3$biology[[as.character(k)]]$de.genes
     
     de.genes <- de.genes[de.genes$p.value < p.val, , drop = FALSE]
     d <- head(de.genes, 50)
@@ -306,13 +306,13 @@ sc3_plot_markers.SCESet <- function(
     
     res <- prepare_output(object, k)
     
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@consensus$svm_train_inds)) {
-        dataset <- dataset[ , object@consensus$svm_train_inds]
+    if(!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[ , object@sc3$svm_train_inds]
     }
     
-    markers <- object@consensus$sc3_biology[[as.character(k)]]$markers
+    markers <- object@sc3$biology[[as.character(k)]]$markers
     
     markers <- markers[markers$AUC >= auroc & markers$p.value < p.val, ]
 
@@ -320,8 +320,8 @@ sc3_plot_markers.SCESet <- function(
     
     row.ann <- data.frame(
         Cluster = factor(
-            mark.res.plot$clusts,
-            levels = unique(mark.res.plot$clusts)
+            mark.res.plot$sc3_clusters,
+            levels = unique(mark.res.plot$sc3_clusters)
         )
     )
     rownames(row.ann) <- rownames(mark.res.plot)
@@ -334,7 +334,7 @@ sc3_plot_markers.SCESet <- function(
         cutree_cols = k,
         annotation_row = row.ann,
         annotation_names_row = FALSE,
-        gaps_row = which(diff(mark.res.plot$clusts) != 0),
+        gaps_row = which(diff(mark.res.plot$sc3_clusters) != 0),
         cellheight = 10
     )
 }
@@ -376,19 +376,19 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"),
 sc3_plot_cell_outliers.SCESet <- function(object, k) {
     res <- prepare_output(object, k)
     
-    outl <- object@consensus$sc3_biology[[as.character(k)]]$cell.outl
+    outl <- object@sc3$biology[[as.character(k)]]$cell.outl
     outl <- outl[res$hc$order, ]
     
     outl$cell.ind <- 1:nrow(outl)
     
-    cols <- iwanthue(length(unique(outl$clusts)))
+    cols <- iwanthue(length(unique(outl$sc3_clusters)))
     
-    outl$clusts <- factor(
-        outl$clusts,
+    outl$sc3_clusters <- factor(
+        outl$sc3_clusters,
         levels =
             unique(
                 as.character(
-                    outl$clusts
+                    outl$sc3_clusters
                 )
             )
     )
@@ -437,8 +437,8 @@ setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"),
 #' @export
 sc3_plot_cluster_stability.SCESet <- function(object, k) {
     
-    if(!as.character(k) %in% names(object@consensus$sc3_consensus)) {
-        stop(paste0("Please choose k from: ", paste(names(object@consensus$sc3_consensus), collapse = " "))) 
+    if(!as.character(k) %in% names(object@sc3$consensus)) {
+        stop(paste0("Please choose k from: ", paste(names(object@sc3$consensus), collapse = " "))) 
     }
     
     res <- prepare_output(object, k)
@@ -447,7 +447,7 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
     # check if there are more than 1 k value in ks range
     stability <- NULL
     stability <- StabilityIndex(
-        object,
+        object@sc3$consensus,
         k
     )
     

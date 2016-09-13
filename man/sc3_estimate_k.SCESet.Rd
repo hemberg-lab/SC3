@@ -19,6 +19,10 @@ an estimated value of k
 }
 \description{
 Uses Tracy-Widom theory on random matrices to estimate the optimal number of
-clusters k. Using the function \code{\link{estkTW}} to perform the estimation.
+clusters k. Using the function \code{\link{estkTW}} to perform the estimation. 
+It creates and populates the following items of the `sc3` slot:
+\itemize{
+  \item k_prediction - contains the estimated value of `k`.
+}
 }
 

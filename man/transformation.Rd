@@ -9,16 +9,15 @@ transformation(dists, method)
 \arguments{
 \item{dists}{distance matrix}
 
-\item{method}{transformation method: either "pca", "mds", "spectral" or
-"spectral_reg", where "spectral_reg" calculates graph Laplacian with
-regularization (tau = 1000)}
+\item{method}{transformation method: either "pca" or
+"laplacian"}
 }
 \value{
 transformed distance matrix
 }
 \description{
 All distance matrices are transformed using either principal component 
-analysis (PCA), multidimensional scaling (MDS) or by calculating the 
+analysis (PCA) or by calculating the 
 eigenvectors of the graph Laplacian (Spectral). 
 The columns of the resulting matrices are then sorted in 
 descending order by their corresponding eigenvalues.

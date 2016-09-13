@@ -19,10 +19,10 @@ an object of "SCESet" class
 }
 \description{
 This function calculates consensus matrices based on the clustering solutions
-contained in the sc3_kmeans item of the object@consensus slot. It then
-creates and populates the following items of the object@consensus slot:
+contained in the sc3_kmeans item of the object@sc3 slot. It then
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_consensus - contains a list of consensus matrices. In addition 
+  \item consensus - contains a list of consensus matrices. In addition 
   to consensus matrices it also contains the Silhouette
   indeces of the clusters and original cell labels corresponding to the clusters.
 }

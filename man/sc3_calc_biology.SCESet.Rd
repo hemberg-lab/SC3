@@ -20,10 +20,10 @@ an object of "SCESet" class
 \description{
 This function calculates DE genes, marker genes and cell outliers based on 
 the consensus clusterings
-contained in the sc3_consensus item of the object@consensus slot. It then
-creates and populates the following items of the object@consensus slot:
+contained in the consensus item of the object@sc3 slot. It then
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_biology - contains lists of DE genes, marker genes and 
+  \item biology - contains lists of DE genes, marker genes and 
   cell outliers data frames.
 }
 }

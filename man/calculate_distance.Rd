@@ -9,8 +9,7 @@ calculate_distance(data, method)
 \arguments{
 \item{data}{expression matrix}
 
-\item{method}{one of the distance metrics: "spearman", "pearson", "euclidean",
-"maximum", "manhattan", "canberra", "binary" or "minkowski"}
+\item{method}{one of the distance metrics: "spearman", "pearson", "euclidean"}
 }
 \value{
 distance matrix

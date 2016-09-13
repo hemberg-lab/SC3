@@ -19,10 +19,10 @@ an object of "SCESet" class
 }
 \description{
 This function calculates distances between the cells contained in 
-the sc3_processed_dataset item of the object@consensus slot. It then
-creates and populates the following items of the object@consensus slot:
+the processed_dataset item of the object@sc3 slot. It then
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_distances - contains a list of distance matrices corresponding to
+  \item distances - contains a list of distance matrices corresponding to
   Euclidean, Pearson and Spearman distances.
 }
 }

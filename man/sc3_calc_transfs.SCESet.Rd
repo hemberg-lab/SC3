@@ -19,10 +19,10 @@ an object of "SCESet" class
 }
 \description{
 This function calculates transforamtions of the distance matrices contained in 
-the sc3_distances item of the object@consensus slot. It then
-creates and populates the following items of the object@consensus slot:
+the sc3_distances item of the object@sc3 slot. It then
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_transformations - contains a list of transformations of the 
+  \item transformations - contains a list of transformations of the 
   distance matrices corresponding to PCA and graph Laplacian transformations.
 }
 }

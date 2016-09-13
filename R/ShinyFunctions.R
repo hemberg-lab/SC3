@@ -1,9 +1,9 @@
 
 #' @importFrom stats cutree
 prepare_output <- function(object, k) {
-    consensus <- object@consensus$sc3_consensus
+    consensus <- object@sc3$consensus
     ks <- as.numeric(names(consensus))
-    dataset <- object@consensus$sc3_processed_dataset
+    dataset <- object@sc3$processed_dataset
     # get all results for k
     res <- consensus[[as.character(k)]]
     # get all results for k-1
@@ -52,8 +52,8 @@ get_clusts <- function(hc, k) {
 
 mark_gene_heatmap_param <- function(markers) {
     mark.res.plot <- NULL
-    for(i in unique(markers$clusts)) {
-        tmp <- markers[markers$clusts == i, ]
+    for(i in unique(markers$sc3_clusters)) {
+        tmp <- markers[markers$sc3_clusters == i, ]
         if(nrow(tmp) > 10) {
             mark.res.plot <- rbind(mark.res.plot, tmp[1:10, ])
         } else {
@@ -131,7 +131,7 @@ get_outl_cells <- function(dataset, labels) {
         }
     }
     
-    res <- data.frame(clusts = labels, MCD.dist = out, stringsAsFactors = FALSE)
+    res <- data.frame(sc3_clusters = labels, MCD.dist = out, stringsAsFactors = FALSE)
     
     return(res)
 }
@@ -195,11 +195,11 @@ get_marker_genes <- function(dataset, labels) {
     geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow=length(geneAUCs)/3,
                                     byrow=TRUE))
     rownames(geneAUCsdf) <- rownames(dataset)
-    colnames(geneAUCsdf) <- c("AUC","clusts", "p.value")
+    colnames(geneAUCsdf) <- c("AUC","sc3_clusters", "p.value")
     # remove genes with ties
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$clusts != -1, ]
+    geneAUCsdf <- geneAUCsdf[geneAUCsdf$sc3_clusters != -1, ]
     geneAUCsdf$AUC <- as.numeric(as.character(geneAUCsdf$AUC))
-    geneAUCsdf$clusts <- as.numeric(as.character(geneAUCsdf$clusts))
+    geneAUCsdf$sc3_clusters <- as.numeric(as.character(geneAUCsdf$sc3_clusters))
     geneAUCsdf$p.value <- as.numeric(as.character(geneAUCsdf$p.value))
 
     geneAUCsdf$p.value <- p.adjust(geneAUCsdf$p.value)
@@ -209,8 +209,8 @@ get_marker_genes <- function(dataset, labels) {
     geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
 
     d <- NULL
-    for(i in sort(unique(geneAUCsdf$clusts))) {
-        tmp <- geneAUCsdf[geneAUCsdf$clusts == i, ]
+    for(i in sort(unique(geneAUCsdf$sc3_clusters))) {
+        tmp <- geneAUCsdf[geneAUCsdf$sc3_clusters == i, ]
         tmp <- tmp[order(tmp$AUC, decreasing = TRUE),]
         d <- rbind(d, tmp)
     }
@@ -257,11 +257,10 @@ get_de_genes <- function(dataset, labels) {
 #' in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
 #' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
 #'
-#' @param object an object of "SCESet" class
+#' @param consensus consensus item of the sc3 slot of an object of "SCESet" class
 #' @param k number of clusters k
 #' @return a numeric vector containing a stability index of each cluster
-StabilityIndex <- function(object, k) {
-    consensus <- object@consensus$sc3_consensus
+StabilityIndex <- function(consensus, k) {
     hc <- consensus[[as.character(k)]]$hc
     labs <- get_clusts(hc, k)
     

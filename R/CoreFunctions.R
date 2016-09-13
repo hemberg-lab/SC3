@@ -10,19 +10,19 @@
 
 #' Gene filter
 #'
-#' The gene filter removes genes that are either expressed or absent
-#' (expression value is less than 2) in at least X % of cells.
-#' The motivation for the gene filter is that ubiquitous and rare genes most
-#' often are not informative for the clustering.
+#' The gene filter removes genes/transcripts that are either expressed 
+#' (expression value is more than 2) in less than X% of cells 
+#' (rare genes/transcripts) or expressed (expression value is more than 0) 
+#' in at least (100-X)% of cells (ubiquitous genes/transcripts).
 #'
-#' @param data expression matrix
-#' @param fraction fraction of cells (1 - X/100), default is 0.06.
+#' @param data input expression matrix
+#' @param fraction fraction of cells (X/100).
 #' @param reads.rare expression value threshold for genes that are expressed in
 #' less than fraction*N cells (rare genes)
 #' @param reads.ubiq expression value threshold for genes that are expressed in
 #' more than (1-fraction)*N cells (ubiquitous genes)
 #' @return filtered expression matrix some genes were removed.
-gene_filter <- function(data, fraction = 0, reads.rare = 0, reads.ubiq = 0) {
+gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
     message("Gene filtering...")
     frac.cells <- ceiling(fraction*ncol(data))
     d <- data[rowSums(data > reads.rare) >= frac.cells &
@@ -38,8 +38,7 @@ gene_filter <- function(data, fraction = 0, reads.rare = 0, reads.ubiq = 0) {
 #' distance matrices.
 #'
 #' @param data expression matrix
-#' @param method one of the distance metrics: "spearman", "pearson", "euclidean",
-#' "maximum", "manhattan", "canberra", "binary" or "minkowski"
+#' @param method one of the distance metrics: "spearman", "pearson", "euclidean"
 #' @return distance matrix
 #'
 #' @importFrom stats cor dist
@@ -60,15 +59,14 @@ calculate_distance <- function(data, method) {
 #' Distance matrix transformation
 #'
 #' All distance matrices are transformed using either principal component 
-#' analysis (PCA), multidimensional scaling (MDS) or by calculating the 
+#' analysis (PCA) or by calculating the 
 #' eigenvectors of the graph Laplacian (Spectral). 
 #' The columns of the resulting matrices are then sorted in 
 #' descending order by their corresponding eigenvalues.
 #'
 #' @param dists distance matrix
-#' @param method transformation method: either "pca", "mds", "spectral" or
-#' "spectral_reg", where "spectral_reg" calculates graph Laplacian with
-#' regularization (tau = 1000)
+#' @param method transformation method: either "pca" or
+#' "laplacian"
 #' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
@@ -113,20 +111,21 @@ norm_laplacian <- function(x, tau) {
 #' Calculate consensus matrix
 #'
 #' Consensus matrix is calculated using the Cluster-based Similarity 
-#' Partitioning Algorithm (CSPA). For each clustering result a binary 
+#' Partitioning Algorithm (CSPA). For each clustering solution a binary 
 #' similarity matrix is constructed from the corresponding cell labels: 
 #' if two cells belong to the same cluster, their similarity is 1, otherwise 
 #' the similarity is 0. A consensus matrix is calculated by averaging all 
 #' similarity matrices.
 #'
-#' @param clusts a list clustering labels (separated by a space)
+#' @param clusts a list of clustering solutions. Labels in each solutions 
+#' should be separated by a space.
 #' @return consensus matrix
 #'
 #' @importFrom stats dist
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
-#'
+#' @export
 consensus_matrix <- function(clusts) {
   n.cells <- length(unlist(strsplit(clusts[1], " ")))
   res <- matrix(0, nrow = n.cells, ncol = n.cells)
@@ -160,6 +159,15 @@ support_vector_machines <- function(train, study, kern) {
   return(pred = pred)
 }
 
+#' A helper function for the SVM analysis
+#'
+#' Defines train and study cell indeces based on the svm.num.cells and
+#' svm.train.inds input parameters
+#'
+#' @param N number of cells in the input dataset
+#' @param svm.num.cells number of random cells to be used for training
+#' @param svm.train.inds indeces of cells to be used for training
+#' @return A list of indeces of the train and the study cells
 prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
     
     if(!is.null(svm.num.cells)) {
@@ -190,12 +198,12 @@ prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
 
 #' Estimate the optimal k for k-means clustering
 #' 
-#' The procedure filters and log-transforms the expression matrix before 
-#' finding the eigenvalues of the sample covariance matrix. It will then return 
-#' the number of significant eigenvalues according to the Tracy-Widom test.
+#' The function finds the eigenvalues of the sample covariance matrix. 
+#' It will then return the number of significant eigenvalues according to 
+#' the Tracy-Widom test.
 #' 
 #' @param dataset processed input expression matrix.
-
+#' @return an estimated number of clusters k
 estkTW <- function(dataset) {
     
     p <- ncol(dataset)

@@ -22,9 +22,9 @@ an object of "SCESet" class
 \description{
 This function performs training of the SVM classifier on the training cells,
 which indeces are  
-contained in the svm_train_inds item of the object@consensus slot. Then it 
+contained in the svm_train_inds item of the object@sc3 slot. Then it 
 predicts the labels of the remaining cells using the SVM classifier. Finally it
-creates and populates the following items of the object@consensus slot:
+creates and populates the following items of the object@sc3 slot:
 \itemize{
   \item svm_result - contains labels of the cells predicted by the SVM ordered
   as the cells in the original dataset.

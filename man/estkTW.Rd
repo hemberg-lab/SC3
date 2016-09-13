@@ -9,9 +9,12 @@ estkTW(dataset)
 \arguments{
 \item{dataset}{processed input expression matrix.}
 }
+\value{
+an estimated number of clusters k
+}
 \description{
-The procedure filters and log-transforms the expression matrix before 
-finding the eigenvalues of the sample covariance matrix. It will then return 
-the number of significant eigenvalues according to the Tracy-Widom test.
+The function finds the eigenvalues of the sample covariance matrix. 
+It will then return the number of significant eigenvalues according to 
+the Tracy-Widom test.
 }
 

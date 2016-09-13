@@ -5,7 +5,7 @@
 \alias{sc3_kmeans}
 \alias{sc3_kmeans,SCESet-method}
 \alias{sc3_kmeans.SCESet}
-\title{Calculate transformations of the distance matrices.}
+\title{kmeans clustering of the transformed distance matrices.}
 \usage{
 sc3_kmeans.SCESet(object)
 
@@ -13,35 +13,24 @@ sc3_kmeans.SCESet(object)
 }
 \arguments{
 \item{object}{an object of "SCESet" class}
-
-\item{ks}{a range of the number of clusters k used for SC3 clustering.
-Can also be a single integer.}
-
-\item{k.means.iter.max}{iter.max parameter passed to \link[stats]{kmeans} 
-function. Default is 1e+09.}
-
-\item{seed}{sets seed for the random number generator.
-Can be used to check the stability of clustering results: if the results are 
-the same after changing the seed several time, then the clustering solution 
-is stable.}
 }
 \value{
 an object of "SCESet" class
 }
 \description{
-This function calculates transforamtions of the distance matrices contained in 
-the sc3_distances item of the object@consensus slot. It then
-creates and populates the following items of the object@consensus slot:
+This function performs kmeans clustering of the transformed distance matrices 
+contained in the transformations item of the object@sc3 slot. It then
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_transformations - contains a list of transformations of the 
-  distance matrices corresponding to PCA and graph Laplacian transformations.
+  \item kmeans - contains a list of kmeans clusterings.
 }
 }
 \details{
 By default the nstart parameter passed to \link[stats]{kmeans} is defined
-in \code{\link{sc3_prepare.SCESet}}, is set 1000 and written to 
-sc3_kmeans_nstart item of the object@consensus slot.
+in \code{\link{sc3_prepare.SCESet}}, is set to 1000 and written to 
+kmeans_nstart item of the object@sc3 slot.
 If the number of cells in the dataset is more than 2000, this parameter is 
-set to 50.
+set to 50. A user can also manually define this parameter by changing the 
+value of the kmeans_nstart item of the object@sc3 slot.
 }
 

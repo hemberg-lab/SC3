@@ -11,14 +11,14 @@ sc3_prepare.SCESet(object, exprs_values = "counts", gene.filter = TRUE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
   log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL,
-  ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1)
+  k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1)
 
 \S4method{sc3_prepare}{SCESet}(object, exprs_values = "counts",
   gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
   gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
   d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL,
-  n.cores = NULL, ks = NULL, k.means.nstart = NULL,
-  k.means.iter.max = 1e+09, seed = 1)
+  n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09,
+  seed = 1)
 }
 \arguments{
 \item{object}{an object of "SCESet" class}
@@ -72,9 +72,6 @@ that should be used for SVM training. The default is NULL.}
 
 \item{n.cores}{defines the number of cores to be used on the user's machine.}
 
-\item{ks}{a range of the number of clusters k used for SC3 clustering.
-Can also be a single integer.}
-
 \item{k.means.nstart}{nstart parameter used by kmeans() function. Default is 
 1000 for up to 2000 cells and 50 for more than 2000 cells.}
 
@@ -91,23 +88,22 @@ an object of "SCESet" class
 }
 \description{
 This function prepares an object of "SCESet" class for SC3 clustering. It
-creates and populates the following items of the object@consensus slot:
+creates and populates the following items of the object@sc3 slot:
 \itemize{
-  \item sc3_processed_dataset - contains the expression matrix to be used for
+  \item processed_dataset - contains the expression matrix to be used for
   SC3 clustering.
-  \item sc3_ks - contains a range of the number of clusters k to be used by SC3
-  \item sc3_kmeans_iter_max - contains a value of iter.max parameter to be used
+  \item kmeans_iter_max - contains a value of iter.max parameter to be used
   in kmeans clustering.
-  \item sc3_rand_seed - contains a random seed to be used by SC3
-  \item sc3_kmeans_nstart - contains a value of nstart parameter to be used
+  \item rand_seed - contains a random seed to be used by SC3
+  \item kmeans_nstart - contains a value of nstart parameter to be used
   in kmeans clustering.
-  \item sc3_n_dim - contains values of the number of eigenvectors to be used
+  \item n_dim - contains values of the number of eigenvectors to be used
   in kmeans clustering.
   \item svm_train_inds - if SVM is used this item contains indexes of the 
   training cells to be used for SC3 clustering and further SVM prediction.
   \item svm_study_inds - if SVM is used this item contains indexes of the
    cells to be predicted by SVM.
-  \item sc3_n_cores - contains a value of the number of available cores on the
+  \item n_cores - contains a value of the number of available cores on the
   user's machine.
   \item rselenium - defines whether RSelenium is installed on the user's machine.
 }

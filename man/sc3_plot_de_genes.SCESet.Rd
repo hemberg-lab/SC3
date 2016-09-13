@@ -5,7 +5,7 @@
 \alias{sc3_plot_de_genes}
 \alias{sc3_plot_de_genes,SCESet-method}
 \alias{sc3_plot_de_genes.SCESet}
-\title{Plot expression matrix used for SC3 clustering as a heatmap}
+\title{Plot expression of DE genes of the clusters identified by SC3 as a heatmap}
 \usage{
 sc3_plot_de_genes.SCESet(object, k, p.val = 0.01)
 
