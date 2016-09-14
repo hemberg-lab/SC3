@@ -12,7 +12,7 @@ sc3_plot_markers.SCESet(object, k, auroc = 0.85, p.val = 0.01)
 \S4method{sc3_plot_markers}{SCESet}(object, k, auroc = 0.85, p.val = 0.01)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{k}{number of clusters}
 

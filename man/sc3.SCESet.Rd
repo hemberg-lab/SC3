@@ -20,18 +20,18 @@ sc3.SCESet(object, exprs_values = "counts", gene.filter = TRUE,
   ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{exprs_values}{character string 
 indicating which values should be used
-as the expression values for SC3 clustering. Valid arguments are \code{"tpm"}
-(default; transcripts per million), \code{"norm_tpm"} (normalised TPM
-values), \code{"fpkm"} (FPKM values), \code{"norm_fpkm"} (normalised FPKM
-values), \code{"counts"} (counts for each feature), \code{"norm_counts"},
-\code{"cpm"} (counts-per-million), \code{"norm_cpm"} (normalised
-counts-per-million), \code{"exprs"} (whatever is in the \code{'exprs'} slot
-of the \code{SCESet} object; default), \code{"norm_exprs"} (normalised
-expression values) or \code{"stand_exprs"} (standardised expression values)
+as the expression values for SC3 clustering. Valid arguments are \code{'tpm'}
+(default; transcripts per million), \code{'norm_tpm'} (normalised TPM
+values), \code{'fpkm'} (FPKM values), \code{'norm_fpkm'} (normalised FPKM
+values), \code{'counts'} (counts for each feature), \code{'norm_counts'},
+\code{'cpm'} (counts-per-million), \code{'norm_cpm'} (normalised
+counts-per-million), \code{'exprs'} (whatever is in the \code{'exprs'} slot
+of the \code{SCESet} object; default), \code{'norm_exprs'} (normalised
+expression values) or \code{'stand_exprs'} (standardised expression values)
 or any other named element of the \code{assayData} slot of the \code{SCESet}
 object that can be accessed with the \code{get_exprs} function.}
 
@@ -86,7 +86,7 @@ the same after changing the seed several time, then the clustering solution
 is stable.}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function is a wrapper that executes all steps of SC3 analysis in one go.

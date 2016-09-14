@@ -12,7 +12,7 @@ sc3_estimate_k.SCESet(object)
 \S4method{sc3_estimate_k}{SCESet}(object)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 }
 \value{
 an estimated value of k

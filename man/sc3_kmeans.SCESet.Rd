@@ -12,10 +12,10 @@ sc3_kmeans.SCESet(object)
 \S4method{sc3_kmeans}{SCESet}(object)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function performs kmeans clustering of the transformed distance matrices 

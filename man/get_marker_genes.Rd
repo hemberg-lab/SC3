@@ -10,7 +10,7 @@ get_marker_genes(dataset, labels)
 \item{dataset}{expression matrix}
 
 \item{labels}{cell labels corresponding to the columns of the expression matrix.
-Labels must be integers or character integers, e.g. 1, 2, 3 or "1", "2", "3" ect.}
+Labels must be integers or character integers, e.g. 1, 2, 3 or '1', '2', '3' ect.}
 }
 \value{
 data.frame containing the marker genes

@@ -12,12 +12,12 @@ sc3_summarise_results.SCESet(object, k)
 \S4method{sc3_summarise_results}{SCESet}(object, k)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{k}{the number of clusters k for which the results should be summarised}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function summarised all SC3 results into a single list and populates 

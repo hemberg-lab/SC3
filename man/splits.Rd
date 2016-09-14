@@ -10,7 +10,7 @@ splits(myString)
 \item{myString}{An integral string.}
 }
 \description{
-Similar to "strsplit" in R but only for integral strings and vectors.
+Similar to 'strsplit' in R but only for integral strings and vectors.
 }
 \details{
 To remove a note from check change this function using an answer here:

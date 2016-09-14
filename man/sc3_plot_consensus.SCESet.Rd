@@ -12,7 +12,7 @@ sc3_plot_consensus.SCESet(object, k)
 \S4method{sc3_plot_consensus}{SCESet}(object, k)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{k}{number of clusters}
 }

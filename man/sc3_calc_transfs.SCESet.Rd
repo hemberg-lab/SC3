@@ -12,10 +12,10 @@ sc3_calc_transfs.SCESet(object)
 \S4method{sc3_calc_transfs}{SCESet}(object)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function calculates transforamtions of the distance matrices contained in 

@@ -7,7 +7,7 @@
 StabilityIndex(consensus, k)
 }
 \arguments{
-\item{consensus}{consensus item of the sc3 slot of an object of "SCESet" class}
+\item{consensus}{consensus item of the sc3 slot of an object of 'SCESet' class}
 
 \item{k}{number of clusters k}
 }

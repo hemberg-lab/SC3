@@ -12,7 +12,7 @@ sc3_set_ks.SCESet(object, ks = NULL)
 \S4method{sc3_set_ks}{SCESet}(object, ks = NULL)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
 Can also be a single integer.}

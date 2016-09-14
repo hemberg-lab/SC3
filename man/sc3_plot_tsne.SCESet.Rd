@@ -14,7 +14,7 @@ sc3_plot_tsne.SCESet(object, k,
   perplexity = floor(ncol(object@sc3$processed_dataset)/5), seed = 1234567)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{k}{number of clusters}
 

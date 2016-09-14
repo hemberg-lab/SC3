@@ -13,7 +13,7 @@ sc3_export_results_xls.SCESet(object, filename = "sc3_results.xls")
   filename = "sc3_results.xls")
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{filename}{name of the excel file, to which the results will be written}
 }

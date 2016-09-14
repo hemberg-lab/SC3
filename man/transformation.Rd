@@ -9,8 +9,8 @@ transformation(dists, method)
 \arguments{
 \item{dists}{distance matrix}
 
-\item{method}{transformation method: either "pca" or
-"laplacian"}
+\item{method}{transformation method: either 'pca' or
+'laplacian'}
 }
 \value{
 transformed distance matrix

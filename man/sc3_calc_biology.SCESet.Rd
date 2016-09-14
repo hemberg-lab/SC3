@@ -12,10 +12,10 @@ sc3_calc_biology.SCESet(object)
 \S4method{sc3_calc_biology}{SCESet}(object)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function calculates DE genes, marker genes and cell outliers based on 

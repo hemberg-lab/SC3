@@ -9,7 +9,7 @@ swatch(x)
 \arguments{
 \item{x}{a vector of colours, specified as: colour names (i.e.
 colour names returned by \code{colors()}); numeric indices into
-\code{palette()}, or hexadecimal strings in the form \code{"#RRGGBB"}, where
+\code{palette()}, or hexadecimal strings in the form \code{'#RRGGBB'}, where
 \code{RR}, \code{GG}, and \code{BB} are pairs of hexadecimal digits
 representing red, green, and blue components, in the range \code{00} to
 \code{FF}.}

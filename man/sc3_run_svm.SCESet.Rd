@@ -12,12 +12,12 @@ sc3_run_svm.SCESet(object, k)
 \S4method{sc3_run_svm}{SCESet}(object, k)
 }
 \arguments{
-\item{object}{an object of "SCESet" class}
+\item{object}{an object of 'SCESet' class}
 
 \item{k}{the number of clusters k for which the SVM should be run}
 }
 \value{
-an object of "SCESet" class
+an object of 'SCESet' class
 }
 \description{
 This function performs training of the SVM classifier on the training cells,
