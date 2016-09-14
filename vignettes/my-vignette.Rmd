@@ -1,105 +1,353 @@
 ---
-title: "SC3 manual"
+title: "SC3 package manual"
 author: "Vladimir Kiselev"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+    BiocStyle::html_document:
+        toc: true
 vignette: >
-  %\VignetteIndexEntry{SC3 manual}
+  %\VignetteIndexEntry{SC3 package manual}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
-## Introduction
 
-Single-Cell Consensus Clustering (__SC3__) is a tool for unsupervised clustering of scRNA-seq data. __SC3__ achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes __SC3__ accessible to a wide audience of users. In addition, __SC3__ also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing __SC3__ in details is currently under review but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/01/13/036558).
+```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
+```
 
-## Prerequisites (optional)
+# Introduction
 
-> Note that this prerequisite is only optional. If it is not installed you can still run __SC3__, but the _GO anlaysis_ functionality will be disabled.
+Single-Cell Consensus Clustering (`SC3`) is a tool for unsupervised clustering of scRNA-seq data. `SC3` achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes `SC3` accessible to a wide audience of users. In addition, `SC3` also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing `SC3` in details is currently under review but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/09/02/036558).
 
-__SC3__ imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details). You can download and install this binary file by running (the file size is about 30Mb):
+# Quality Control, Normalisation and `scater`
+
+`SC3` is a purely clustering tool and it does not provide functions for the sequencing quality control (QC) or normalisation. On the contrary it is expected that these preprocessing steps are performed by a user in advance. To encourage the preprocessing, `SC3` is built on top of the Bioconductor’s `scater` package. To our knowledge the `scater` is the most comprehensive toolkit for the QC and normalisation analysis of the single-cell RNA-Seq data.
+
+The basic `scater` data container is an `SCESet` object. `SC3` implements several methods that allow one to perform clustering of the expression data contained in the `SCESet` object. All results of `SC3` calculations are written to the `sc3` slot of the `SCESet` object.
+
+# Quick Start
+
+## `SC3` Input
+
+If you already have an `SCESet` object created and QCed using `scater` then proceed to the next chapter.
+
+If you have a matrix containing expression data that was QCed and normalised by some other tool, then we first need to form an `SCESet` object containing the data. For illustrative purposes we will use an example expression matrix provided with `SC3`. This matrix (`treutein`) represents gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.htm)) had computationally identified 5 clusters in the data. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
+
+```{r, message=FALSE, warning=FALSE}
+library(scater)
+library(SC3)
+treutlein[1:3, 1:3]
+```
+
+It is easy to create an `SCESet` object from `treutlein` expression matrix. We will follow the [`scater`'s manual](https://www.bioconductor.org/packages/release/bioc/vignettes/scater/inst/doc/vignette.html):
+```{r}
+treutlein_cell_info <- data.frame(author_clusters = colnames(treutlein))
+cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
+rownames(treutlein_cell_info) <- cell_inds
+colnames(treutlein) <- cell_inds
+pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
+treutlein_sceset <- newSCESet(countData = treutlein, phenoData = pd)
+```
+
+To be able to create plots using `scater` we will also calculate the QC metrics:
+```{r}
+treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
+```
+
+Note that `treutlein_cell_info` data frame can contain more information about the cells, such as plate, run, well, date etc.
+
+After the `SCESet` object is created and QC is run, `scater` allows a user to quickly visualize and assess the data, for example using a PCA plot:
+```{r}
+plotPCA(treutlein_sceset, colour_by = "author_clusters")
+```
+
+## Run SC3
+
+If you would like to explore clustering of your data in the range of `k`s (the number of clusters) from 2 to 4, you just need to run the main `sc3` method and define the range of `k`s using the `ks` parameter:
+```{r, message=FALSE, warning=FALSE}
+# Note that n.cores = 1 is required for compilation of this vignette.
+# Please remove this parameter when running on your computer:
+# treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4)
+treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, n.cores = 1)
+```
+
+To quickly and easily explore the `SC3` solutions using an interactive Shiny application use the following method:
+```{r, eval=FALSE}
+sc3_interactive(treutlein_sceset)
+```
+
+Visual exploration can provide a reasonable estimate of the number of clusters `k`. Next, summarise all results for your preferred `k` into a single list (we chose the preferred `k` to be 3):
+```{r}
+treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
+```
+
+All results for `k` = 3 will be written to `treutlein_sceset@sc3$results`.
+
+It is also possible to export the results into an Excel file:
+```{r eval=FALSE}
+sc3_export_results_xls(treutlein_sceset)
+```
+
+This will write all results to `sc3_results.xls` file. The name of the file can be controlled by the `filename` parameter.
+
+`sc3_summarise_results` also updates the `phenoData` slot of the `SCESet` object and adds an addtional `sc3_clusters` column to it. This makes it possible to highlight the results of `SC3` during any of the `scater`'s plotting function call, for example:
+```{r}
+plotPCA(treutlein_sceset, colour_by = "sc3_clusters")
+```
+
+# Number of Сells
+
+The default settings of `SC3` allow to cluster (using a single `k`) a dataset of 2,000 cells in about 20-30 minutes. 
+
+For datasets with more than 2,000 cells `SC3` automatically adjusts some of its parameters (see below). This allows to cluster a dataset of 5,000 cells in about 20-30 minutes. The parameters can also be manually adjusted for datasets with any number of cells.
+
+For datasets with more than 5,000 cells `SC3` utilizes a hybrid approach that combines unsupervised and supervised clusterings (see below). Namely, `SC3` selects a subset of cells uniformly at random, and obtains clusters from this subset. Subsequently, the inferred labels are used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells. Training cells can also be manually selected by providing their indeces.
+
+# Plot Functions
+
+`SC3` also provides methods for plotting all figures from the interactive session.
+
+## Consensus Matrix
+
+The consensus matrix is a <em>N</em> by <em>N</em> matrix, where <em>N</em> is the number of cells in the input dataset. It represents similarity between the cells based on the averaging of clustering results from all  combinations of clustering parameters. Similarity 0 (blue) means that the two cells are always assigned to different clusters. In contrast, similarity 1 (red) means that the two cells are always assigned to the same cluster. The consensus matrix is clustered by hierarchical clustering and has a diagonal-block structure. Intuitively, the perfect  clustering is achieved when all diagonal blocks are completely red and all off-diagonal elements are completely blue.
+```{r, fig.height=6}
+sc3_plot_consensus(treutlein_sceset, k = 3)
+```
+
+## Silhouette Plot
+
+A silhouette is a quantitative measure of the diagonality of the consensus matrix. An average silhouette width (shown at the bottom left of the silhouette plot) varies from 0 to 1, where 1 represents a perfectly block-diagonal consensus matrix and 0 represents a situation where there is no block-diagonal structure. The best clustering is achieved when the average silhouette width is close to 1.
+```{r}
+sc3_plot_silhouette(treutlein_sceset, k = 3)
+```
+
+## Expression Matrix
+
+The expression panel represents the original input expression matrix (cells in columns and genes in rows) after cell and gene filters. Genes are clustered by kmeans with k = 100 (dendrogram on the left) and the heatmap represents the expression levels of the gene cluster centers after log2-scaling.
+```{r, fig.height=6}
+sc3_plot_expression(treutlein_sceset, k = 3)
+```
+
+## Cluster Stability
+
+Stability index shows how stable each cluster is accross the selected range of ks. The stability index varies between 0 and 1, where 1 means that the same cluster appears in every solution for different k.
+```{r, fig.height=3}
+sc3_plot_cluster_stability(treutlein_sceset, k = 3)
+```
+
+## tSNE plot
+
+[tSNE](https://lvdmaaten.github.io/tsne/) (t-Distributed Stochastic Neighbor Embedding) method is used to map high-dimensional data to a 2D space while preserving local distances between cells. tSNE has become a very popular visualisation tool. SC3 imports the Rtsne function from the [Rtsne package](https://cran.r-project.org/web/packages/Rtsne/index.html) to perform the tSNE analysis. The colors on the plot correspond to the clusters identified by SC3. One of the most sensitive parameters in tSNE analysis is the so-called perplexity. SC3 defines the default perplexity as N/5, where N is the number of cells.
+```{r}
+sc3_plot_tsne(treutlein_sceset, k = 3)
+```
+
+## DE genes
+
+Differential expression is calculated using the non-parametric Kruskal-Wallis test. A significant p-value indicates that gene expression in at least one cluster stochastically dominates one other cluster. SC3 provides a list of all differentially expressed genes with adjusted p-values < 0.01 and plots gene expression profiles of the 50 genes with the lowest p-values. Note that the calculation of differential expression after clustering can introduce a bias in the distribution of p-values, and thus we advise to use the p-values for ranking the genes only.
+```{r, fig.height=8}
+sc3_plot_de_genes(treutlein_sceset, k = 3)
+```
+
+## Marker Genes
+
+To find marker genes, for each gene a binary classifier is constructed based on the mean cluster expression values. The classifier prediction is then calculated using the gene expression ranks. The area under the receiver operating characteristic (ROC) curve is used to quantify the accuracy of the prediction. A p-value is assigned to each gene by using the Wilcoxon signed rank test. By default the genes with the area under the ROC curve (AUROC) > 0.85 and with the p-value < 0.01 are selected and the top 10 marker genes of each cluster are visualized in this heatmap.
+```{r, fig.height=6}
+sc3_plot_markers(treutlein_sceset, k = 3)
+```
+
+## Cell Outliers
+
+Outlier cells in each cluster are detected using robust distances, calculated using the minimum covariance determinant (MCD). The outlier score shows how different a cell is from all other cells in the cluster and it is defined as the differences between the square root of the robust distance and the square root of the 99.99% quantile of the Chi-squared distribution.
+```{r, fig.height=3}
+sc3_plot_cell_outliers(treutlein_sceset, k = 3)
+```
+
+# SC3 in Detail
+
+The main `sc3` method explained above is a wrapper that calls several other `SC3` methods in the following order:
+
+* `sc3_prepare`
+* `sc3_estimate_k`
+* `sc3_set_ks`
+* `sc3_calc_dists`
+* `sc3_calc_transfs`
+* `sc3_kmeans`
+* `sc3_calc_consens`
+* `sc3_calc_biology`
+
+Each of these methods writes its output to the `sc3` slot of the `treutlein_sceset`. After running all these methods the `sc3` slot contains all nececessary data for the interactive session as well as all the clustering results.
+
+Let us delete the results of the previous clustering and cluster `treutlein_sceset` again using step-by-step instructions:
+```{r}
+treutlein_sceset@sc3 <- list()
+```
+
+## `sc3_prepare`
+
+We start with `sc3_prepare`. This method prepares an object of `SCESet` class for `SC3` clustering. This method also defines all parameters needed for clustering. The parameters have their own defaults but can be manually changed. For more information on the parameters please use ` r ?sc3_prepare`. 
+
+This method creates and populates the following items of the `sc3` slot:
+
+* `processed_dataset` - contains the expression matrix to be used for
+  `SC3` clustering.
+* `kmeans_iter_max` - contains a value of `iter.max` parameter used
+  in kmeans clustering.
+* `rand_seed` - contains a random seed used by `SC3`
+* `kmeans_nstart` - contains a value of `nstart` parameter used
+  in kmeans clustering.
+* `n_dim` - contains values of the number of eigenvectors used
+  in kmeans clustering.
+* `svm_train_inds` - if SVM is used this item contains indexes of the 
+  training cells used for `SC3` clustering and further SVM prediction.
+* `svm_study_inds` - if SVM is used this item contains indexes of the
+   cells to be predicted by SVM.
+* `n_cores` - contains a value of the number of available cores on the
+  user's machine.
+* `rselenium` - defines whether `RSelenium` is installed on the user's machine.
+
+```{r}
+# Note that n.cores = 1 is required for compilation of this vignette.
+# Please remove this parameter when running on your computer:
+# treutlein_sceset <- sc3_prepare(treutlein_sceset)
+treutlein_sceset <- sc3_prepare(treutlein_sceset, n.cores = 1)
+treutlein_sceset@sc3$processed_dataset[1:3, 1:3]
+treutlein_sceset@sc3$kmeans_iter_max
+treutlein_sceset@sc3$rand_seed
+treutlein_sceset@sc3$kmeans_nstart
+treutlein_sceset@sc3$n_dim
+treutlein_sceset@sc3$n_cores
+treutlein_sceset@sc3$rselenium
+```
+
+## `sc3_estimate_k`
+
+When the `SCESet` object is prepared for clustering, `SC3` can also estimate the optimal number of clusters `k` in the dataset. `SC3` utilizes the Tracy-Widom theory on random matrices to estimate `k`. `sc3_estimate_k` method creates and populates the following items of the `sc3` slot:
+
+* `k_prediction` - contains the estimated value of `k`.
+```{r}
+treutlein_sceset <- sc3_estimate_k(treutlein_sceset)
+treutlein_sceset@sc3$k_prediction
+```
+
+## `sc3_set_ks`
+
+Based on the `k` estimation above a user can then manually define a range of `k`s that he/she is willing to explore. In our case, because the optimal `k` is 3 we will look at the clustering results from 2 to 4.
+
+Method `sc3_set_ks` creates and populates the following items of the `sc3` slot:
+
+* `ks` - contains a range of the number of clusters `k` to be used by `SC3`.
+```{r}
+treutlein_sceset <- sc3_set_ks(treutlein_sceset, ks = 2:4)
+treutlein_sceset@sc3$ks
+```
+
+## `sc3_calc_dists`
+
+Now we are ready to perform the clustering itself. First `SC3` calculates distances between the cells. Method `sc3_calc_dists` calculates the distances based on the `processed_dataset` item of the `sc3` slot. It then creates and populates the following items of the `sc3` slot:
+
+* `distances` - contains a list of distance matrices corresponding to Euclidean, Pearson and Spearman distances.
+```{r}
+treutlein_sceset <- sc3_calc_dists(treutlein_sceset)
+names(treutlein_sceset@sc3$distances)
+```
+
+## `sc3_calc_transfs`
+
+Next the distance matrices are transformed using PCA and graph Laplacian. Method `sc3_calc_transfs` calculates transforamtions of the distance matrices contained in 
+the `distances` item of the `sc3` slot. It then creates and populates the following items of the `sc3` slot:
+
+* `transformations` - contains a list of transformations of the distance matrices corresponding to PCA and graph Laplacian transformations.
+```{r}
+treutlein_sceset <- sc3_calc_transfs(treutlein_sceset)
+names(treutlein_sceset@sc3$transformations)
+```
+
+## `sc3_kmeans`
+
+kmeans should then be performed on the transformed distance matrices contained in the `transformations` item of the `sc3` slot. Method `sc3_kmeans` creates and populates the following items of the `sc3` slot:
+
+* `kmeans` - contains a list of kmeans clusterings.
+
+By default the `nstart` parameter passed to `kmeans` defined in `sc3_prepare` method, is set 1000 and written to `kmeans_nstart` item of the `sc3` slot. If the number of cells in the dataset is more than 2,000, this parameter is set to 50. A user can also manually define this parameter by changing the value of the `kmeans_nstart` item of the `sc3` slot.
+```{r}
+treutlein_sceset <- sc3_kmeans(treutlein_sceset)
+names(treutlein_sceset@sc3$kmeans)
+```
+
+## `sc3_calc_consens`
+
+Now for each value of `k` we can average the clustering results of kmeans using a consensus approach. Method `sc3_calc_consens` calculates consensus matrices based on the clustering solutions contained in the `kmeans` item of the `sc3` slot. It then creates and populates the following items of the `sc3` slot:
+
+* `consensus` - contains a list of consensus matrices. In addition to consensus matrices it also contains the Silhouette indeces of the clusters and original cell labels corresponding to the clusters.
+```{r}
+treutlein_sceset <- sc3_calc_consens(treutlein_sceset)
+names(treutlein_sceset@sc3$consensus)
+```
+
+## `sc3_calc_biology`
+
+When the clustering is done `SC3` also calculates DE genes, marker genes and cell outliers based on the consensus clusterings contained in the `consensus` item of the `sc3` slot. Method `sc3_calc_biology` creates and populates the following items of the `sc3` slot:
+
+* `biology` - contains a list of DE genes, marker genes and cell outliers data frames.
+```{r}
+treutlein_sceset <- sc3_calc_biology(treutlein_sceset)
+head(treutlein_sceset@sc3$biology$`3`$markers)
+head(treutlein_sceset@sc3$biology$`3`$de.genes)
+head(treutlein_sceset@sc3$biology$`3`$cell.outl)
+```
+
+# Hybrid SVM Approach
+
+For datasets with more than 5,000 cells `SC3` automatically utilizes a hybrid approach that combines unsupervised and supervised clusterings. Namely, `SC3` selects a subset of cells uniformly at random (5,000), and obtains clusters from this subset. The inferred labels can be used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells.
+
+The hybrid approach can also be triggered by defining either the `svm.num.cells` parameter (the number of training cells, which is different from 5,000) or `svm.train.inds` parameter (training cells are manually selected by providing their indexes).
+
+Let us first save the `SC3` results obtained without using the hybrid approach:
+```{r}
+treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
+no.svm.labels <- treutlein_sceset@sc3$results$clusters$sc3_clusters
+```
+
+Now let us trigger the hybrid approach by asking for 50 training cells:
+```{r}
+treutlein_sceset@sc3 <- list()
+# Note that n.cores = 1 is required for compilation of this vignette.
+# Please remove this parameter when running on your computer:
+# treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, svm.num.cells = 50)
+treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, svm.num.cells = 50, n.cores = 1)
+```
+
+Note that when SVM is used all results (including marker genes, DE genes and cell outliers) obtained via `sc3_summarise_results` will correspond to the training cells only (50 cells):
+```{r}
+treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
+table(!is.na(treutlein_sceset@sc3$results$clusters$sc3_clusters))
+```
+
+Now we can run the SVM and predict labels of all the other cells:
+```{r}
+treutlein_sceset <- sc3_run_svm(treutlein_sceset, k = 3)
+treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
+svm.labels <- treutlein_sceset@sc3$results$clusters$sc3_clusters
+```
+
+Now we can compare the labels and see that they are different:
+```{r}
+data.frame(no_SVM_сlusters = no.svm.labels, SVM_clusters = svm.labels)
+```
+
+# GO and Pathway Analysis
+
+`SC3` provides a functionality to open the `g:Profiler` web toolkit in a browser. For this `SC3` imports some of the [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) functionality. 
+
+This functionality is only available in the interactive session of `SC3`.
+
+[RSelenium](https://cran.r-project.org/web/packages/RSelenium/) depends on a stand-alone java binary file (see [Rselenium documentation](https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html) for more details). You can download and install this binary file by running (the file size is about 30Mb):
 
 ```{r, eval=FALSE}
 RSelenium::checkForServer()
 ```
 
-Note, this command has to be executed only once, before running __SC3__ for the first time. Also note that the minimum Java version requirement for [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) is 1.7 (see [this post](https://github.com/ropensci/RSelenium/issues/54) for details).
-
-## "Built-in" datasets
-
-There is one built-in dataset that is automatically loaded with __SC3__:
-
-| Dataset | Source | __N__ cells | __k__ clusters |
---- | --- | --- | --- |
-| [treutlein](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.html) | Distal lung epithelium | 80 | 5 |
-
-## Quick start
-
-To run __SC3__ with the built-in dataset, start R and then type:
-
-```{r, eval=FALSE}
-library(SC3)
-sc3(treutlein)
-```
-
-It should open SC3 in a browser window without providing any error.
-
-## __SC3__ parameters
-
-By default __SC3__ clusters the input dataset in a region of __k__ from 3 to 7. This region can be changed by adjusting the __ks__ parameter of __SC3__. E.g. if you would like to check the clustering of your own __dataset__ for __k__ from 2 to 5, then you need to run the following:
-```{r, eval=FALSE}
-sc3(dataset, ks = 2:5)
-```
-
-where __dataset__ is either an R matrix / data.frame / data.table object OR a path to your input file containing an expression matrix.
-
-For the full list of __SC3__ parameters please read the documentation by typing ?sc3.
-
-## Running __SC3__ without interactivity
-
-If you would like to separate clustering calculations from visualisation, e.g. when your dataset is very large and you need to run it on a computing cluster, you can disable interactivity by setting __interactivity__ parameter to FALSE:
-
-```{r, eval=FALSE}
-sc3(treutlein, interactivity = FALSE)
-```
-
-In this case all clustering results will be saved as _sc3.interactive.arg_ variable in your R session. You can then visualise your results by running:
-
-```{r, eval=FALSE}
-sc3_interactive(sc3.interactive.arg)
-```
-
-## Number of cells
-
-Combining multiple clustering results through the consensus approach is quite computationally expensive. Therefore running __SC3__ on datasets with 1,000 cells may take ~10-15 mins. We do not recommend to use the default options on datasets with more than 1,000 cells. In order to  apply  SC3 to larger datasets, we have implemented a hybrid approach that combines unsupervised and supervised methodologies. When the number of cells is large (N>1,000), SC3 selects a small subset of cells uniformly at random, and obtains clusters from this subset. Subsequently, the inferred labels are used to train a Support Vector Machine (SVM), which is employed to assign labels to the remaining cells. Training the SVM typically takes only a few minutes, thus allowing SC3 to be applied to very large datasets. Based on our results, we set the default of __SC3__ so that when N>1,000 only 20% of the cells are used and when N>5,000 only 1,000 cells are used for clustering before training the SVM. To enable the SVM training please set the _svm_ parameter to __TRUE__:
-
-```{r, eval=FALSE}
-sc3(treutlein, svm = TRUE)
-```
-
-You can also control the number of training cells used to train SVM with the _svm.num.cells_ parameter:
-
-```{r, eval=FALSE}
-sc3(treutlein, svm = TRUE, svm.num.cells = 25)
-```
-
-## Input file format
-
-To run __SC3__ on an input file containing an expression matrix one need to preprocess the input file so that it looks as follows:
-
-
-|  | cell1 | cell2 | cell3 | cell4 | cell5
---- | --- | --- | --- | --- | ---
-| __gene1__ | 1 | 2 | 3 | 4 | 5
-| __gene2__ | 1 | 2 | 3 | 4 | 5
-| __gene3__ | 1 | 2 | 3 | 4 | 5
-
-
-The first row of the expression matrix (with cell labels, e.g. __cell1__, __cell2__, etc.) should contain one fewer field than all other rows. Separators should be either spaces or tabs. If separators are commas (,) then the extension of the file must be .csv. If a path to your input file is "/path/to/input/file/expression-matrix.txt", to run it:
-```{r, eval=FALSE}
-sc3("/path/to/input/file/expression-matrix.txt", ks = 2:5)
-```
-
-## Saving results
-
-After finding the best clustering solution __SC3__ allows a user to either export the results into an excel file or to save them to the current R session. If the former is chosen then the excel file will be written to the default _Downloads_ folder used by your browser. When saving to the R session a variable (list) __SC3.results__ containing all the results from the interactive session will be created.
+Note, this command has to be executed only once, before running `SC3` for the first time. Also note that the minimum Java version requirement for [RSelenium](https://cran.r-project.org/web/packages/RSelenium/) is 1.7 (see [this post](https://github.com/ropensci/RSelenium/issues/54) for details).

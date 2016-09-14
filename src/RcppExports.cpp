@@ -17,25 +17,25 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// calcPWD1
-arma::mat calcPWD1(const arma::mat& x);
-RcppExport SEXP SC3_calcPWD1(SEXP xSEXP) {
+// ED1
+arma::mat ED1(const arma::mat& x);
+RcppExport SEXP SC3_ED1(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    __result = Rcpp::wrap(calcPWD1(x));
+    __result = Rcpp::wrap(ED1(x));
     return __result;
 END_RCPP
 }
-// calcPWD2
-NumericMatrix calcPWD2(const NumericMatrix& x);
-RcppExport SEXP SC3_calcPWD2(SEXP xSEXP) {
+// ED2
+NumericMatrix ED2(const NumericMatrix& x);
+RcppExport SEXP SC3_ED2(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    __result = Rcpp::wrap(calcPWD2(x));
+    __result = Rcpp::wrap(ED2(x));
     return __result;
 END_RCPP
 }
@@ -62,6 +62,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
     Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
     __result = Rcpp::wrap(mult(D, x, dim));
+    return __result;
+END_RCPP
+}
+// tmult
+arma::mat tmult(arma::mat x);
+RcppExport SEXP SC3_tmult(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    __result = Rcpp::wrap(tmult(x));
     return __result;
 END_RCPP
 }
