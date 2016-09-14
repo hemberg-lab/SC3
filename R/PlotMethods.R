@@ -12,7 +12,7 @@
 #' clustering is achieved when all diagonal blocks are completely red 
 #' and all off-diagonal elements are completely blue.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @importFrom pheatmap pheatmap
@@ -24,31 +24,17 @@ sc3_plot_consensus.SCESet <- function(object, k) {
     
     consensus <- object@sc3$consensus[[as.character(k)]]$consensus
     
-    pheatmap::pheatmap(
-        consensus,
-        cluster_rows = res$hc,
-        cluster_cols = res$hc,
-        cutree_rows = k,
-        cutree_cols = k,
-        show_rownames = FALSE,
-        show_colnames = FALSE
-    )
+    pheatmap::pheatmap(consensus, cluster_rows = res$hc, cluster_cols = res$hc, cutree_rows = k, 
+        cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE)
 }
 
 #' @rdname sc3_plot_consensus.SCESet
 #' @aliases sc3_plot_consensus
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_consensus", signature(object = "SCESet"),
-          function(
-              object,
-              k
-          ) {
-              sc3_plot_consensus.SCESet(
-                  object,
-                  k
-              )
-          })
+setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k) {
+    sc3_plot_consensus.SCESet(object, k)
+})
 
 #' Plot silhouette indexes of the cells
 #' 
@@ -59,7 +45,7 @@ setMethod("sc3_plot_consensus", signature(object = "SCESet"),
 #' block-diagonal structure. The best clustering is achieved when the average 
 #' silhouette width is close to 1.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @export
@@ -72,16 +58,9 @@ sc3_plot_silhouette.SCESet <- function(object, k) {
 #' @aliases sc3_plot_silhouette
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_silhouette", signature(object = "SCESet"),
-          function(
-              object,
-              k
-          ) {
-              sc3_plot_silhouette.SCESet(
-                  object,
-                  k
-              )
-          })
+setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, k) {
+    sc3_plot_silhouette.SCESet(object, k)
+})
 
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
@@ -91,7 +70,7 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"),
 #' the heatmap represents the expression levels of the gene cluster centers 
 #' after log2-scaling.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @importFrom pheatmap pheatmap
@@ -103,34 +82,21 @@ sc3_plot_expression.SCESet <- function(object, k) {
     
     dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[ , object@sc3$svm_train_inds]
+    if (!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
-    pheatmap::pheatmap(
-        dataset,
-        cluster_cols = res$hc,
-        kmeans_k = 100,
-        cutree_cols = k,
-        show_rownames = FALSE,
-        show_colnames = FALSE
-    )
+    pheatmap::pheatmap(dataset, cluster_cols = res$hc, kmeans_k = 100, cutree_cols = k, 
+        show_rownames = FALSE, show_colnames = FALSE)
 }
 
 #' @rdname sc3_plot_expression.SCESet
 #' @aliases sc3_plot_expression
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_expression", signature(object = "SCESet"),
-          function(
-              object,
-              k
-          ) {
-              sc3_plot_expression.SCESet(
-                  object,
-                  k
-              )
-          })
+setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k) {
+    sc3_plot_expression.SCESet(object, k)
+})
 
 
 #' Plot tSNE map of the cells and highlight SC3 clusters with colors
@@ -145,7 +111,7 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"),
 #' so-called perplexity. SC3 defines the default perplexity as N/5, where N is 
 #' the number of cells.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param perplexity perplexity parameter used in \code{\link[Rtsne]{Rtsne}} for tSNE tranformation
 #' @param seed random seed used for tSNE transformation
@@ -154,61 +120,36 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"),
 #' @importFrom Rtsne Rtsne
 #' 
 #' @export
-sc3_plot_tsne.SCESet <- function(
-    object, 
-    k, 
-    perplexity = floor(ncol(object@sc3$processed_dataset) / 5), 
-    seed = 1234567
-) {
+sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(object@sc3$processed_dataset)/5), 
+    seed = 1234567) {
     res <- prepare_output(object, k)
     
     dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[ , object@sc3$svm_train_inds]
+    if (!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
-    dataset <- dataset[ , res$hc$order]
+    dataset <- dataset[, res$hc$order]
     colnames(dataset) <- res$new.labels
     
     set.seed(seed)
-    tsne_out <- Rtsne::Rtsne(
-        t(dataset),
-        perplexity = perplexity
-    )
+    tsne_out <- Rtsne::Rtsne(t(dataset), perplexity = perplexity)
     df_to_plot <- as.data.frame(tsne_out$Y)
-    df_to_plot$Cluster <- factor(
-        colnames(dataset),
-        levels = unique(colnames(dataset))
-    )
+    df_to_plot$Cluster <- factor(colnames(dataset), levels = unique(colnames(dataset)))
     comps <- colnames(df_to_plot)[1:2]
-    ggplot(df_to_plot, aes_string(x = comps[1],
-                                  y = comps[2],
-                                  color = "Cluster")) +
-        geom_point() +
-        xlab("Dimension 1") +
-        ylab("Dimension 2") +
-        theme_bw()
+    ggplot(df_to_plot, aes_string(x = comps[1], y = comps[2], color = "Cluster")) + 
+        geom_point() + xlab("Dimension 1") + ylab("Dimension 2") + theme_bw()
 }
 
 #' @rdname sc3_plot_tsne.SCESet
 #' @aliases sc3_plot_tsne
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_tsne", signature(object = "SCESet"),
-          function(
-              object, 
-              k, 
-              perplexity = floor(ncol(object@sc3$processed_dataset) / 5), 
-              seed = 1234567
-          ) {
-              sc3_plot_tsne.SCESet(
-                  object,
-                  k,
-                  perplexity,
-                  seed
-              )
-          })
+setMethod("sc3_plot_tsne", signature(object = "SCESet"), function(object, k, perplexity = floor(ncol(object@sc3$processed_dataset)/5), 
+    seed = 1234567) {
+    sc3_plot_tsne.SCESet(object, k, perplexity, seed)
+})
 
 #' Plot expression of DE genes of the clusters identified by SC3 as a heatmap
 #' 
@@ -221,61 +162,42 @@ setMethod("sc3_plot_tsne", signature(object = "SCESet"),
 #' expression after clustering can introduce a bias in the distribution of 
 #' p-values, and thus we advise to use the p-values for ranking the genes only.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param p.val significance threshold used for the DE genes
 #' 
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_de_genes.SCESet <- function(
-    object, 
-    k, 
-    p.val = 0.01
-) {
+sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01) {
     
     res <- prepare_output(object, k)
     
     dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[ , object@sc3$svm_train_inds]
+    if (!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
     de.genes <- object@sc3$biology[[as.character(k)]]$de.genes
     
     de.genes <- de.genes[de.genes$p.value < p.val, , drop = FALSE]
     d <- head(de.genes, 50)
-    row.ann <- data.frame("p.value" = -log10(d))
+    row.ann <- data.frame(p.value = -log10(d))
     rownames(row.ann) <- rownames(d)
-    pheatmap::pheatmap(
-        dataset[rownames(d), , drop = FALSE],
-        show_colnames = FALSE,
-        cluster_rows = FALSE,
-        cluster_cols = res$hc,
-        cutree_cols = k,
-        annotation_row = row.ann,
-        annotation_names_row = FALSE,
-        cellheight = 10
-    )
+    pheatmap::pheatmap(dataset[rownames(d), , drop = FALSE], show_colnames = FALSE, 
+        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row.ann, 
+        annotation_names_row = FALSE, cellheight = 10)
 }
 
 #' @rdname sc3_plot_de_genes.SCESet
 #' @aliases sc3_plot_de_genes
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_de_genes", signature(object = "SCESet"),
-          function(
-              object, 
-              k, 
-              p.val = 0.01
-          ) {
-              sc3_plot_de_genes.SCESet(
-                  object, 
-                  k, 
-                  p.val
-              )
-          })
+setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k, 
+    p.val = 0.01) {
+    sc3_plot_de_genes.SCESet(object, k, p.val)
+})
 
 
 #' Plot expression of marker genes of the clusters identified by SC3 as a heatmap
@@ -289,7 +211,7 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"),
 #' and with the p-value < 0.01 are selected and the top 10 marker 
 #' genes of each cluster are visualized in this heatmap.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param auroc area under the ROC curve
 #' @param p.val significance threshold used for the DE genes
@@ -297,66 +219,39 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"),
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_markers.SCESet <- function(
-    object, 
-    k, 
-    auroc = 0.85, 
-    p.val = 0.01
-) {
+sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01) {
     
     res <- prepare_output(object, k)
     
     dataset <- object@sc3$processed_dataset
     
-    if(!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[ , object@sc3$svm_train_inds]
+    if (!is.null(object@sc3$svm_train_inds)) {
+        dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
     markers <- object@sc3$biology[[as.character(k)]]$markers
     
     markers <- markers[markers$AUC >= auroc & markers$p.value < p.val, ]
-
+    
     mark.res.plot <- mark_gene_heatmap_param(markers)
     
-    row.ann <- data.frame(
-        Cluster = factor(
-            mark.res.plot$sc3_clusters,
-            levels = unique(mark.res.plot$sc3_clusters)
-        )
-    )
+    row.ann <- data.frame(Cluster = factor(mark.res.plot$sc3_clusters, levels = unique(mark.res.plot$sc3_clusters)))
     rownames(row.ann) <- rownames(mark.res.plot)
     
-    pheatmap::pheatmap(
-        dataset[rownames(mark.res.plot), , drop = FALSE],
-        show_colnames = FALSE,
-        cluster_rows = FALSE,
-        cluster_cols = res$hc,
-        cutree_cols = k,
-        annotation_row = row.ann,
-        annotation_names_row = FALSE,
-        gaps_row = which(diff(mark.res.plot$sc3_clusters) != 0),
-        cellheight = 10
-    )
+    pheatmap::pheatmap(dataset[rownames(mark.res.plot), , drop = FALSE], show_colnames = FALSE, 
+        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row.ann, 
+        annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot$sc3_clusters) != 
+            0), cellheight = 10)
 }
 
 #' @rdname sc3_plot_markers.SCESet
 #' @aliases sc3_plot_markers
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_markers", signature(object = "SCESet"),
-          function(
-              object, 
-              k, 
-              auroc = 0.85, 
-              p.val = 0.01
-          ) {
-              sc3_plot_markers.SCESet(
-                  object, 
-                  k, 
-                  auroc, 
-                  p.val
-              )
-          })
+setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, auroc = 0.85, 
+    p.val = 0.01) {
+    sc3_plot_markers.SCESet(object, k, auroc, p.val)
+})
 
 #' Plot cell outliers
 #' 
@@ -367,7 +262,7 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"),
 #' robust distance and the square root of the 99.99% quantile of the 
 #' Chi-squared distribution.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @importFrom ggplot2 ggplot geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string
@@ -383,45 +278,24 @@ sc3_plot_cell_outliers.SCESet <- function(object, k) {
     
     cols <- iwanthue(length(unique(outl$sc3_clusters)))
     
-    outl$sc3_clusters <- factor(
-        outl$sc3_clusters,
-        levels =
-            unique(
-                as.character(
-                    outl$sc3_clusters
-                )
-            )
-    )
+    outl$sc3_clusters <- factor(outl$sc3_clusters, levels = unique(as.character(outl$sc3_clusters)))
     
     comps <- colnames(outl)
     
-    ggplot(outl, aes_string(x = comps[3],
-                  y = comps[2],
-                  fill = comps[1], 
-                  color = comps[1])) +
-        geom_bar(stat = "identity") +
-        geom_point() +
-        scale_fill_manual(values = cols) +
-        scale_color_manual(values = cols) +
-        guides(color = FALSE, fill = FALSE) +
-        labs(x = "Cells", y = "Outlier score") +
-        theme_bw()
+    ggplot(outl, aes_string(x = comps[3], y = comps[2], fill = comps[1], color = comps[1])) + 
+        geom_bar(stat = "identity") + geom_point() + scale_fill_manual(values = cols) + 
+        scale_color_manual(values = cols) + guides(color = FALSE, fill = FALSE) + 
+        labs(x = "Cells", y = "Outlier score") + theme_bw()
 }
 
 #' @rdname sc3_plot_cell_outliers.SCESet
 #' @aliases sc3_plot_cell_outliers
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"),
-          function(
-              object, 
-              k
-          ) {
-              sc3_plot_cell_outliers.SCESet(
-                  object, 
-                  k
-              )
-          })
+setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"), function(object, 
+    k) {
+    sc3_plot_cell_outliers.SCESet(object, k)
+})
 
 #' Plot stability of the clusters
 #' 
@@ -429,7 +303,7 @@ setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"),
 #' range of ks. The stability index varies between 0 and 1, where 1 means that 
 #' the same cluster appears in every solution for different k.
 #' 
-#' @param object an object of "SCESet" class
+#' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @importFrom ggplot2 ggplot aes geom_bar theme_bw labs ylim
@@ -437,41 +311,28 @@ setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"),
 #' @export
 sc3_plot_cluster_stability.SCESet <- function(object, k) {
     
-    if(!as.character(k) %in% names(object@sc3$consensus)) {
-        stop(paste0("Please choose k from: ", paste(names(object@sc3$consensus), collapse = " "))) 
+    if (!as.character(k) %in% names(object@sc3$consensus)) {
+        stop(paste0("Please choose k from: ", paste(names(object@sc3$consensus), 
+            collapse = " ")))
     }
     
     res <- prepare_output(object, k)
     
-    # calculate stability of the clusters
-    # check if there are more than 1 k value in ks range
+    # calculate stability of the clusters check if there are more than 1 k value in
+    # ks range
     stability <- NULL
-    stability <- StabilityIndex(
-        object@sc3$consensus,
-        k
-    )
+    stability <- StabilityIndex(object@sc3$consensus, k)
     
-    d <- data.frame(
-        Cluster = factor(1:length(stability)),
-        Stability = stability)
-    ggplot(d, aes(x = d$Cluster, y = d$Stability)) +
-        geom_bar(stat = "identity") +
-        ylim(0, 1) +
-        labs(x = "Cluster", y = "Stability Index") +
-        theme_bw()
+    d <- data.frame(Cluster = factor(1:length(stability)), Stability = stability)
+    ggplot(d, aes(x = d$Cluster, y = d$Stability)) + geom_bar(stat = "identity") + 
+        ylim(0, 1) + labs(x = "Cluster", y = "Stability Index") + theme_bw()
 }
 
 #' @rdname sc3_plot_cluster_stability.SCESet
 #' @aliases sc3_plot_cluster_stability
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"),
-          function(
-              object, 
-              k
-          ) {
-              sc3_plot_cluster_stability.SCESet(
-                  object, 
-                  k
-              )
-          })
+setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"), function(object, 
+    k) {
+    sc3_plot_cluster_stability.SCESet(object, k)
+})

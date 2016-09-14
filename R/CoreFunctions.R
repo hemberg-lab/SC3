@@ -24,9 +24,9 @@
 #' @return filtered expression matrix some genes were removed.
 gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
     message("Gene filtering...")
-    frac.cells <- ceiling(fraction*ncol(data))
-    d <- data[rowSums(data > reads.rare) >= frac.cells &
-                  rowSums(data > reads.ubiq) <= ncol(data) - frac.cells, ]
+    frac.cells <- ceiling(fraction * ncol(data))
+    d <- data[rowSums(data > reads.rare) >= frac.cells & rowSums(data > reads.ubiq) <= 
+        ncol(data) - frac.cells, ]
     d <- unique(d)
     return(d)
 }
@@ -38,7 +38,7 @@ gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
 #' distance matrices.
 #'
 #' @param data expression matrix
-#' @param method one of the distance metrics: "spearman", "pearson", "euclidean"
+#' @param method one of the distance metrics: 'spearman', 'pearson', 'euclidean'
 #' @return distance matrix
 #'
 #' @importFrom stats cor dist
@@ -47,12 +47,12 @@ gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
 #' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
-  return(if (method == "spearman") {
-    as.matrix(1 - cor(data, method = "spearman"))
-  } else if (method == "pearson") {
-    as.matrix(1 - cor(data, method = "pearson"))
-  } else {
-    ED2(data)
+    return(if (method == "spearman") {
+        as.matrix(1 - cor(data, method = "spearman"))
+    } else if (method == "pearson") {
+        as.matrix(1 - cor(data, method = "pearson"))
+    } else {
+        ED2(data)
     })
 }
 
@@ -65,30 +65,30 @@ calculate_distance <- function(data, method) {
 #' descending order by their corresponding eigenvalues.
 #'
 #' @param dists distance matrix
-#' @param method transformation method: either "pca" or
-#' "laplacian"
+#' @param method transformation method: either 'pca' or
+#' 'laplacian'
 #' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
 #'
 transformation <- function(dists, method) {
-  if (method == "pca") {
-    t <- prcomp(dists, center = TRUE, scale. = TRUE)
-    return(t$rotation)
-  } else if (method == "laplacian") {
-    L <- norm_laplacian(exp(-dists/max(dists)), 0)
-    l <- eigen(L)
-    # sort eigenvectors by their eigenvalues
-    return(l$vectors[, order(l$values)])
-  } else if (method == "laplacian_reg") {
-    L <- norm_laplacian(exp(-dists/max(dists)), 1000)
-    l <- eigen(L)
-    # sort eigenvectors by their eigenvalues in increasing order
-    return(l$vectors[, order(l$values)])
-  } else if (method == "mds") {
-    t <- cmdscale(dists, k = ncol(dists) - 1)
-    return(t[[1]])
-  }
+    if (method == "pca") {
+        t <- prcomp(dists, center = TRUE, scale. = TRUE)
+        return(t$rotation)
+    } else if (method == "laplacian") {
+        L <- norm_laplacian(exp(-dists/max(dists)), 0)
+        l <- eigen(L)
+        # sort eigenvectors by their eigenvalues
+        return(l$vectors[, order(l$values)])
+    } else if (method == "laplacian_reg") {
+        L <- norm_laplacian(exp(-dists/max(dists)), 1000)
+        l <- eigen(L)
+        # sort eigenvectors by their eigenvalues in increasing order
+        return(l$vectors[, order(l$values)])
+    } else if (method == "mds") {
+        t <- cmdscale(dists, k = ncol(dists) - 1)
+        return(t[[1]])
+    }
 }
 
 #' Graph Laplacian calculation
@@ -103,9 +103,9 @@ transformation <- function(dists, method) {
 #' 
 #' @return graph Laplacian of the adjacency/distance matrix
 norm_laplacian <- function(x, tau) {
-  D <- diag(colSums(x)^(-0.5))
-  dim <- nrow(x)
-  return(diag(dim(D)[1]) - mult(D, x, dim))
+    D <- diag(colSums(x)^(-0.5))
+    dim <- nrow(x)
+    return(diag(dim(D)[1]) - mult(D, x, dim))
 }
 
 #' Calculate consensus matrix
@@ -127,14 +127,14 @@ norm_laplacian <- function(x, tau) {
 #' @importFrom Rcpp sourceCpp
 #' @export
 consensus_matrix <- function(clusts) {
-  n.cells <- length(unlist(strsplit(clusts[1], " ")))
-  res <- matrix(0, nrow = n.cells, ncol = n.cells)
-  j <- length(clusts)
-  res <- consmx(clusts, res, j)
-  res <- -res/j
-  colnames(res) <- as.character(c(1:n.cells))
-  rownames(res) <- as.character(c(1:n.cells))
-  return(res)
+    n.cells <- length(unlist(strsplit(clusts[1], " ")))
+    res <- matrix(0, nrow = n.cells, ncol = n.cells)
+    j <- length(clusts)
+    res <- consmx(clusts, res, j)
+    res <- -res/j
+    colnames(res) <- as.character(c(1:n.cells))
+    rownames(res) <- as.character(c(1:n.cells))
+    return(res)
 }
 
 #' Run support vector machines (SVM) prediction
@@ -150,13 +150,12 @@ consensus_matrix <- function(clusts) {
 #' @importFrom e1071 svm
 #' @importFrom stats predict
 support_vector_machines <- function(train, study, kern) {
-  train <- t(train)
-  labs <- factor(rownames(train))
-  rownames(train) <- NULL
-  model <- tryCatch(svm(train, labs, kernel = kern),
-                    error = function(cond) return(NA))
-  pred <- predict(model, t(study))
-  return(pred = pred)
+    train <- t(train)
+    labs <- factor(rownames(train))
+    rownames(train) <- NULL
+    model <- tryCatch(svm(train, labs, kernel = kern), error = function(cond) return(NA))
+    pred <- predict(model, t(study))
+    return(pred = pred)
 }
 
 #' A helper function for the SVM analysis
@@ -170,30 +169,25 @@ support_vector_machines <- function(train, study, kern) {
 #' @return A list of indeces of the train and the study cells
 prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
     
-    if(!is.null(svm.num.cells)) {
+    if (!is.null(svm.num.cells)) {
         message("Defining training cells for SVM using svm.num.cells parameter...")
         train.inds <- sample(1:N, svm.num.cells)
         study.inds <- setdiff(1:N, train.inds)
     }
     
-    if(!is.null(svm.train.inds)) {
+    if (!is.null(svm.train.inds)) {
         message("Defining training cells for SVM using svm.train.inds parameter...")
         train.inds <- svm.train.inds
         study.inds <- setdiff(1:N, svm.train.inds)
     }
     
-    if(is.null(svm.num.cells) & is.null(svm.train.inds)) {
+    if (is.null(svm.num.cells) & is.null(svm.train.inds)) {
         message("Defining training cells for SVM using 5000 random cells...")
         train.inds <- sample(1:N, 5000)
         study.inds <- setdiff(1:N, train.inds)
     }
     
-    return(
-        list(
-            svm.train.inds = train.inds,
-            svm.study.inds = study.inds
-        )
-    )
+    return(list(svm.train.inds = train.inds, svm.study.inds = study.inds))
 }
 
 #' Estimate the optimal k for k-means clustering
@@ -213,10 +207,10 @@ estkTW <- function(dataset) {
     
     # compute Tracy-Widom bound
     x <- scale(dataset)
-    muTW <- (sqrt(n-1) + sqrt(p))^2
-    sigmaTW <- (sqrt(n-1) + sqrt(p))*(1/sqrt(n-1) + 1/sqrt(p))^(1/3)
-    sigmaHatNaive <- tmult(x) # x left-multiplied by its transpose
-    bd <- 3.2730*sigmaTW + muTW # 3.2730 is the p=0.001 percentile point for the Tracy-Widom distribution
+    muTW <- (sqrt(n - 1) + sqrt(p))^2
+    sigmaTW <- (sqrt(n - 1) + sqrt(p)) * (1/sqrt(n - 1) + 1/sqrt(p))^(1/3)
+    sigmaHatNaive <- tmult(x)  # x left-multiplied by its transpose
+    bd <- 3.273 * sigmaTW + muTW  # 3.2730 is the p=0.001 percentile point for the Tracy-Widom distribution
     
     # compute eigenvalues and return the amount which falls above the bound
     evals <- eigen(sigmaHatNaive, symmetric = TRUE, only.values = TRUE)$values
