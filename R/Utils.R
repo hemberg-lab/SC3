@@ -41,13 +41,11 @@
 #' @importFrom colorspace LAB hex coords
 #' @importFrom methods as
 #' @importFrom stats kmeans
-iwanthue <- function(n, hmin=0, hmax=360, cmin=0, cmax=180, lmin=0, lmax=100,
-                     plot=FALSE, random=FALSE) {
-    stopifnot(hmin >= 0, cmin >= 0, lmin >= 0,
-              hmax <= 360, cmax <= 180, lmax <= 100,
-              hmin <= hmax, cmin <= cmax, lmin <= lmax,
-              n > 0)
-    if(!random) {
+iwanthue <- function(n, hmin = 0, hmax = 360, cmin = 0, cmax = 180, lmin = 0, lmax = 100, 
+    plot = FALSE, random = FALSE) {
+    stopifnot(hmin >= 0, cmin >= 0, lmin >= 0, hmax <= 360, cmax <= 180, lmax <= 
+        100, hmin <= hmax, cmin <= cmax, lmin <= lmax, n > 0)
+    if (!random) {
         if (exists(".Random.seed", .GlobalEnv)) {
             old_seed <- .GlobalEnv$.Random.seed
             on.exit(.GlobalEnv$.Random.seed <- old_seed)
@@ -56,20 +54,19 @@ iwanthue <- function(n, hmin=0, hmax=360, cmin=0, cmax=180, lmin=0, lmax=100,
         }
         set.seed(1)
     }
-    lab <- LAB(as.matrix(expand.grid(seq(0, 100, 1),
-                                     seq(-100, 100, 5),
-                                     seq(-110, 100, 5))))
-    if (any((hmin != 0 || cmin != 0 || lmin != 0 ||
-             hmax != 360 || cmax != 180 || lmax != 100))) {
-        hcl <- methods::as(lab, 'polarLUV')
+    lab <- LAB(as.matrix(expand.grid(seq(0, 100, 1), seq(-100, 100, 5), seq(-110, 
+        100, 5))))
+    if (any((hmin != 0 || cmin != 0 || lmin != 0 || hmax != 360 || cmax != 180 || 
+        lmax != 100))) {
+        hcl <- methods::as(lab, "polarLUV")
         hcl_coords <- coords(hcl)
-        hcl <- hcl[which(hcl_coords[, 'H'] <= hmax & hcl_coords[, 'H'] >= hmin &
-                   hcl_coords[, 'C'] <= cmax & hcl_coords[, 'C'] >= cmin &
-                   hcl_coords[, 'L'] <= lmax & hcl_coords[, 'L'] >= lmin), ]
-        lab <- methods::as(hcl, 'LAB')
+        hcl <- hcl[which(hcl_coords[, "H"] <= hmax & hcl_coords[, "H"] >= hmin & 
+            hcl_coords[, "C"] <= cmax & hcl_coords[, "C"] >= cmin & hcl_coords[, 
+            "L"] <= lmax & hcl_coords[, "L"] >= lmin), ]
+        lab <- methods::as(hcl, "LAB")
     }
     lab <- lab[which(!is.na(hex(lab))), ]
-    clus <- kmeans(coords(lab), n, iter.max=50)
+    clus <- kmeans(coords(lab), n, iter.max = 50)
     if (isTRUE(plot)) {
         swatch(hex(LAB(clus$centers)))
     }
@@ -82,7 +79,7 @@ iwanthue <- function(n, hmin=0, hmax=360, cmin=0, cmax=180, lmin=0, lmax=100,
 #'
 #' @param x a vector of colours, specified as: colour names (i.e.
 #' colour names returned by \code{colors()}); numeric indices into
-#' \code{palette()}, or hexadecimal strings in the form \code{"#RRGGBB"}, where
+#' \code{palette()}, or hexadecimal strings in the form \code{'#RRGGBB'}, where
 #' \code{RR}, \code{GG}, and \code{BB} are pairs of hexadecimal digits
 #' representing red, green, and blue components, in the range \code{00} to
 #' \code{FF}.
@@ -93,8 +90,44 @@ iwanthue <- function(n, hmin=0, hmax=360, cmin=0, cmax=180, lmin=0, lmax=100,
 #' @importFrom graphics par strwidth barplot
 #'
 swatch <- function(x) {
-    par(mai=c(0.2, max(strwidth(x, "inch") + 0.4, na.rm = TRUE), 0.2, 0.4))
-    barplot(rep(1, length(x)), col=rev(x), space = 0.1, axes=FALSE,
-            names.arg=rev(x), cex.names=0.8, horiz=TRUE, las=1)
+    par(mai = c(0.2, max(strwidth(x, "inch") + 0.4, na.rm = TRUE), 0.2, 0.4))
+    barplot(rep(1, length(x)), col = rev(x), space = 0.1, axes = FALSE, names.arg = rev(x), 
+        cex.names = 0.8, horiz = TRUE, las = 1)
     return(invisible(NULL))
+}
+
+# See https://github.com/ropensci/RSelenium/issues/67 for explanation of why this
+# function exists.
+stopSeleniumServer <- function() {
+    if (.Platform$OS.type == "windows") {
+        procs <- system2("wmic", "path win32_process get Caption,Processid,Commandline", 
+            stdout = TRUE, stderr = NULL)
+        idx <- grep("selenium-server-standalone.jar", procs)
+        # selenium not running?
+        if (!length(idx)) 
+            return()
+        proc <- procs[idx]
+        proc <- trimws(proc)
+        segs <- strsplit(proc, " ", TRUE)[[1]]
+        pid <- segs[length(segs)]
+        system2("taskkill", c("/pid", pid, "/f"), stdout = NULL, stderr = NULL)
+    } else {
+        # Unfortunately field width specifiers do not work on Mac so we need two commands
+        # to get pid and command non-truncated.
+        pidcmd <- system2("ps", "wwaxo pid,command", stdout = TRUE, stderr = NULL)
+        pidusr <- system2("ps", "wwaxo pid,user", stdout = TRUE, stderr = NULL)
+        pidusr <- trimws(pidusr)
+        whoami <- system2("whoami", stdout = TRUE, stderr = NULL)
+        pididx <- grep(paste0(whoami, "$"), pidusr)
+        pidusr <- pidusr[pididx]
+        tmp <- strsplit(pidusr, " ")
+        pids <- unlist(lapply(tmp, function(x) x[1]))
+        procs_idx <- grep("selenium-server-standalone.jar", pidcmd)
+        for (proc in pidcmd[procs_idx]) {
+            pid <- strsplit(proc, " ")[[1]][1]
+            if (pid %in% pids) {
+                system2("kill", c("-9", pid))
+            }
+        }
+    }
 }
