@@ -245,6 +245,10 @@ make_col_ann_for_heatmaps <- function(object, k, show_pdata) {
                 collapse = "', '"), "' were excluded from annotation since they contained only a single value."))
         }
         ann <- ann[, colnames(ann) %in% colnames(tmp)]
+        ann <- as.data.frame(lapply(ann, function(x) {
+            if (nlevels(as.factor(x)) > 10) 
+                x else as.factor(x)
+        }))
         if (ncol(ann) == 0) {
             ann <- NULL
         }
@@ -252,6 +256,10 @@ make_col_ann_for_heatmaps <- function(object, k, show_pdata) {
         if (length(unique(ann)) > 1) {
             ann <- as.data.frame(ann)
             colnames(ann) <- show_pdata
+            ann <- as.data.frame(lapply(ann, function(x) {
+                if (nlevels(as.factor(x)) > 10) 
+                  return(x) else return(as.factor(x))
+            }))
         } else {
             message(paste0("Column '", show_pdata, "' was excluded from annotation since they contained only a single value."))
             ann <- NULL

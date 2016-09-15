@@ -27,6 +27,7 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
     consensus <- object@sc3$consensus[[as.character(k)]]$consensus
     
     add_ann_col <- FALSE
+    ann <- NULL
     if (!is.null(show_pdata)) {
         ann <- make_col_ann_for_heatmaps(object, k, show_pdata)
         if (!is.null(ann)) {
@@ -102,6 +103,7 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
     }
     
     add_ann_col <- FALSE
+    ann <- NULL
     if (!is.null(show_pdata)) {
         ann <- make_col_ann_for_heatmaps(object, k, show_pdata)
         if (!is.null(ann)) {
@@ -211,6 +213,7 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
     }
     
     add_ann_col <- FALSE
+    ann <- NULL
     if (!is.null(show_pdata)) {
         ann <- make_col_ann_for_heatmaps(object, k, show_pdata)
         if (!is.null(ann)) {
@@ -277,6 +280,7 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
     }
     
     add_ann_col <- FALSE
+    ann <- NULL
     if (!is.null(show_pdata)) {
         ann <- make_col_ann_for_heatmaps(object, k, show_pdata)
         if (!is.null(ann)) {
