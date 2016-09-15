@@ -7,9 +7,11 @@
 \alias{sc3_plot_markers.SCESet}
 \title{Plot expression of marker genes of the clusters identified by SC3 as a heatmap}
 \usage{
-sc3_plot_markers.SCESet(object, k, auroc = 0.85, p.val = 0.01)
+sc3_plot_markers.SCESet(object, k, auroc = 0.85, p.val = 0.01,
+  show_pdata = NULL)
 
-\S4method{sc3_plot_markers}{SCESet}(object, k, auroc = 0.85, p.val = 0.01)
+\S4method{sc3_plot_markers}{SCESet}(object, k, auroc = 0.85, p.val = 0.01,
+  show_pdata = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -19,6 +21,9 @@ sc3_plot_markers.SCESet(object, k, auroc = 0.85, p.val = 0.01)
 \item{auroc}{area under the ROC curve}
 
 \item{p.val}{significance threshold used for the DE genes}
+
+\item{show_pdata}{a vector of colnames of the pData(object) table. Default is NULL.
+If not NULL will add pData annotations to the columns of the output matrix}
 }
 \description{
 To find marker genes, for each gene a binary classifier is constructed 

@@ -7,9 +7,10 @@
 \alias{sc3_plot_de_genes.SCESet}
 \title{Plot expression of DE genes of the clusters identified by SC3 as a heatmap}
 \usage{
-sc3_plot_de_genes.SCESet(object, k, p.val = 0.01)
+sc3_plot_de_genes.SCESet(object, k, p.val = 0.01, show_pdata = NULL)
 
-\S4method{sc3_plot_de_genes}{SCESet}(object, k, p.val = 0.01)
+\S4method{sc3_plot_de_genes}{SCESet}(object, k, p.val = 0.01,
+  show_pdata = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -17,6 +18,9 @@ sc3_plot_de_genes.SCESet(object, k, p.val = 0.01)
 \item{k}{number of clusters}
 
 \item{p.val}{significance threshold used for the DE genes}
+
+\item{show_pdata}{a vector of colnames of the pData(object) table. Default is NULL.
+If not NULL will add pData annotations to the columns of the output matrix}
 }
 \description{
 Differential expression is calculated using the non-parametric 

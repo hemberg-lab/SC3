@@ -7,14 +7,17 @@
 \alias{sc3_plot_expression.SCESet}
 \title{Plot expression matrix used for SC3 clustering as a heatmap}
 \usage{
-sc3_plot_expression.SCESet(object, k)
+sc3_plot_expression.SCESet(object, k, show_pdata = NULL)
 
-\S4method{sc3_plot_expression}{SCESet}(object, k)
+\S4method{sc3_plot_expression}{SCESet}(object, k, show_pdata = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
 
 \item{k}{number of clusters}
+
+\item{show_pdata}{a vector of colnames of the pData(object) table. Default is NULL.
+If not NULL will add pData annotations to the columns of the output matrix}
 }
 \description{
 The expression panel represents the original input expression matrix 
