@@ -356,7 +356,7 @@ svm.labels <- treutlein_sceset@sc3$results$clusters$sc3_clusters
 
 Now we can compare the labels and see that they are different:
 ```{r}
-data.frame(no_SVM_сlusters = no.svm.labels, SVM_clusters = svm.labels)
+data.frame(no_SVM_clusters = no.svm.labels, SVM_clusters = svm.labels)
 ```
 
 # GO and Pathway Analysis

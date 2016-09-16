@@ -17,9 +17,9 @@ Authors@R: c(person("Vladimir", "Kiselev",
 Description: A tool for unsupervised clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
 Imports: graphics, stats, utils, methods, RSelenium, e1071, parallel, foreach,
-          doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8), RColorBrewer,
+          doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8),
           colorspace, ROCR, robustbase, rrcov, cluster, WriteXLS, Rtsne, 
-          Rcpp (>= 0.11.1), RcppArmadillo (>= 0.4.200.0), scater
+          Rcpp (>= 0.11.1), scater
 Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE

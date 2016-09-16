@@ -814,6 +814,7 @@ setMethod("sc3_run_svm", signature(object = "SCESet"), function(object, k) {
 #' @param k the number of clusters k for which the results should be summarised
 #' 
 #' @importFrom scater pData<-
+#' @importFrom methods new
 #' 
 #' @return an object of 'SCESet' class
 #' 
