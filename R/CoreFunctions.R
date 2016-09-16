@@ -223,7 +223,7 @@ estkTW <- function(dataset) {
     return(k)
 }
 
-make_col_ann_for_heatmaps <- function(object, k, show_pdata) {
+make_col_ann_for_heatmaps <- function(object, show_pdata) {
     if (any(!show_pdata %in% colnames(object@phenoData@data))) {
         show_pdata_excl <- show_pdata[!show_pdata %in% colnames(object@phenoData@data)]
         show_pdata <- show_pdata[show_pdata %in% colnames(object@phenoData@data)]
