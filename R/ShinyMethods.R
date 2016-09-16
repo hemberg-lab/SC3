@@ -22,7 +22,6 @@ sc3_interactive.SCESet <- function(object) {
     
     ks <- as.numeric(names(consensus))
     dataset <- object@sc3$processed_dataset
-    show.original.labels <- FALSE
     
     ## define UI parameters
     plot.height <- 600
@@ -40,6 +39,8 @@ sc3_interactive.SCESet <- function(object) {
     if (!is.null(object@sc3$biology)) {
         biology <- TRUE
     }
+    
+    pdata <- colnames(make_col_ann_for_heatmaps(object, colnames(object@phenoData@data)))
     
     shinyApp(
         ui = fluidPage(
@@ -88,6 +89,17 @@ sc3_interactive.SCESet <- function(object) {
                                              )
                                          )))
                     ))),
+                    
+                    conditionalPanel(
+                        "input.main_panel == 'Consensus' || input.main_panel == 'Expression' || input.main_panel == 'DE' || input.main_panel == 'Markers'",
+                    wellPanel(fluidRow(
+                        column(12,
+                               HTML("<b>Show phenoData</b>"),
+                               HTML("<font size = 1>"),
+                               checkboxGroupInput("pDataColumns", label = NULL, pdata, selected = NULL),
+                               HTML("</font>")
+                        )))),
+                    
                     fluidRow(
                         column(
                             12,
@@ -439,22 +451,7 @@ sc3_interactive.SCESet <- function(object) {
             # plot consensus matrix
             output$consensus <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    if (show.original.labels) {
-                        ann <- data.frame(Input.Labels = factor(colnames(dataset)))
-                        pheatmap::pheatmap(
-                            values$consensus,
-                            cluster_rows = values$hc,
-                            cluster_cols = values$hc,
-                            cutree_rows = input$clusters,
-                            cutree_cols = input$clusters,
-                            annotation_col = ann,
-                            show_rownames = FALSE,
-                            show_colnames = FALSE
-                        )
-                    } else {
-                        sc3_plot_consensus(object,
-                                           as.numeric(input$clusters))
-                    }
+                    sc3_plot_consensus(object, as.numeric(input$clusters), show_pdata = input$pDataColumns)
                 })
             })
             # plot silhouette
@@ -511,22 +508,7 @@ sc3_interactive.SCESet <- function(object) {
             output$matrix <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
-                    if (show.original.labels) {
-                        ann <- data.frame(Input.Labels = factor(values$original.labels))
-                        t <- values$dataset
-                        colnames(t) <- rownames(ann)
-                        pheatmap::pheatmap(
-                            t,
-                            kmeans_k = 100,
-                            cluster_cols = FALSE,
-                            show_rownames = FALSE,
-                            show_colnames = FALSE,
-                            annotation_col = ann,
-                            gaps_col = values$col.gaps
-                        )
-                    } else {
-                        sc3_plot_expression(object, as.numeric(input$clusters))
-                    }
+                    sc3_plot_expression(object, as.numeric(input$clusters), show_pdata = input$pDataColumns)
                 })
             })
             # make tSNE plot
@@ -558,11 +540,12 @@ sc3_interactive.SCESet <- function(object) {
                     object,
                     as.numeric(input$clusters),
                     as.numeric(input$auroc.threshold),
-                    as.numeric(input$p.val.mark)
+                    as.numeric(input$p.val.mark),
+                    show_pdata = input$pDataColumns
                 )
             })
             plotHeightMark <- function() {
-                return(70 + 10.8 * nrow(values$mark.res))
+                return(150 + 10.8 * nrow(values$mark.res))
             }
             output$plot_mark_genes <- renderUI({
                 validate(need(
@@ -603,10 +586,11 @@ sc3_interactive.SCESet <- function(object) {
                 ))
                 sc3_plot_de_genes(object,
                                   as.numeric(input$clusters),
-                                  as.numeric(input$p.val.de))
+                                  as.numeric(input$p.val.de),
+                                  show_pdata = input$pDataColumns)
             })
             plotHeightDE <- function() {
-                return(70 + 10.8 * values$n.de.plot.height)
+                return(150 + 10.8 * values$n.de.plot.height)
             }
             output$plot_de_genes <- renderUI({
                 validate(need(

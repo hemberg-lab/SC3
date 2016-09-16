@@ -222,3 +222,48 @@ estkTW <- function(dataset) {
     }
     return(k)
 }
+
+make_col_ann_for_heatmaps <- function(object, show_pdata) {
+    if (any(!show_pdata %in% colnames(object@phenoData@data))) {
+        show_pdata_excl <- show_pdata[!show_pdata %in% colnames(object@phenoData@data)]
+        show_pdata <- show_pdata[show_pdata %in% colnames(object@phenoData@data)]
+        message(paste0("Provided columns '", paste(show_pdata_excl, collapse = "', '"), 
+            "' do not exist in the phenoData table!"))
+        if (length(show_pdata) == 0) {
+            return(NULL)
+        }
+    }
+    ann <- NULL
+    ann <- object@phenoData@data[, colnames(object@phenoData@data) %in% show_pdata]
+    # remove columns with 1 value only
+    if (length(show_pdata) > 1) {
+        tmp <- ann[, unlist(lapply(ann, function(x) {
+            length(unique(x))
+        })) > 1]
+        if (length(colnames(tmp)) != length(colnames(ann))) {
+            message(paste0("Columns '", paste(setdiff(colnames(ann), colnames(tmp)), 
+                collapse = "', '"), "' were excluded from annotation since they contained only a single value."))
+        }
+        ann <- ann[, colnames(ann) %in% colnames(tmp)]
+        ann <- as.data.frame(lapply(ann, function(x) {
+            if (nlevels(as.factor(x)) > 10) 
+                x else as.factor(x)
+        }))
+        if (ncol(ann) == 0) {
+            ann <- NULL
+        }
+    } else {
+        if (length(unique(ann)) > 1) {
+            ann <- as.data.frame(ann)
+            colnames(ann) <- show_pdata
+            ann <- as.data.frame(lapply(ann, function(x) {
+                if (nlevels(as.factor(x)) > 10) 
+                  return(x) else return(as.factor(x))
+            }))
+        } else {
+            message(paste0("Column '", show_pdata, "' was excluded from annotation since they contained only a single value."))
+            ann <- NULL
+        }
+    }
+    return(ann)
+}

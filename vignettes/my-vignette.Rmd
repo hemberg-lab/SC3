@@ -46,9 +46,10 @@ It is easy to create an `SCESet` object from `treutlein` expression matrix. We w
 treutlein_cell_info <- data.frame(author_clusters = colnames(treutlein))
 cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
 rownames(treutlein_cell_info) <- cell_inds
-colnames(treutlein) <- cell_inds
+treutlein_cell_exprs <- treutlein
+colnames(treutlein_cell_exprs) <- cell_inds
 pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
-treutlein_sceset <- newSCESet(countData = treutlein, phenoData = pd)
+treutlein_sceset <- newSCESet(countData = treutlein_cell_exprs, phenoData = pd)
 ```
 
 To be able to create plots using `scater` we will also calculate the QC metrics:
@@ -116,6 +117,11 @@ The consensus matrix is a <em>N</em> by <em>N</em> matrix, where <em>N</em> is t
 sc3_plot_consensus(treutlein_sceset, k = 3)
 ```
 
+It is also possible to annotate cells (columns of the consensus matrix) with any column of the `phenoData` slot of the `SCESet` object.
+```{r, fig.height=6, fig.width=8}
+sc3_plot_consensus(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+```
+
 ## Silhouette Plot
 
 A silhouette is a quantitative measure of the diagonality of the consensus matrix. An average silhouette width (shown at the bottom left of the silhouette plot) varies from 0 to 1, where 1 represents a perfectly block-diagonal consensus matrix and 0 represents a situation where there is no block-diagonal structure. The best clustering is achieved when the average silhouette width is close to 1.
@@ -128,6 +134,11 @@ sc3_plot_silhouette(treutlein_sceset, k = 3)
 The expression panel represents the original input expression matrix (cells in columns and genes in rows) after cell and gene filters. Genes are clustered by kmeans with k = 100 (dendrogram on the left) and the heatmap represents the expression levels of the gene cluster centers after log2-scaling.
 ```{r, fig.height=6}
 sc3_plot_expression(treutlein_sceset, k = 3)
+```
+
+It is also possible to annotate cells (columns of the expression matrix) with any column of the `phenoData` slot of the `SCESet` object.
+```{r, fig.height=6, fig.width=8}
+sc3_plot_expression(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 ```
 
 ## Cluster Stability
@@ -147,8 +158,13 @@ sc3_plot_tsne(treutlein_sceset, k = 3)
 ## DE genes
 
 Differential expression is calculated using the non-parametric Kruskal-Wallis test. A significant p-value indicates that gene expression in at least one cluster stochastically dominates one other cluster. SC3 provides a list of all differentially expressed genes with adjusted p-values < 0.01 and plots gene expression profiles of the 50 genes with the lowest p-values. Note that the calculation of differential expression after clustering can introduce a bias in the distribution of p-values, and thus we advise to use the p-values for ranking the genes only.
-```{r, fig.height=8}
+```{r, fig.height=9}
 sc3_plot_de_genes(treutlein_sceset, k = 3)
+```
+
+It is also possible to annotate cells (columns of the matrix containing DE genes) with any column of the `phenoData` slot of the `SCESet` object.
+```{r, fig.height=9, fig.width=8}
+sc3_plot_de_genes(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 ```
 
 ## Marker Genes
@@ -156,6 +172,11 @@ sc3_plot_de_genes(treutlein_sceset, k = 3)
 To find marker genes, for each gene a binary classifier is constructed based on the mean cluster expression values. The classifier prediction is then calculated using the gene expression ranks. The area under the receiver operating characteristic (ROC) curve is used to quantify the accuracy of the prediction. A p-value is assigned to each gene by using the Wilcoxon signed rank test. By default the genes with the area under the ROC curve (AUROC) > 0.85 and with the p-value < 0.01 are selected and the top 10 marker genes of each cluster are visualized in this heatmap.
 ```{r, fig.height=6}
 sc3_plot_markers(treutlein_sceset, k = 3)
+```
+
+It is also possible to annotate cells (columns of the matrix containing marker genes) with any column of the `phenoData` slot of the `SCESet` object.
+```{r, fig.height=6, fig.width=8}
+sc3_plot_markers(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 ```
 
 ## Cell Outliers

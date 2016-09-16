@@ -7,14 +7,17 @@
 \alias{sc3_plot_consensus.SCESet}
 \title{Plot consensus matrix as a heatmap}
 \usage{
-sc3_plot_consensus.SCESet(object, k)
+sc3_plot_consensus.SCESet(object, k, show_pdata = NULL)
 
-\S4method{sc3_plot_consensus}{SCESet}(object, k)
+\S4method{sc3_plot_consensus}{SCESet}(object, k, show_pdata = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
 
 \item{k}{number of clusters}
+
+\item{show_pdata}{a vector of colnames of the pData(object) table. Default is NULL.
+If not NULL will add pData annotations to the columns of the output matrix}
 }
 \description{
 The consensus matrix is a NxN 

@@ -11,9 +11,10 @@ treutlein[1:3, 1:3]
 treutlein_cell_info <- data.frame(author_clusters = colnames(treutlein))
 cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
 rownames(treutlein_cell_info) <- cell_inds
-colnames(treutlein) <- cell_inds
+treutlein_cell_exprs <- treutlein
+colnames(treutlein_cell_exprs) <- cell_inds
 pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
-treutlein_sceset <- newSCESet(countData = treutlein, phenoData = pd)
+treutlein_sceset <- newSCESet(countData = treutlein_cell_exprs, phenoData = pd)
 
 ## ------------------------------------------------------------------------
 treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
@@ -42,11 +43,17 @@ plotPCA(treutlein_sceset, colour_by = "sc3_clusters")
 ## ---- fig.height=6-------------------------------------------------------
 sc3_plot_consensus(treutlein_sceset, k = 3)
 
+## ---- fig.height=6, fig.width=8------------------------------------------
+sc3_plot_consensus(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+
 ## ------------------------------------------------------------------------
 sc3_plot_silhouette(treutlein_sceset, k = 3)
 
 ## ---- fig.height=6-------------------------------------------------------
 sc3_plot_expression(treutlein_sceset, k = 3)
+
+## ---- fig.height=6, fig.width=8------------------------------------------
+sc3_plot_expression(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 
 ## ---- fig.height=3-------------------------------------------------------
 sc3_plot_cluster_stability(treutlein_sceset, k = 3)
@@ -54,11 +61,17 @@ sc3_plot_cluster_stability(treutlein_sceset, k = 3)
 ## ------------------------------------------------------------------------
 sc3_plot_tsne(treutlein_sceset, k = 3)
 
-## ---- fig.height=8-------------------------------------------------------
+## ---- fig.height=9-------------------------------------------------------
 sc3_plot_de_genes(treutlein_sceset, k = 3)
+
+## ---- fig.height=9, fig.width=8------------------------------------------
+sc3_plot_de_genes(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 
 ## ---- fig.height=6-------------------------------------------------------
 sc3_plot_markers(treutlein_sceset, k = 3)
+
+## ---- fig.height=6, fig.width=8------------------------------------------
+sc3_plot_markers(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
 
 ## ---- fig.height=3-------------------------------------------------------
 sc3_plot_cell_outliers(treutlein_sceset, k = 3)

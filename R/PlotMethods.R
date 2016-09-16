@@ -14,26 +14,40 @@
 #' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
+#' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
+#' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_consensus.SCESet <- function(object, k) {
+sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
     
     res <- prepare_output(object, k)
     
     consensus <- object@sc3$consensus[[as.character(k)]]$consensus
     
-    pheatmap::pheatmap(consensus, cluster_rows = res$hc, cluster_cols = res$hc, cutree_rows = k, 
-        cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE)
+    add_ann_col <- FALSE
+    ann <- NULL
+    if (!is.null(show_pdata)) {
+        ann <- make_col_ann_for_heatmaps(object, show_pdata)
+        if (!is.null(ann)) {
+            add_ann_col <- TRUE
+            # make same names for the annotation table
+            rownames(ann) <- colnames(consensus)
+        }
+    }
+    do.call(pheatmap::pheatmap, c(list(consensus, cluster_rows = res$hc, cluster_cols = res$hc, 
+        cutree_rows = k, cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), 
+        list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_consensus.SCESet
 #' @aliases sc3_plot_consensus
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k) {
-    sc3_plot_consensus.SCESet(object, k)
+setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k, 
+    show_pdata = NULL) {
+    sc3_plot_consensus.SCESet(object, k, show_pdata)
 })
 
 #' Plot silhouette indexes of the cells
@@ -72,11 +86,13 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, 
 #' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
+#' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
+#' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_expression.SCESet <- function(object, k) {
+sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
     
     res <- prepare_output(object, k)
     
@@ -86,16 +102,31 @@ sc3_plot_expression.SCESet <- function(object, k) {
         dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
-    pheatmap::pheatmap(dataset, cluster_cols = res$hc, kmeans_k = 100, cutree_cols = k, 
-        show_rownames = FALSE, show_colnames = FALSE)
+    add_ann_col <- FALSE
+    ann <- NULL
+    if (!is.null(show_pdata)) {
+        ann <- make_col_ann_for_heatmaps(object, show_pdata)
+        if (!is.null(ann)) {
+            add_ann_col <- TRUE
+            if (!is.null(object@sc3$svm_train_inds)) {
+                ann <- ann[, object@sc3$svm_train_inds]
+            }
+            # make same names for the annotation table
+            rownames(ann) <- colnames(dataset)
+        }
+    }
+    
+    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = res$hc, kmeans_k = 100, 
+        cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_expression.SCESet
 #' @aliases sc3_plot_expression
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k) {
-    sc3_plot_expression.SCESet(object, k)
+setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k, 
+    show_pdata = NULL) {
+    sc3_plot_expression.SCESet(object, k, show_pdata)
 })
 
 
@@ -165,11 +196,13 @@ setMethod("sc3_plot_tsne", signature(object = "SCESet"), function(object, k, per
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param p.val significance threshold used for the DE genes
+#' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
+#' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01) {
+sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL) {
     
     res <- prepare_output(object, k)
     
@@ -179,15 +212,30 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01) {
         dataset <- dataset[, object@sc3$svm_train_inds]
     }
     
+    add_ann_col <- FALSE
+    ann <- NULL
+    if (!is.null(show_pdata)) {
+        ann <- make_col_ann_for_heatmaps(object, show_pdata)
+        if (!is.null(ann)) {
+            add_ann_col <- TRUE
+            if (!is.null(object@sc3$svm_train_inds)) {
+                ann <- ann[, object@sc3$svm_train_inds]
+            }
+            # make same names for the annotation table
+            rownames(ann) <- colnames(dataset)
+        }
+    }
+    
     de.genes <- object@sc3$biology[[as.character(k)]]$de.genes
     
     de.genes <- de.genes[de.genes$p.value < p.val, , drop = FALSE]
     d <- head(de.genes, 50)
     row.ann <- data.frame(p.value = -log10(d))
     rownames(row.ann) <- rownames(d)
-    pheatmap::pheatmap(dataset[rownames(d), , drop = FALSE], show_colnames = FALSE, 
+    
+    do.call(pheatmap::pheatmap, c(list(dataset[rownames(d), , drop = FALSE], show_colnames = FALSE, 
         cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row.ann, 
-        annotation_names_row = FALSE, cellheight = 10)
+        cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_de_genes.SCESet
@@ -195,8 +243,8 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01) {
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k, 
-    p.val = 0.01) {
-    sc3_plot_de_genes.SCESet(object, k, p.val)
+    p.val = 0.01, show_pdata = NULL) {
+    sc3_plot_de_genes.SCESet(object, k, p.val, show_pdata)
 })
 
 
@@ -215,11 +263,13 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k,
 #' @param k number of clusters
 #' @param auroc area under the ROC curve
 #' @param p.val significance threshold used for the DE genes
+#' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
+#' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
 #' 
 #' @export
-sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01) {
+sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_pdata = NULL) {
     
     res <- prepare_output(object, k)
     
@@ -227,6 +277,20 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01) {
     
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
+    }
+    
+    add_ann_col <- FALSE
+    ann <- NULL
+    if (!is.null(show_pdata)) {
+        ann <- make_col_ann_for_heatmaps(object, show_pdata)
+        if (!is.null(ann)) {
+            add_ann_col <- TRUE
+            if (!is.null(object@sc3$svm_train_inds)) {
+                ann <- ann[, object@sc3$svm_train_inds]
+            }
+            # make same names for the annotation table
+            rownames(ann) <- colnames(dataset)
+        }
     }
     
     markers <- object@sc3$biology[[as.character(k)]]$markers
@@ -238,10 +302,10 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01) {
     row.ann <- data.frame(Cluster = factor(mark.res.plot$sc3_clusters, levels = unique(mark.res.plot$sc3_clusters)))
     rownames(row.ann) <- rownames(mark.res.plot)
     
-    pheatmap::pheatmap(dataset[rownames(mark.res.plot), , drop = FALSE], show_colnames = FALSE, 
-        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row.ann, 
-        annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot$sc3_clusters) != 
-            0), cellheight = 10)
+    do.call(pheatmap::pheatmap, c(list(dataset[rownames(mark.res.plot), , drop = FALSE], 
+        show_colnames = FALSE, cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, 
+        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot$sc3_clusters) != 
+            0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_markers.SCESet
@@ -249,8 +313,8 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01) {
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, auroc = 0.85, 
-    p.val = 0.01) {
-    sc3_plot_markers.SCESet(object, k, auroc, p.val)
+    p.val = 0.01, show_pdata = NULL) {
+    sc3_plot_markers.SCESet(object, k, auroc, p.val, show_pdata)
 })
 
 #' Plot cell outliers
