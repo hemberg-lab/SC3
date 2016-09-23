@@ -143,7 +143,7 @@ treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
 svm.labels <- treutlein_sceset@sc3$results$clusters$sc3_clusters
 
 ## ------------------------------------------------------------------------
-data.frame(no_SVM_сlusters = no.svm.labels, SVM_clusters = svm.labels)
+data.frame(no_SVM_clusters = no.svm.labels, SVM_clusters = svm.labels)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  RSelenium::checkForServer()

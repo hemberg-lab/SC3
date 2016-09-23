@@ -162,7 +162,7 @@ sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(object@sc3$p
     }
     
     dataset <- dataset[, res$hc$order]
-    colnames(dataset) <- res$new.labels
+    colnames(dataset) <- res$new.labels[res$hc$order]
     
     set.seed(seed)
     tsne_out <- Rtsne::Rtsne(t(dataset), perplexity = perplexity)
