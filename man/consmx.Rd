@@ -2,19 +2,14 @@
 % Please edit documentation in R/RcppExports.R
 \name{consmx}
 \alias{consmx}
-\title{Consensus binary matrix computation}
+\title{Consensus matrix computation}
 \usage{
-consmx(myString, res, length)
+consmx(dat)
 }
 \arguments{
-\item{myString}{Integral string corresponding to cluster labels.}
-
-\item{res}{A square zero matrix, nrows = length. Will become
-binary matrix.}
-
-\item{length}{Integer, number of cells.}
+\item{dat}{a matrix containing clustering solutions in columns}
 }
 \description{
-Computes binary matrix given cluster labels
+Computes consensus matrix given cluster labels
 }
 

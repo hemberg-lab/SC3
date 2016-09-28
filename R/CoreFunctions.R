@@ -76,36 +76,11 @@ transformation <- function(dists, method) {
         t <- prcomp(dists, center = TRUE, scale. = TRUE)
         return(t$rotation)
     } else if (method == "laplacian") {
-        L <- norm_laplacian(exp(-dists/max(dists)), 0)
+        L <- norm_laplacian(dists)
         l <- eigen(L)
         # sort eigenvectors by their eigenvalues
         return(l$vectors[, order(l$values)])
-    } else if (method == "laplacian_reg") {
-        L <- norm_laplacian(exp(-dists/max(dists)), 1000)
-        l <- eigen(L)
-        # sort eigenvectors by their eigenvalues in increasing order
-        return(l$vectors[, order(l$values)])
-    } else if (method == "mds") {
-        t <- cmdscale(dists, k = ncol(dists) - 1)
-        return(t[[1]])
     }
-}
-
-#' Graph Laplacian calculation
-#'
-#' Calculate graph Laplacian of a distance matrix
-#'
-#' @param x adjacency/distance matrix
-#' @param tau regularization term
-#' 
-#' @useDynLib SC3
-#' @importFrom Rcpp sourceCpp
-#' 
-#' @return graph Laplacian of the adjacency/distance matrix
-norm_laplacian <- function(x, tau) {
-    D <- diag(colSums(x)^(-0.5))
-    dim <- nrow(x)
-    return(diag(dim(D)[1]) - mult(D, x, dim))
 }
 
 #' Calculate consensus matrix
@@ -117,23 +92,16 @@ norm_laplacian <- function(x, tau) {
 #' the similarity is 0. A consensus matrix is calculated by averaging all 
 #' similarity matrices.
 #'
-#' @param clusts a list of clustering solutions. Labels in each solutions 
-#' should be separated by a space.
+#' @param clusts a matrix containing clustering solutions in columns
 #' @return consensus matrix
-#'
-#' @importFrom stats dist
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
 #' @export
 consensus_matrix <- function(clusts) {
-    n.cells <- length(unlist(strsplit(clusts[1], " ")))
-    res <- matrix(0, nrow = n.cells, ncol = n.cells)
-    j <- length(clusts)
-    res <- consmx(clusts, res, j)
-    res <- -res/j
-    colnames(res) <- as.character(c(1:n.cells))
-    rownames(res) <- as.character(c(1:n.cells))
+    res <- consmx(clusts)
+    colnames(res) <- as.character(c(1:nrow(clusts)))
+    rownames(res) <- as.character(c(1:nrow(clusts)))
     return(res)
 }
 

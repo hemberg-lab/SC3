@@ -1,35 +1,8 @@
-#include <sstream>
 #include <armadillo>
 #include <RcppArmadillo.h>
-#include <vector>
-#include <string>
 
-// [[Rcpp::depends(RcppArmadillo)]]
-
-using namespace std;
 using namespace arma;
 using namespace Rcpp;
-
-//' Split integral string into integral vector 
-//' 
-//' Similar to "strsplit" in R but only for integral strings and vectors. 
-//' 
-//' To remove a note from check change this function using an answer here:
-//' http://stackoverflow.com/questions/5607589/right-way-to-split-an-stdstring-into-a-vectorstring
-//' 
-//' @param myString An integral string.
-// [[Rcpp::export]]
-
-std::vector<int> splits(const std::string myString) {
-
-	std::stringstream iss(myString);
-
-	int number;
-	std::vector<int> myNumbers;
-	while (iss >> number)
-		myNumbers.push_back(number);
-	return myNumbers;
-}
 
 //' Compute Euclidean distance matrix by rows
 //' 
@@ -78,67 +51,41 @@ NumericMatrix ED2(const NumericMatrix & x) {
 	return out;
 }
 
-//' Consensus binary matrix computation
+//' Consensus matrix computation
 //' 
-//' Computes binary matrix given cluster labels
+//' Computes consensus matrix given cluster labels
 //' 
-//' @param res A square zero matrix, nrows = length. Will become
-//' binary matrix.
-//' @param myString Integral string corresponding to cluster labels.
-//' @param length Integer, number of cells.
+//' @param dat a matrix containing clustering solutions in columns
 // [[Rcpp::export]]
-arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int length) {
+arma::mat consmx(const arma::mat dat) {
 
-	std::vector<int> t;
-	arma::mat s;
-	arma::mat t1;
+	mat res = dat.n_cols * eye<mat>( dat.n_rows, dat.n_rows );
 
-	int r;
-	for (int i = 0; i < length; i += 1) {
-		t = splits(myString[i]);
-		t1 = conv_to<mat>::from(t);
-		s = ED1(t1);
-		r = s.n_rows;
-		for (int j = 0; j < r; j += 1) {
-			for (int k = j; k < r; k += 1) { //we make use of the symmetry of the dist mx
-				if (s(j, k) == 0) {
-					s(j, k) = -1;
-					s(k, j) = -1;
-					//if (j != k) {
-					///s(k, j) = -1;
-					//}
-				}
-				if (s(j, k) != -1) {
-					s(j, k) = 0;
-					s(k, j) = 0;
-					//if (j != k) {
-					//s(k, j) = 0;
-					//}
+	int i, j, k;
+	for (j = 0; j < dat.n_cols; j++) {
+		for (i = 0; i < dat.n_rows; i++) {
+			for (k = i + 1; k < dat.n_rows; k++) {
+				if (dat(i, j) == dat(k, j)) {
+				    res(i, k)++;
+					res(k, i)++;
 				}
 			}
 		}
-		res += s;
 	}
+	res /= dat.n_cols;
 	return res;
 }
 
-//' More efficient way to pre and post multiply by diagonal matrix D
+//' Graph Laplacian calculation
 //' 
-//' If D is a diagonal matrix and A another matrix with the same
-//' dimensions, this procedure is a more efficient way to compute
-//' D %*% A %*% D.
+//' Calculate graph Laplacian of a symmetrix matrix
 //' 
-//' @param D Diagonal numeric matrix.
-//' @param x Numeric matrix with the same dimensions as D.
-//' @param dim Number of rows of D.
+//' @param A symmetric matrix
 // [[Rcpp::export]]
-arma::mat mult(arma::mat D, arma::mat x, int dim) {
-    arma::mat res(dim, dim);
-    for (int i = 0; i < dim; i += 1) {
-        for (int j = 0; j < dim; j += 1) {
-            res(i, j) = x(i, j)*D(i, i)*D(j, j);
-        }
-    }
+arma::mat norm_laplacian(arma::mat A) {
+    A = exp(-A/A.max());
+    arma::mat D = diagmat(pow(sum(A), -0.5));
+    arma::mat res = eye(A.n_cols, A.n_cols) - D * A * D;
     return(res);
 }
 
