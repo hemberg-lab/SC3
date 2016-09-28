@@ -7,8 +7,7 @@
 consensus_matrix(clusts)
 }
 \arguments{
-\item{clusts}{a list of clustering solutions. Labels in each solutions 
-should be separated by a space.}
+\item{clusts}{a matrix containing clustering solutions in columns}
 }
 \value{
 consensus matrix

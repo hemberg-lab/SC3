@@ -629,8 +629,7 @@ sc3_calc_consens.SCESet <- function(object) {
     cons <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
-            d <- unlist(lapply(d, function(x) paste(x, collapse = " ")))
-            
+            d <- matrix(unlist(d), nrow=length(d[[1]]))
             dat <- consensus_matrix(d)
             tmp <- ED2(dat)
             colnames(tmp) <- as.character(colnames(dat))

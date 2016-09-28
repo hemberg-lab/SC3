@@ -6,17 +6,6 @@
 
 using namespace Rcpp;
 
-// splits
-std::vector<int> splits(const std::string myString);
-RcppExport SEXP SC3_splits(SEXP myStringSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const std::string >::type myString(myStringSEXP);
-    __result = Rcpp::wrap(splits(myString));
-    return __result;
-END_RCPP
-}
 // ED1
 arma::mat ED1(const arma::mat& x);
 RcppExport SEXP SC3_ED1(SEXP xSEXP) {
@@ -40,28 +29,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // consmx
-arma::mat consmx(const std::vector<std::string> myString, arma::mat res, int length);
-RcppExport SEXP SC3_consmx(SEXP myStringSEXP, SEXP resSEXP, SEXP lengthSEXP) {
+arma::mat consmx(const arma::mat dat);
+RcppExport SEXP SC3_consmx(SEXP datSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const std::vector<std::string> >::type myString(myStringSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type res(resSEXP);
-    Rcpp::traits::input_parameter< int >::type length(lengthSEXP);
-    __result = Rcpp::wrap(consmx(myString, res, length));
+    Rcpp::traits::input_parameter< const arma::mat >::type dat(datSEXP);
+    __result = Rcpp::wrap(consmx(dat));
     return __result;
 END_RCPP
 }
-// mult
-arma::mat mult(arma::mat D, arma::mat x, int dim);
-RcppExport SEXP SC3_mult(SEXP DSEXP, SEXP xSEXP, SEXP dimSEXP) {
+// norm_laplacian
+arma::mat norm_laplacian(arma::mat A);
+RcppExport SEXP SC3_norm_laplacian(SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::mat >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
-    __result = Rcpp::wrap(mult(D, x, dim));
+    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
+    __result = Rcpp::wrap(norm_laplacian(A));
     return __result;
 END_RCPP
 }
