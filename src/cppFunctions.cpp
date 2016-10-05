@@ -81,6 +81,7 @@ arma::mat consmx(const arma::mat dat) {
 //' Calculate graph Laplacian of a symmetrix matrix
 //' 
 //' @param A symmetric matrix
+//' @export
 // [[Rcpp::export]]
 arma::mat norm_laplacian(arma::mat A) {
     A = exp(-A/A.max());
