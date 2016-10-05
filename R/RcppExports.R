@@ -34,6 +34,7 @@ consmx <- function(dat) {
 #' Calculate graph Laplacian of a symmetrix matrix
 #' 
 #' @param A symmetric matrix
+#' @export
 norm_laplacian <- function(A) {
     .Call('SC3_norm_laplacian', PACKAGE = 'SC3', A)
 }
