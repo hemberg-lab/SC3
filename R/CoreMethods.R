@@ -210,10 +210,6 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
         return(object)
     }
     
-    # remove duplicated genes
-    message("Removing duplicated genes...")
-    dataset <- dataset[!duplicated(rownames(dataset)), ]
-    
     # gene filter
     if (gene.filter) {
         dataset <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
