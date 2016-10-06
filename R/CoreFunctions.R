@@ -235,3 +235,31 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     }
     return(ann)
 }
+
+#' A wrapper to quickly create an SCESet from a matrix
+#' 
+#' If an input matrix has colnames then the phenoData table of the output
+#' object will be populated with these colnames as 'cell_id' column.
+#' 
+#' If an input matrix does not have colnames the phenoData table of the output
+#' object will be populated with 'Cell_1', 'Cell_2', etc. as 'cell_id' column.
+#'
+#' @param d expression matrix
+#' @return object of SCESet class based on d
+#' 
+#' @importFrom scater newSCESet
+#' @export
+create_sceset <- function(d) {
+    if(!is.null(colnames(d))) {
+        d_cell_info <- data.frame(cell_id = colnames(d))
+    } else {
+        d_cell_info <- paste("Cell", 1:ncol(d), sep = "_")
+    }
+    cell_inds <- paste("Cell", 1:ncol(d), sep = "_")
+    rownames(d_cell_info) <- cell_inds
+    d_cell_exprs <- d
+    colnames(d_cell_exprs) <- cell_inds
+    pd <- new("AnnotatedDataFrame", data = d_cell_info)
+    d_sceset <- scater::newSCESet(countData = d_cell_exprs, phenoData = pd)
+}
+
