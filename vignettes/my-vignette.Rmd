@@ -43,7 +43,7 @@ treutlein[1:3, 1:3]
 
 It is easy to create an `SCESet` object from `treutlein` expression matrix. We will follow the [`scater`'s manual](https://www.bioconductor.org/packages/release/bioc/vignettes/scater/inst/doc/vignette.html):
 ```{r}
-treutlein_cell_info <- data.frame(author_clusters = colnames(treutlein))
+treutlein_cell_info <- data.frame(cell_id = colnames(treutlein))
 cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
 rownames(treutlein_cell_info) <- cell_inds
 treutlein_cell_exprs <- treutlein
@@ -52,16 +52,21 @@ pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
 treutlein_sceset <- newSCESet(countData = treutlein_cell_exprs, phenoData = pd)
 ```
 
+Note that we also provide a convenient wrapper to quickly create `SCESet` object from an R matrix: the function name is `create_sceset` and the input argument is an R matrix containing expression values. `create_sceset` combines multiple lines of code we used above (please look at its documentation `?create_sceset`):
+```{r}
+treutlein_sceset <- create_sceset(treutlein)
+```
+
 To be able to create plots using `scater` we will also calculate the QC metrics:
 ```{r}
 treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
 ```
 
-Note that `treutlein_cell_info` data frame can contain more information about the cells, such as plate, run, well, date etc.
+Note that `treutlein_cell_info` data frame can contain more information about the cells, such as plate, run, well, date etc. In our case it just contains `cell_id` column which correspond to the cell labels provided by authors of the original publication.
 
 After the `SCESet` object is created and QC is run, `scater` allows a user to quickly visualize and assess the data, for example using a PCA plot:
 ```{r}
-plotPCA(treutlein_sceset, colour_by = "author_clusters")
+plotPCA(treutlein_sceset, colour_by = "cell_id")
 ```
 
 ## Run SC3
@@ -119,7 +124,7 @@ sc3_plot_consensus(treutlein_sceset, k = 3)
 
 It is also possible to annotate cells (columns of the consensus matrix) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
-sc3_plot_consensus(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+sc3_plot_consensus(treutlein_sceset, k = 3, show_pdata = c("cell_id", "log10_total_features"))
 ```
 
 ## Silhouette Plot
@@ -138,7 +143,7 @@ sc3_plot_expression(treutlein_sceset, k = 3)
 
 It is also possible to annotate cells (columns of the expression matrix) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
-sc3_plot_expression(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+sc3_plot_expression(treutlein_sceset, k = 3, show_pdata = c("cell_id", "log10_total_features"))
 ```
 
 ## Cluster Stability
@@ -164,7 +169,7 @@ sc3_plot_de_genes(treutlein_sceset, k = 3)
 
 It is also possible to annotate cells (columns of the matrix containing DE genes) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=9, fig.width=8}
-sc3_plot_de_genes(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+sc3_plot_de_genes(treutlein_sceset, k = 3, show_pdata = c("cell_id", "log10_total_features"))
 ```
 
 ## Marker Genes
@@ -176,7 +181,7 @@ sc3_plot_markers(treutlein_sceset, k = 3)
 
 It is also possible to annotate cells (columns of the matrix containing marker genes) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
-sc3_plot_markers(treutlein_sceset, k = 3, show_pdata = c("author_clusters", "log10_total_features"))
+sc3_plot_markers(treutlein_sceset, k = 3, show_pdata = c("cell_id", "log10_total_features"))
 ```
 
 ## Cell Outliers
