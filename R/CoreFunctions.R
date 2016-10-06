@@ -134,8 +134,9 @@ support_vector_machines <- function(train, study, kern) {
 #' @param N number of cells in the input dataset
 #' @param svm.num.cells number of random cells to be used for training
 #' @param svm.train.inds indeces of cells to be used for training
+#' @param svm.max define the maximum number of cells below which SVM is not run
 #' @return A list of indeces of the train and the study cells
-prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
+prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL, svm.max) {
     
     if (!is.null(svm.num.cells)) {
         message("Defining training cells for SVM using svm.num.cells parameter...")
@@ -150,8 +151,8 @@ prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL) {
     }
     
     if (is.null(svm.num.cells) & is.null(svm.train.inds)) {
-        message("Defining training cells for SVM using 5000 random cells...")
-        train.inds <- sample(1:N, 5000)
+        message(paste0("Defining training cells for SVM using ", svm.max, " random cells..."))
+        train.inds <- sample(1:N, svm.max)
         study.inds <- setdiff(1:N, train.inds)
     }
     
