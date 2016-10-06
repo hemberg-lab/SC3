@@ -10,15 +10,16 @@
 sc3_prepare.SCESet(object, exprs_values = "counts", gene.filter = TRUE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
   log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07,
-  svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL,
-  k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1)
+  svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
+  n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09,
+  seed = 1)
 
 \S4method{sc3_prepare}{SCESet}(object, exprs_values = "counts",
   gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
   gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04,
   d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL,
-  n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09,
-  seed = 1)
+  svm.max = 5000, n.cores = NULL, k.means.nstart = NULL,
+  k.means.iter.max = 1e+09, seed = 1)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -69,6 +70,8 @@ for SVM prediction. The default is NULL.}
 
 \item{svm.train.inds}{a numeric vector defining indeces of training cells 
 that should be used for SVM training. The default is NULL.}
+
+\item{svm.max}{define the maximum number of cells below which SVM is not run.}
 
 \item{n.cores}{defines the number of cores to be used on the user's machine.}
 

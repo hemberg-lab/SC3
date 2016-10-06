@@ -184,6 +184,7 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' for SVM prediction. The default is NULL.
 #' @param svm.train.inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is NULL.
+#' @param svm.max define the maximum number of cells below which SVM is not run.
 #' @param n.cores defines the number of cores to be used on the user's machine.
 #' @param k.means.nstart nstart parameter used by kmeans() function. Default is 
 #' 1000 for up to 2000 cells and 50 for more than 2000 cells.
@@ -203,7 +204,7 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, 
     gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = TRUE, 
     d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, 
-    n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1) {
+    svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1) {
     dataset <- object@assayData[[exprs_values]]
     if (is.null(dataset)) {
         warning(paste0("The object does not contain ", exprs_values, " expression values."))
@@ -252,7 +253,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
     object@sc3$n_dim <- n.dim
     
     # prepare for SVM
-    if (!is.null(svm.num.cells) | !is.null(svm.train.inds) | ncol(dataset) > 5000) {
+    if (!is.null(svm.num.cells) | !is.null(svm.train.inds) | ncol(dataset) > svm.max) {
         # handle all possible errors
         if (!is.null(svm.num.cells)) {
             if (!is.null(svm.train.inds)) {
@@ -273,7 +274,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
             }
         }
         # run SVM
-        tmp <- prepare_for_svm(ncol(dataset), svm.num.cells, svm.train.inds)
+        tmp <- prepare_for_svm(ncol(dataset), svm.num.cells, svm.train.inds, svm.max)
         
         object@sc3$svm_train_inds <- tmp$svm.train.inds
         object@sc3$svm_study_inds <- tmp$svm.study.inds
@@ -311,11 +312,11 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
 setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "counts", 
     gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
     log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
-    svm.train.inds = NULL, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
+    svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     seed = 1) {
     sc3_prepare.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
         gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, 
-        n.cores, k.means.nstart, k.means.iter.max, seed)
+        svm.max, n.cores, k.means.nstart, k.means.iter.max, seed)
 })
 
 #' Sets a range of the number of clusters k used for SC3 clustering.

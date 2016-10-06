@@ -4,7 +4,7 @@
 \alias{prepare_for_svm}
 \title{A helper function for the SVM analysis}
 \usage{
-prepare_for_svm(N, svm.num.cells = NULL, svm.train.inds = NULL)
+prepare_for_svm(N, svm.num.cells = NULL, svm.train.inds = NULL, svm.max)
 }
 \arguments{
 \item{N}{number of cells in the input dataset}
@@ -12,6 +12,8 @@ prepare_for_svm(N, svm.num.cells = NULL, svm.train.inds = NULL)
 \item{svm.num.cells}{number of random cells to be used for training}
 
 \item{svm.train.inds}{indeces of cells to be used for training}
+
+\item{svm.max}{define the maximum number of cells below which SVM is not run}
 }
 \value{
 A list of indeces of the train and the study cells
