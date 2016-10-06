@@ -250,6 +250,9 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' @importFrom scater newSCESet
 #' @export
 create_sceset <- function(d) {
+    # remove duplicated genes
+    message("Removing duplicated genes...")
+    d <- d[!duplicated(rownames(d)), ]
     if(!is.null(colnames(d))) {
         d_cell_info <- data.frame(cell_id = colnames(d))
     } else {
