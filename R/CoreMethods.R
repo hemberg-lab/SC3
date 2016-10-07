@@ -57,7 +57,7 @@
 #' @export
 sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene.filter.fraction = 0.06, 
     gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04, 
-    d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, n.cores = NULL, 
+    d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, 
     ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1) {
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
@@ -65,7 +65,7 @@ sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene
     }
     object <- sc3_prepare(object, exprs_values, gene.filter, gene.filter.fraction, 
         gene.reads.rare, gene.reads.ubiq, log.scale, d.region.min, d.region.max, 
-        svm.num.cells, svm.train.inds, n.cores, k.means.nstart, k.means.iter.max, 
+        svm.num.cells, svm.train.inds, svm.max, n.cores, k.means.nstart, k.means.iter.max, 
         seed)
     object <- sc3_estimate_k(object)
     object <- sc3_set_ks(object, ks)
@@ -84,10 +84,10 @@ sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene
 setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "counts", 
     gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
     log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
-    svm.train.inds = NULL, n.cores = NULL, ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
+    svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     seed = 1) {
     sc3.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
-        gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, 
+        gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, svm.max, 
         n.cores, ks, k.means.nstart, k.means.iter.max, seed)
 })
 
@@ -704,7 +704,7 @@ sc3_calc_biology.SCESet <- function(object) {
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    ks <- names(consensus)
+    ks <- as.numeric(names(consensus))
     
     if (object@sc3$n_cores > length(ks)) {
         n.cores <- length(ks)
