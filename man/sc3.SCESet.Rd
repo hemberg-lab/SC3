@@ -71,6 +71,8 @@ for SVM prediction. The default is NULL.}
 \item{svm.train.inds}{a numeric vector defining indeces of training cells 
 that should be used for SVM training. The default is NULL.}
 
+\item{svm.max}{define the maximum number of cells below which SVM is not run.}
+
 \item{n.cores}{defines the number of cores to be used on the user's machine.}
 
 \item{ks}{a range of the number of clusters k used for SC3 clustering.

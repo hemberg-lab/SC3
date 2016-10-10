@@ -40,6 +40,7 @@
 #' for SVM prediction. The default is NULL.
 #' @param svm.train.inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is NULL.
+#' @param svm.max define the maximum number of cells below which SVM is not run.
 #' @param n.cores defines the number of cores to be used on the user's machine.
 #' @param ks a range of the number of clusters k used for SC3 clustering.
 #' Can also be a single integer.
