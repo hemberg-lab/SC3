@@ -5,15 +5,11 @@ __A__: __SC3__ is an interactive tool for the unsupervised clustering of cells f
 __Q__: How to install/run __SC3__?  
 __A__: Please follow the SC3 manual from its [BioConductor page](http://bioconductor.org/packages/SC3/).
 
-If you would like to install the latest development version of SC3 please install it from the GitHub repository (you will also need the latest version of [scater](https://github.com/davismcc/scater)):
+If you would like to install the latest development version of SC3 please install it from the GitHub repository:
 ```
 install.packages("devtools")
-devtools::install_github("davismcc/scater", build_vignettes = TRUE)
 devtools::install_github("hemberg-lab/SC3")
 ```
-
-The newest __SC3__ manual is available here:
-[https://cdn.rawgit.com/hemberg-lab/SC3/master/vignettes/my-vignette.html](https://cdn.rawgit.com/hemberg-lab/SC3/master/vignettes/my-vignette.html)
 
 __Q__: Where can I report bugs, comments, issues or suggestions?  
 __A__: Please use [this page](https://github.com/hemberg-lab/SC3/issues).
