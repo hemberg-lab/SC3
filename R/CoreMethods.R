@@ -556,6 +556,9 @@ sc3_kmeans.SCESet <- function(object) {
     
     n.cores <- object@sc3$n_cores
     
+    kmeans_iter_max <- object@sc3$kmeans_iter_max
+    kmeans_nstart <- object@sc3$kmeans_nstart
+    
     cl <- parallel::makeCluster(n.cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n.cores)
     
@@ -568,7 +571,7 @@ sc3_kmeans.SCESet <- function(object) {
                 utils::setTxtProgressBar(pb, i)
                 transf <- get(hash.table$transf[i], transfs)
                 stats::kmeans(transf[, 1:hash.table$n.dim[i]], hash.table$ks[i], 
-                  iter.max = object@sc3$kmeans_iter_max, nstart = object@sc3$kmeans_nstart)$cluster
+                  iter.max = kmeans_iter_max, nstart = kmeans_nstart)$cluster
             })
         }
     
