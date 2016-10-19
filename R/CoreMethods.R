@@ -251,8 +251,6 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
         n.dim <- sample(n.dim, 15)
     }
     
-    object@sc3$n_dim <- n.dim
-    
     # prepare for SVM
     if (!is.null(svm.num.cells) | !is.null(svm.train.inds) | ncol(dataset) > svm.max) {
         # handle all possible errors
@@ -279,7 +277,25 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
         
         object@sc3$svm_train_inds <- tmp$svm.train.inds
         object@sc3$svm_study_inds <- tmp$svm.study.inds
+        
+        # update kmeans_nstart after defining SVM training indeces
+        if (is.null(k.means.nstart)) {
+            if (length(tmp$svm.train.inds) <= 2000) {
+                object@sc3$kmeans_nstart <- 1000
+            }
+        } else {
+            object@sc3$kmeans_nstart <- k.means.nstart
+        }
+        
+        # update the region of dimensions
+        n.dim <- floor(d.region.min * length(tmp$svm.train.inds)):ceiling(d.region.max * length(tmp$svm.train.inds))
+        # for large datasets restrict the region of dimensions to 15
+        if (length(n.dim) > 15) {
+            n.dim <- sample(n.dim, 15)
+        }
     }
+    
+    object@sc3$n_dim <- n.dim
     
     # register computing cluster (N-1 CPUs) on a local machine
     if (is.null(n.cores)) {

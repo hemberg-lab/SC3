@@ -108,9 +108,6 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
         ann <- make_col_ann_for_heatmaps(object, show_pdata)
         if (!is.null(ann)) {
             add_ann_col <- TRUE
-            if (!is.null(object@sc3$svm_train_inds)) {
-                ann <- ann[, object@sc3$svm_train_inds]
-            }
             # make same names for the annotation table
             rownames(ann) <- colnames(dataset)
         }
@@ -218,9 +215,6 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
         ann <- make_col_ann_for_heatmaps(object, show_pdata)
         if (!is.null(ann)) {
             add_ann_col <- TRUE
-            if (!is.null(object@sc3$svm_train_inds)) {
-                ann <- ann[, object@sc3$svm_train_inds]
-            }
             # make same names for the annotation table
             rownames(ann) <- colnames(dataset)
         }
@@ -285,9 +279,6 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
         ann <- make_col_ann_for_heatmaps(object, show_pdata)
         if (!is.null(ann)) {
             add_ann_col <- TRUE
-            if (!is.null(object@sc3$svm_train_inds)) {
-                ann <- ann[, object@sc3$svm_train_inds]
-            }
             # make same names for the annotation table
             rownames(ann) <- colnames(dataset)
         }

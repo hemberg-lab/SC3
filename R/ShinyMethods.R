@@ -33,6 +33,7 @@ sc3_interactive.SCESet <- function(object) {
     svm <- FALSE
     if (!is.null(object@sc3$svm_train_inds)) {
         svm <- TRUE
+        dataset <- dataset[,object@sc3$svm_train_inds]
     }
     
     biology <- FALSE
@@ -83,9 +84,9 @@ sc3_interactive.SCESet <- function(object) {
                         conditionalPanel("output.is_svm",
                                          p(HTML(
                                              paste0(
-                                                 "<font color = 'red'>Your data was clustered in the SVM regime based on ",
+                                                 "<font color = 'red'>Your data was clustered based on ",
                                                  length(object@sc3$svm_train_inds),
-                                                 " cells. When you have found the best number of clusters <b><em>k</em></b>, go back to your terminal session and run sc3_run_svm() to predict the labels of the other cells.</font>"
+                                                 " selected cells.</font>"
                                              )
                                          )))
                     ))),
