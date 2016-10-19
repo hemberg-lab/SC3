@@ -203,7 +203,11 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
         }
     }
     ann <- NULL
-    ann <- object@phenoData@data[, colnames(object@phenoData@data) %in% show_pdata]
+    if(is.null(object@sc3$svm_train_inds)) {
+        ann <- object@phenoData@data[, colnames(object@phenoData@data) %in% show_pdata]
+    } else {
+        ann <- object@phenoData@data[object@sc3$svm_train_inds, colnames(object@phenoData@data) %in% show_pdata]
+    }
     # remove columns with 1 value only
     if (length(show_pdata) > 1) {
         tmp <- ann[, unlist(lapply(ann, function(x) {
