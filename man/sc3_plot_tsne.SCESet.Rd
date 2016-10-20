@@ -8,10 +8,10 @@
 \title{Plot tSNE map of the cells and highlight SC3 clusters with colors}
 \usage{
 sc3_plot_tsne.SCESet(object, k,
-  perplexity = floor(ncol(object@sc3$processed_dataset)/5), seed = 1234567)
+  perplexity = floor(ncol(get_processed_dataset(object))/5), seed = 1234567)
 
 \S4method{sc3_plot_tsne}{SCESet}(object, k,
-  perplexity = floor(ncol(object@sc3$processed_dataset)/5), seed = 1234567)
+  perplexity = floor(ncol(get_processed_dataset(object))/5), seed = 1234567)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

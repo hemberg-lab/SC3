@@ -18,7 +18,7 @@ less than fraction*N cells (rare genes)}
 more than (1-fraction)*N cells (ubiquitous genes)}
 }
 \value{
-filtered expression matrix some genes were removed.
+a boolean vector representing the gene filter
 }
 \description{
 The gene filter removes genes/transcripts that are either expressed 

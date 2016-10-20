@@ -3,7 +3,7 @@
 prepare_output <- function(object, k) {
     consensus <- object@sc3$consensus
     ks <- as.numeric(names(consensus))
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     # get all results for k
     res <- consensus[[as.character(k)]]
     # get all results for k-1
