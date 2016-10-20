@@ -21,7 +21,7 @@ sc3_interactive.SCESet <- function(object) {
     }
     
     ks <- as.numeric(names(consensus))
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     
     ## define UI parameters
     plot.height <- 600

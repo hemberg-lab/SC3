@@ -21,14 +21,12 @@
 #' less than fraction*N cells (rare genes)
 #' @param reads.ubiq expression value threshold for genes that are expressed in
 #' more than (1-fraction)*N cells (ubiquitous genes)
-#' @return filtered expression matrix some genes were removed.
+#' @return a boolean vector representing the gene filter
 gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
-    message("Gene filtering...")
     frac.cells <- ceiling(fraction * ncol(data))
-    d <- data[rowSums(data > reads.rare) >= frac.cells & rowSums(data > reads.ubiq) <= 
-        ncol(data) - frac.cells, ]
-    d <- unique(d)
-    return(d)
+    res <- rowSums(data > reads.rare) >= frac.cells & rowSums(data > reads.ubiq) <= 
+        ncol(data) - frac.cells
+    return(res)
 }
 
 #' Calculate a distance matrix
@@ -271,3 +269,24 @@ create_sceset <- function(d) {
     d_sceset <- scater::newSCESet(countData = d_cell_exprs, phenoData = pd)
 }
 
+
+#' Get processed dataset used by SC3 from the default scater slots
+#' 
+#' Takes data from the 'exprs_values' slot, applies gene filter and log
+#' transformation.
+#' 
+#' @param object 
+#' @param exprs_values 
+#'
+#' @export
+get_processed_dataset <- function(object, exprs_values = "counts") {
+    dataset <- object@assayData[[exprs_values]]
+    if(!is.null(object@sc3$gene_filter)) {
+        dataset <- dataset[object@sc3$gene_filter, ]
+        dataset <- unique(dataset)
+    }
+    if(object@sc3$take_log) {
+        dataset <- log2(dataset + 1)
+    }
+    return(dataset)
+}

@@ -96,7 +96,7 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
     
     res <- prepare_output(object, k)
     
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
@@ -148,11 +148,11 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
 #' @importFrom Rtsne Rtsne
 #' 
 #' @export
-sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(object@sc3$processed_dataset)/5), 
+sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(get_processed_dataset(object))/5), 
     seed = 1234567) {
     res <- prepare_output(object, k)
     
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
@@ -174,7 +174,7 @@ sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(object@sc3$p
 #' @aliases sc3_plot_tsne
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_tsne", signature(object = "SCESet"), function(object, k, perplexity = floor(ncol(object@sc3$processed_dataset)/5), 
+setMethod("sc3_plot_tsne", signature(object = "SCESet"), function(object, k, perplexity = floor(ncol(get_processed_dataset(object))/5), 
     seed = 1234567) {
     sc3_plot_tsne.SCESet(object, k, perplexity, seed)
 })
@@ -203,7 +203,7 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
     
     res <- prepare_output(object, k)
     
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
@@ -267,7 +267,7 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
     
     res <- prepare_output(object, k)
     
-    dataset <- object@sc3$processed_dataset
+    dataset <- get_processed_dataset(object)
     
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
