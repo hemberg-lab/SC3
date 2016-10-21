@@ -275,8 +275,19 @@ create_sceset <- function(d) {
 #' Takes data from the 'exprs_values' slot, applies gene filter and log
 #' transformation.
 #' 
-#' @param object 
-#' @param exprs_values 
+#' @param object an object of 'SCESet' class
+#' @param exprs_values character string 
+#' indicating which values should be used
+#' as the expression values for SC3 clustering. Valid arguments are \code{'tpm'}
+#' (default; transcripts per million), \code{'norm_tpm'} (normalised TPM
+#' values), \code{'fpkm'} (FPKM values), \code{'norm_fpkm'} (normalised FPKM
+#' values), \code{'counts'} (counts for each feature), \code{'norm_counts'},
+#' \code{'cpm'} (counts-per-million), \code{'norm_cpm'} (normalised
+#' counts-per-million), \code{'exprs'} (whatever is in the \code{'exprs'} slot
+#' of the \code{SCESet} object; default), \code{'norm_exprs'} (normalised
+#' expression values) or \code{'stand_exprs'} (standardised expression values)
+#' or any other named element of the \code{assayData} slot of the \code{SCESet}
+#' object that can be accessed with the \code{get_exprs} function.
 #'
 #' @export
 get_processed_dataset <- function(object, exprs_values = "counts") {
