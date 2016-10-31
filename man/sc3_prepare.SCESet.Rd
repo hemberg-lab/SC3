@@ -7,7 +7,7 @@
 \alias{sc3_prepare.SCESet}
 \title{Prepare the SCESet object for SC3 clustering}
 \usage{
-sc3_prepare.SCESet(object, exprs_values = "exprs", gene.filter = TRUE,
+sc3_prepare.SCESet(object, exprs_values = "exprs", gene.filter = FALSE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
   log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
@@ -15,7 +15,7 @@ sc3_prepare.SCESet(object, exprs_values = "exprs", gene.filter = TRUE,
   biology = TRUE, seed = 1)
 
 \S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs",
-  gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
+  gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
   gene.reads.ubiq = 0, log.scale = FALSE, d.region.min = 0.04,
   d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL,
   svm.max = 5000, n.cores = NULL, k.means.nstart = NULL,
