@@ -7,14 +7,14 @@
 \alias{sc3.SCESet}
 \title{Run all steps of SC3 in one go}
 \usage{
-sc3.SCESet(object, exprs_values = "exprs", gene.filter = TRUE,
+sc3.SCESet(object, exprs_values = "exprs", gene.filter = FALSE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
   log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
   n.cores = NULL, ks = NULL, k.means.nstart = NULL,
   k.means.iter.max = 1e+09, biology = TRUE, seed = 1)
 
-\S4method{sc3}{SCESet}(object, exprs_values = "exprs", gene.filter = TRUE,
+\S4method{sc3}{SCESet}(object, exprs_values = "exprs", gene.filter = FALSE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
   log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,

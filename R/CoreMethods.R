@@ -58,7 +58,7 @@
 #' @return an object of 'SCESet' class
 #' 
 #' @export
-sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRUE, gene.filter.fraction = 0.06, 
+sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = FALSE, gene.filter.fraction = 0.06, 
     gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, d.region.min = 0.04, 
     d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, 
     ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
@@ -87,7 +87,7 @@ sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRUE, gene.
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
+    gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
     log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     biology = TRUE, seed = 1) {
@@ -209,7 +209,7 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @importFrom parallel detectCores
 #' 
 #' @export
-sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRUE, 
+sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = FALSE, 
     gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, 
     d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, 
     svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
@@ -336,7 +336,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRU
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
+    gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
     log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     biology = TRUE, seed = 1) {
