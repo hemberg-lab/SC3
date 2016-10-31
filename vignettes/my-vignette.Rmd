@@ -49,16 +49,12 @@ rownames(treutlein_cell_info) <- cell_inds
 treutlein_cell_exprs <- treutlein
 colnames(treutlein_cell_exprs) <- cell_inds
 pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
-treutlein_sceset <- newSCESet(countData = treutlein_cell_exprs, phenoData = pd)
-```
-
-Note that we also provide a convenient wrapper to quickly create `SCESet` object from an R matrix: the function name is `create_sceset` and the input argument is an R matrix containing expression values. `create_sceset` combines multiple lines of code we used above (please look at its documentation `?create_sceset`):
-```{r}
-treutlein_sceset <- create_sceset(treutlein)
+treutlein_sceset <- newSCESet(fpkmData = treutlein_cell_exprs, phenoData = pd)
 ```
 
 To be able to create plots using `scater` we will also calculate the QC metrics:
 ```{r}
+is_exprs(treutlein_sceset) <- exprs(treutlein_sceset) > 0
 treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
 ```
 

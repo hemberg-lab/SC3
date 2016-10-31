@@ -48,6 +48,8 @@
 #' 1000 for up to 2000 cells and 50 for more than 2000 cells.
 #' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
 #' function. Default is 1e+09.
+#' @param biology boolean variable, defines whether to comput DE genes, marker 
+#' genes and cell outliers
 #' @param seed sets seed for the random number generator.
 #' Can be used to check the stability of clustering results: if the results are 
 #' the same after changing the seed several time, then the clustering solution 
@@ -56,10 +58,10 @@
 #' @return an object of 'SCESet' class
 #' 
 #' @export
-sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene.filter.fraction = 0.06, 
-    gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = TRUE, d.region.min = 0.04, 
+sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRUE, gene.filter.fraction = 0.06, 
+    gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, d.region.min = 0.04, 
     d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, 
-    ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1) {
+    ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
@@ -67,14 +69,16 @@ sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene
     object <- sc3_prepare(object, exprs_values, gene.filter, gene.filter.fraction, 
         gene.reads.rare, gene.reads.ubiq, log.scale, d.region.min, d.region.max, 
         svm.num.cells, svm.train.inds, svm.max, n.cores, k.means.nstart, k.means.iter.max, 
-        seed)
+        biology, seed)
     object <- sc3_estimate_k(object)
     object <- sc3_set_ks(object, ks)
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
     object <- sc3_kmeans(object)
     object <- sc3_calc_consens(object)
-    object <- sc3_calc_biology(object)
+    if(biology) {
+        object <- sc3_calc_biology(object)
+    }
     return(object)
 }
 
@@ -82,14 +86,14 @@ sc3.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, gene
 #' @aliases sc3
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "counts", 
+setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
     gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
-    log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
+    log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
-    seed = 1) {
+    biology = TRUE, seed = 1) {
     sc3.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
         gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, svm.max, 
-        n.cores, ks, k.means.nstart, k.means.iter.max, seed)
+        n.cores, ks, k.means.nstart, k.means.iter.max, biology, seed)
 })
 
 #' Estimate the optimal k for k-means clustering
@@ -106,6 +110,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "
 #' 
 #' @export
 sc3_estimate_k.SCESet <- function(object) {
+    message("Estimating k...")
     dataset <- get_processed_dataset(object)
     if (is.null(dataset)) {
         warning(paste0("Please run sc3_prepare() first!"))
@@ -191,6 +196,8 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' 1000 for up to 2000 cells and 50 for more than 2000 cells.
 #' @param k.means.iter.max iter.max parameter passed to \link[stats]{kmeans} 
 #' function. Default is 1e+09.
+#' @param biology boolean variable, defines whether to comput DE genes, marker 
+#' genes and cell outliers
 #' @param seed sets seed for the random number generator.
 #' Can be used to check the stability of clustering results: if the results are 
 #' the same after changing the seed several time, then the clustering solution 
@@ -202,14 +209,24 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @importFrom parallel detectCores
 #' 
 #' @export
-sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TRUE, 
-    gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = TRUE, 
+sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = TRUE, 
+    gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, 
     d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, 
-    svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, seed = 1) {
+    svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
+    
+        message("Setting SC3 parameters...")
+    
     dataset <- object@assayData[[exprs_values]]
     if (is.null(dataset)) {
         warning(paste0("The object does not contain ", exprs_values, " expression values."))
         return(object)
+    }
+    
+    object@sc3$exprs_values <- exprs_values
+    
+    object@sc3$logged <- TRUE
+    if(exprs_values != "exprs" | !object@logged) {
+        object@sc3$logged <- FALSE
     }
     
     # gene filter
@@ -219,12 +236,6 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
             message("All genes were removed after the gene filter! Stopping now...")
             return(object)
         }
-    }
-    
-    # log2 transformation
-    object@sc3$take_log <- FALSE
-    if (log.scale) {
-        object@sc3$take_log <- TRUE
     }
 
     object@sc3$kmeans_iter_max <- k.means.iter.max
@@ -324,14 +335,14 @@ sc3_prepare.SCESet <- function(object, exprs_values = "counts", gene.filter = TR
 #' @aliases sc3_prepare
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "counts", 
+setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
     gene.filter = TRUE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
-    log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
+    log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
-    seed = 1) {
+    biology = TRUE, seed = 1) {
     sc3_prepare.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
         gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, 
-        svm.max, n.cores, k.means.nstart, k.means.iter.max, seed)
+        svm.max, n.cores, k.means.nstart, k.means.iter.max, biology, seed)
 })
 
 #' Sets a range of the number of clusters k used for SC3 clustering.
@@ -351,6 +362,7 @@ sc3_set_ks.SCESet <- function(object, ks = NULL) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
+    message("Setting a range of k...")
     object@sc3$ks <- ks
     return(object)
 }
@@ -391,6 +403,8 @@ sc3_calc_dists.SCESet <- function(object) {
         warning(paste0("Please run sc3_prepare() first!"))
         return(object)
     }
+    
+    message("Computing distances between cells...")
     
     # check whether in the SVM regime
     if (!is.null(object@sc3$svm_train_inds)) {
@@ -472,7 +486,7 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     hash.table <- expand.grid(dists = distances, transfs = transformations, stringsAsFactors = FALSE)
     
-    message("Performing transformations...")
+    message("Performing transformations and calculating eigenvectors...")
     
     if (object@sc3$n_cores > nrow(hash.table)) {
         n.cores <- nrow(hash.table)
@@ -550,7 +564,7 @@ sc3_kmeans.SCESet <- function(object) {
     hash.table <- expand.grid(transf = names(transfs), ks = object@sc3$ks, n.dim = n.dim, 
         stringsAsFactors = FALSE)
     
-    message("Performing kmeans clustering...")
+    message("Performing k-means clustering...")
     
     n.cores <- object@sc3$n_cores
     
@@ -636,7 +650,7 @@ sc3_calc_consens.SCESet <- function(object) {
         n.cores <- object@sc3$n_cores
     }
     
-    message("Calculate consensus matrix...")
+    message("Calculating consensus matrix...")
     
     cl <- parallel::makeCluster(n.cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n.cores)
@@ -712,6 +726,8 @@ sc3_calc_biology.SCESet <- function(object) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
+    
+    message("Computing DE genes, marker genes and cell outliers...")
     
     dataset <- get_processed_dataset(object)
     # check whether in the SVM regime

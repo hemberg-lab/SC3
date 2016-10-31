@@ -7,19 +7,19 @@
 \alias{sc3.SCESet}
 \title{Run all steps of SC3 in one go}
 \usage{
-sc3.SCESet(object, exprs_values = "counts", gene.filter = TRUE,
+sc3.SCESet(object, exprs_values = "exprs", gene.filter = TRUE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
-  log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07,
+  log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
   n.cores = NULL, ks = NULL, k.means.nstart = NULL,
-  k.means.iter.max = 1e+09, seed = 1)
+  k.means.iter.max = 1e+09, biology = TRUE, seed = 1)
 
-\S4method{sc3}{SCESet}(object, exprs_values = "counts", gene.filter = TRUE,
+\S4method{sc3}{SCESet}(object, exprs_values = "exprs", gene.filter = TRUE,
   gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
-  log.scale = TRUE, d.region.min = 0.04, d.region.max = 0.07,
+  log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
   n.cores = NULL, ks = NULL, k.means.nstart = NULL,
-  k.means.iter.max = 1e+09, seed = 1)
+  k.means.iter.max = 1e+09, biology = TRUE, seed = 1)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -83,6 +83,9 @@ Can also be a single integer.}
 
 \item{k.means.iter.max}{iter.max parameter passed to \link[stats]{kmeans} 
 function. Default is 1e+09.}
+
+\item{biology}{boolean variable, defines whether to comput DE genes, marker 
+genes and cell outliers}
 
 \item{seed}{sets seed for the random number generator.
 Can be used to check the stability of clustering results: if the results are 

@@ -14,12 +14,10 @@ rownames(treutlein_cell_info) <- cell_inds
 treutlein_cell_exprs <- treutlein
 colnames(treutlein_cell_exprs) <- cell_inds
 pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
-treutlein_sceset <- newSCESet(countData = treutlein_cell_exprs, phenoData = pd)
+treutlein_sceset <- newSCESet(fpkmData = treutlein_cell_exprs, phenoData = pd)
 
 ## ------------------------------------------------------------------------
-treutlein_sceset <- create_sceset(treutlein)
-
-## ------------------------------------------------------------------------
+is_exprs(treutlein_sceset) <- exprs(treutlein_sceset) > 0
 treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
 
 ## ------------------------------------------------------------------------

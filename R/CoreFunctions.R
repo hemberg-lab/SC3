@@ -170,8 +170,6 @@ estkTW <- function(dataset) {
     p <- ncol(dataset)
     n <- nrow(dataset)
     
-    message("Computing eigenvalues...")
-    
     # compute Tracy-Widom bound
     x <- scale(dataset)
     muTW <- (sqrt(n - 1) + sqrt(p))^2
@@ -239,64 +237,20 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     return(ann)
 }
 
-#' A wrapper to quickly create an SCESet from a matrix
-#' 
-#' If an input matrix has colnames then the phenoData table of the output
-#' object will be populated with these colnames as 'cell_id' column.
-#' 
-#' If an input matrix does not have colnames the phenoData table of the output
-#' object will be populated with 'Cell_1', 'Cell_2', etc. as 'cell_id' column.
-#'
-#' @param d expression matrix
-#' @return object of SCESet class based on d
-#' 
-#' @importFrom scater newSCESet
-#' @export
-create_sceset <- function(d) {
-    # remove duplicated genes
-    message("Removing duplicated genes...")
-    d <- d[!duplicated(rownames(d)), ]
-    if(!is.null(colnames(d))) {
-        d_cell_info <- data.frame(cell_id = colnames(d))
-    } else {
-        d_cell_info <- paste("Cell", 1:ncol(d), sep = "_")
-    }
-    cell_inds <- paste("Cell", 1:ncol(d), sep = "_")
-    rownames(d_cell_info) <- cell_inds
-    d_cell_exprs <- d
-    colnames(d_cell_exprs) <- cell_inds
-    pd <- new("AnnotatedDataFrame", data = d_cell_info)
-    d_sceset <- scater::newSCESet(countData = d_cell_exprs, phenoData = pd)
-}
-
-
 #' Get processed dataset used by SC3 from the default scater slots
 #' 
 #' Takes data from the 'exprs_values' slot, applies gene filter and log
 #' transformation.
 #' 
 #' @param object an object of 'SCESet' class
-#' @param exprs_values character string 
-#' indicating which values should be used
-#' as the expression values for SC3 clustering. Valid arguments are \code{'tpm'}
-#' (default; transcripts per million), \code{'norm_tpm'} (normalised TPM
-#' values), \code{'fpkm'} (FPKM values), \code{'norm_fpkm'} (normalised FPKM
-#' values), \code{'counts'} (counts for each feature), \code{'norm_counts'},
-#' \code{'cpm'} (counts-per-million), \code{'norm_cpm'} (normalised
-#' counts-per-million), \code{'exprs'} (whatever is in the \code{'exprs'} slot
-#' of the \code{SCESet} object; default), \code{'norm_exprs'} (normalised
-#' expression values) or \code{'stand_exprs'} (standardised expression values)
-#' or any other named element of the \code{assayData} slot of the \code{SCESet}
-#' object that can be accessed with the \code{get_exprs} function.
 #'
 #' @export
-get_processed_dataset <- function(object, exprs_values = "counts") {
-    dataset <- object@assayData[[exprs_values]]
+get_processed_dataset <- function(object) {
+    dataset <- object@assayData[[object@sc3$exprs_values]]
     if(!is.null(object@sc3$gene_filter)) {
         dataset <- dataset[object@sc3$gene_filter, ]
-        dataset <- unique(dataset)
     }
-    if(object@sc3$take_log) {
+    if(!object@sc3$logged) {
         dataset <- log2(dataset + 1)
     }
     return(dataset)
