@@ -253,5 +253,8 @@ get_processed_dataset <- function(object) {
     if(!object@sc3$logged) {
         dataset <- log2(dataset + 1)
     }
+    if(!is.null(object@sc3$fjlt)) {
+        dataset <- object@sc3$fjlt
+    }
     return(dataset)
 }
