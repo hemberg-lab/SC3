@@ -404,8 +404,6 @@ sc3_calc_dists.SCESet <- function(object) {
         return(object)
     }
     
-    message("Computing distances between cells...")
-    
     # check whether in the SVM regime
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]

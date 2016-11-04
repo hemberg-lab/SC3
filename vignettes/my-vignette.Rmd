@@ -349,7 +349,7 @@ table(!is.na(treutlein_sceset@sc3$results$clusters$sc3_clusters))
 ```
 
 Now we can run the SVM and predict labels of all the other cells:
-```{r}
+```{r, message=FALSE, warning=FALSE}
 treutlein_sceset <- sc3_run_svm(treutlein_sceset, k = 3)
 treutlein_sceset <- sc3_summarise_results(treutlein_sceset, k = 3)
 svm.labels <- treutlein_sceset@sc3$results$clusters$sc3_clusters
