@@ -8,27 +8,6 @@
 #'
 "treutlein"
 
-#' Gene filter
-#'
-#' The gene filter removes genes/transcripts that are either expressed 
-#' (expression value is more than 2) in less than X% of cells 
-#' (rare genes/transcripts) or expressed (expression value is more than 0) 
-#' in at least (100-X)% of cells (ubiquitous genes/transcripts).
-#'
-#' @param data input expression matrix
-#' @param fraction fraction of cells (X/100).
-#' @param reads.rare expression value threshold for genes that are expressed in
-#' less than fraction*N cells (rare genes)
-#' @param reads.ubiq expression value threshold for genes that are expressed in
-#' more than (1-fraction)*N cells (ubiquitous genes)
-#' @return a boolean vector representing the gene filter
-gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
-    frac.cells <- ceiling(fraction * ncol(data))
-    res <- rowSums(data > reads.rare) >= frac.cells & rowSums(data > reads.ubiq) <= 
-        ncol(data) - frac.cells
-    return(res)
-}
-
 #' Calculate a distance matrix
 #'
 #' Distance between the cells, i.e. columns, in the input expression matrix are

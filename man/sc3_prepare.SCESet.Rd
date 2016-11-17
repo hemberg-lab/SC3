@@ -7,19 +7,19 @@
 \alias{sc3_prepare.SCESet}
 \title{Prepare the SCESet object for SC3 clustering}
 \usage{
-sc3_prepare.SCESet(object, exprs_values = "exprs", gene.filter = FALSE,
-  gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0,
+sc3_prepare.SCESet(object, exprs_values = "exprs", gene_filter = TRUE,
+  pct_dropout_min = 10, pct_dropout_max = 90, log.scale = FALSE,
+  d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL,
+  svm.train.inds = NULL, svm.max = 5000, n.cores = NULL,
+  k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE,
+  seed = 1)
+
+\S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs",
+  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
   log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07,
   svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000,
   n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09,
   biology = TRUE, seed = 1)
-
-\S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs",
-  gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2,
-  gene.reads.ubiq = 0, log.scale = FALSE, d.region.min = 0.04,
-  d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL,
-  svm.max = 5000, n.cores = NULL, k.means.nstart = NULL,
-  k.means.iter.max = 1e+09, biology = TRUE, seed = 1)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -37,24 +37,14 @@ expression values) or \code{'stand_exprs'} (standardised expression values)
 or any other named element of the \code{assayData} slot of the \code{SCESet}
 object that can be accessed with the \code{get_exprs} function.}
 
-\item{gene.filter}{a boolen variable which defines whether to perform gene 
-filtering before SC3 clustering. Default is TRUE. The gene filter removes 
-genes/transcripts that are either expressed (expression value is more than 
-gene.reads.rare) 
-in less than X% of cells (rare genes/transcripts) or expressed 
-(expression value is more than gene.reads.ubiq) in at least (100*X)% of 
-cells (ubiquitous 
-genes/transcripts), where X is the gene.filter.fraction*100. The motivation 
-for the gene filter is that ubiquitous and rare genes most
-often are not informative for the clustering.}
+\item{gene_filter}{a boolen variable which defines whether to perform gene 
+filtering before SC3 clustering.}
 
-\item{gene.filter.fraction}{fraction of cells. Default is 0.06.}
+\item{pct_dropout_min}{genes with percent of dropouts smaller than 
+pct_dropout_min are filtered out before clustering}
 
-\item{gene.reads.rare}{expression value threshold for rare genes.
-Default is 2.}
-
-\item{gene.reads.ubiq}{expression value threshold for ubiquitous genes.
-Default is 0.}
+\item{pct_dropout_max}{genes with percent of dropouts larger than 
+pct_dropout_max are filtered out before clustering}
 
 \item{log.scale}{a boolean variable which defines whether to perform log2 
 scaling before SC3 clustering. Default is TRUE.}

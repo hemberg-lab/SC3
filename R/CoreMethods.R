@@ -15,21 +15,12 @@
 #' expression values) or \code{'stand_exprs'} (standardised expression values)
 #' or any other named element of the \code{assayData} slot of the \code{SCESet}
 #' object that can be accessed with the \code{get_exprs} function.
-#' @param gene.filter a boolen variable which defines whether to perform gene 
-#' filtering before SC3 clustering. Default is TRUE. The gene filter removes 
-#' genes/transcripts that are either expressed (expression value is more than 
-#' gene.reads.rare) 
-#' in less than X% of cells (rare genes/transcripts) or expressed 
-#' (expression value is more than gene.reads.ubiq) in at least (100*X)% of 
-#' cells (ubiquitous 
-#' genes/transcripts), where X is the gene.filter.fraction*100. The motivation 
-#' for the gene filter is that ubiquitous and rare genes most
-#' often are not informative for the clustering.
-#' @param gene.filter.fraction fraction of cells. Default is 0.06.
-#' @param gene.reads.rare expression value threshold for rare genes.
-#' Default is 2.
-#' @param gene.reads.ubiq expression value threshold for ubiquitous genes.
-#' Default is 0.
+#' @param gene_filter a boolen variable which defines whether to perform gene 
+#' filtering before SC3 clustering.
+#' @param pct_dropout_min genes with percent of dropouts smaller than 
+#' pct_dropout_min are filtered out before clustering
+#' @param pct_dropout_max genes with percent of dropouts larger than 
+#' pct_dropout_max are filtered out before clustering
 #' @param log.scale a boolean variable which defines whether to perform log2 
 #' scaling before SC3 clustering. Default is TRUE.
 #' @param d.region.min defines the minimum number of eigenvectors used for 
@@ -58,16 +49,16 @@
 #' @return an object of 'SCESet' class
 #' 
 #' @export
-sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = FALSE, gene.filter.fraction = 0.06, 
-    gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, d.region.min = 0.04, 
+sc3.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRUE, pct_dropout_min = 10, 
+    pct_dropout_max = 90, log.scale = FALSE, d.region.min = 0.04, 
     d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, 
     ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
-    object <- sc3_prepare(object, exprs_values, gene.filter, gene.filter.fraction, 
-        gene.reads.rare, gene.reads.ubiq, log.scale, d.region.min, d.region.max, 
+    object <- sc3_prepare(object, exprs_values, gene_filter, pct_dropout_min, 
+        pct_dropout_max, log.scale, d.region.min, d.region.max, 
         svm.num.cells, svm.train.inds, svm.max, n.cores, k.means.nstart, k.means.iter.max, 
         biology, seed)
     object <- sc3_estimate_k(object)
@@ -87,12 +78,12 @@ sc3.SCESet <- function(object, exprs_values = "exprs", gene.filter = FALSE, gene
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
+    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, gene.reads.ubiq = 0, 
     log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, ks = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     biology = TRUE, seed = 1) {
-    sc3.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
-        gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, svm.max, 
+    sc3.SCESet(object, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, 
+        log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, svm.max, 
         n.cores, ks, k.means.nstart, k.means.iter.max, biology, seed)
 })
 
@@ -165,21 +156,12 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' expression values) or \code{'stand_exprs'} (standardised expression values)
 #' or any other named element of the \code{assayData} slot of the \code{SCESet}
 #' object that can be accessed with the \code{get_exprs} function.
-#' @param gene.filter a boolen variable which defines whether to perform gene 
-#' filtering before SC3 clustering. Default is TRUE. The gene filter removes 
-#' genes/transcripts that are either expressed (expression value is more than 
-#' gene.reads.rare) 
-#' in less than X% of cells (rare genes/transcripts) or expressed 
-#' (expression value is more than gene.reads.ubiq) in at least (100*X)% of 
-#' cells (ubiquitous 
-#' genes/transcripts), where X is the gene.filter.fraction*100. The motivation 
-#' for the gene filter is that ubiquitous and rare genes most
-#' often are not informative for the clustering.
-#' @param gene.filter.fraction fraction of cells. Default is 0.06.
-#' @param gene.reads.rare expression value threshold for rare genes.
-#' Default is 2.
-#' @param gene.reads.ubiq expression value threshold for ubiquitous genes.
-#' Default is 0.
+#' @param gene_filter a boolen variable which defines whether to perform gene 
+#' filtering before SC3 clustering.
+#' @param pct_dropout_min genes with percent of dropouts smaller than 
+#' pct_dropout_min are filtered out before clustering
+#' @param pct_dropout_max genes with percent of dropouts larger than 
+#' pct_dropout_max are filtered out before clustering
 #' @param log.scale a boolean variable which defines whether to perform log2 
 #' scaling before SC3 clustering. Default is TRUE.
 #' @param d.region.min defines the minimum number of eigenvectors used for 
@@ -209,8 +191,8 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @importFrom parallel detectCores
 #' 
 #' @export
-sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = FALSE, 
-    gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, log.scale = FALSE, 
+sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRUE, 
+    pct_dropout_min = 10, pct_dropout_max = 90, log.scale = FALSE, 
     d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, svm.train.inds = NULL, 
     svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, biology = TRUE, seed = 1) {
     
@@ -230,8 +212,8 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = FAL
     }
     
     # gene filter
-    if (gene.filter) {
-        object@sc3$gene_filter <- gene_filter(dataset, gene.filter.fraction, gene.reads.rare, gene.reads.ubiq)
+    if (gene_filter) {
+        object@sc3$gene_filter <- fData(object)$pct_dropout < pct_dropout_max & fData(object)$pct_dropout > pct_dropout_min
         if (all(!object@sc3$gene_filter)) {
             message("All genes were removed after the gene filter! Stopping now...")
             return(object)
@@ -336,12 +318,12 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene.filter = FAL
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    gene.filter = FALSE, gene.filter.fraction = 0.06, gene.reads.rare = 2, gene.reads.ubiq = 0, 
+    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, 
     log.scale = FALSE, d.region.min = 0.04, d.region.max = 0.07, svm.num.cells = NULL, 
     svm.train.inds = NULL, svm.max = 5000, n.cores = NULL, k.means.nstart = NULL, k.means.iter.max = 1e+09, 
     biology = TRUE, seed = 1) {
-    sc3_prepare.SCESet(object, exprs_values, gene.filter, gene.filter.fraction, gene.reads.rare, 
-        gene.reads.ubiq, log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, 
+    sc3_prepare.SCESet(object, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, 
+        log.scale, d.region.min, d.region.max, svm.num.cells, svm.train.inds, 
         svm.max, n.cores, k.means.nstart, k.means.iter.max, biology, seed)
 })
 
