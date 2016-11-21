@@ -214,13 +214,7 @@ sc3_interactive.SCESet <- function(object) {
                     tabPanel("DE",
                              uiOutput('plot_de_genes')),
                     tabPanel("Markers",
-                             uiOutput('plot_mark_genes')),
-                    tabPanel(
-                        "Outliers",
-                        plotOutput('outliers',
-                                   height = plot.height.small,
-                                   width = "100%")
-                    )
+                             uiOutput('plot_mark_genes'))
                 )
                 do.call(tabsetPanel,
                         c(myTabs,
@@ -374,19 +368,6 @@ sc3_interactive.SCESet <- function(object) {
                                 )
                                 )
                     }
-                    if (grepl("Outliers", input$main_panel)) {
-                        res <- HTML(
-                            "Outlier cells in each cluster are detected
-                            using robust distances, calculated using
-                            the minimum covariance determinant (MCD).
-                            The outlier score shows how different a
-                            cell is from all other cells in the cluster
-                            and it is defined as the differences between
-                            the square root of the robust distance and
-                            the square root of the 99.99% quantile of
-                            the Chi-squared distribution.<br><br>"
-                        )
-                    }
                     }
                 return(res)
                     })
@@ -508,15 +489,6 @@ sc3_interactive.SCESet <- function(object) {
                 plotOutput("de_genes",
                            height = plotHeightDE(),
                            width = "100%")
-            })
-            # plot outliers
-            output$outliers <- renderPlot({
-                validate(need(
-                    !is.null(object@sc3$biology),
-                    "\nPlease run sc3_calc_biology() first!"
-                ))
-                sc3_plot_cell_outliers(object,
-                                       as.numeric(input$clusters))
             })
             
             # REACTIVE BUTTONS

@@ -255,50 +255,6 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, 
     sc3_plot_markers.SCESet(object, k, auroc, p.val, show_pdata)
 })
 
-#' Plot cell outliers
-#' 
-#' Outlier cells in each cluster are detected using robust distances, 
-#' calculated using the minimum covariance determinant (MCD). 
-#' The outlier score shows how different a cell is from all other cells in the 
-#' cluster and it is defined as the differences between the square root of the 
-#' robust distance and the square root of the 99.99% quantile of the 
-#' Chi-squared distribution.
-#' 
-#' @param object an object of 'SCESet' class
-#' @param k number of clusters
-#' 
-#' @importFrom ggplot2 ggplot geom_bar geom_point scale_fill_manual scale_color_manual guides theme_bw labs aes_string
-#' 
-#' @export
-sc3_plot_cell_outliers.SCESet <- function(object, k) {
-    res <- prepare_output(object, k)
-    
-    outl <- object@sc3$biology[[as.character(k)]]$cell.outl
-    outl <- outl[res$hc$order, ]
-    
-    outl$cell.ind <- 1:nrow(outl)
-    
-    cols <- iwanthue(length(unique(outl$sc3_clusters)))
-    
-    outl$sc3_clusters <- factor(outl$sc3_clusters, levels = unique(as.character(outl$sc3_clusters)))
-    
-    comps <- colnames(outl)
-    
-    ggplot(outl, aes_string(x = comps[3], y = comps[2], fill = comps[1], color = comps[1])) + 
-        geom_bar(stat = "identity") + geom_point() + scale_fill_manual(values = cols) + 
-        scale_color_manual(values = cols) + guides(color = FALSE, fill = FALSE) + 
-        labs(x = "Cells", y = "Outlier score") + theme_bw()
-}
-
-#' @rdname sc3_plot_cell_outliers.SCESet
-#' @aliases sc3_plot_cell_outliers
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_cell_outliers", signature(object = "SCESet"), function(object, 
-    k) {
-    sc3_plot_cell_outliers.SCESet(object, k)
-})
-
 #' Plot stability of the clusters
 #' 
 #' Stability index shows how stable each cluster is accross the selected 

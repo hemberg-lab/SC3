@@ -79,11 +79,6 @@ setGeneric("sc3_plot_markers", function(object, ...) {
 })
 
 #' @export
-setGeneric("sc3_plot_cell_outliers", function(object, ...) {
-    standardGeneric("sc3_plot_cell_outliers")
-})
-
-#' @export
 setGeneric("sc3_plot_cluster_stability", function(object, ...) {
     standardGeneric("sc3_plot_cluster_stability")
 })

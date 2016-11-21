@@ -238,7 +238,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRU
         tmp <- prepare_for_svm(ncol(dataset), svm_num_cells, svm_train_inds, svm_max)
         
         object@sc3$svm_train_inds <- tmp$svm_train_inds
-        object@sc3$svm_study_inds <- tmp$svm.study.inds
+        object@sc3$svm_study_inds <- tmp$svm_study_inds
         
         # update kmeans_nstart after defining SVM training indeces
         if (is.null(kmeans_nstart)) {
@@ -795,6 +795,20 @@ sc3_calc_biology.SCESet <- function(object) {
     names(biol) <- ks
     
     object@sc3$biology <- biol
+    
+    p_data <- object@phenoData@data
+    for(k in ks) {
+        outl <- object@sc3$biology[[as.character(k)]]$cell.outl[,2]
+        # in case of hybrid SVM approach
+        if (!is.null(object@sc3$svm_train_inds)) {
+            tmp <- rep(NA, nrow(p_data))
+            tmp[object@sc3$svm_train_inds] <- outl
+            outl <- tmp
+        }
+        p_data[ , paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
+        pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    }
+    
     return(object)
 }
 
