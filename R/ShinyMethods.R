@@ -143,17 +143,7 @@ sc3_interactive.SCESet <- function(object) {
                                         inline = TRUE
                                     )
                                 )
-                            ),
-                            conditionalPanel("input.main_panel == 'tSNE'",
-                                             wellPanel(
-                                                 sliderInput(
-                                                     "perplexity",
-                                                     label = "Perplexity",
-                                                     min = floor(0.7 * ncol(dataset) / 5),
-                                                     max = floor(1.3 * ncol(dataset) / 5),
-                                                     value = floor(ncol(dataset) / 5)
-                                                 )
-                                             ))
+                            )
                         )
                     )
                 ),
@@ -182,7 +172,7 @@ sc3_interactive.SCESet <- function(object) {
                                            )
                                        } else {
                                            HTML(
-                                               "<font color='red'>To be able to run GO analysis you need to install RSelenium library. You can do that by closing this window and then running 'RSelenium::checkForServer()' command in your R session. This will download the required library. After that please rerun SC3 again. More details are available <a href = 'https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html' target='_blank'>here</a></font>."
+                                               "<font color='red'>To be able to run <b>GO</b> analysis in <b>SC3</b> you need to install and start <em>RSelenium</em> server before running <b>SC3</b>. For more details please visit <a href = 'https://cran.r-project.org/package=RSelenium' target='_blank'>RSelenium CRAN page</a>. Additionally, <em>webdriver.gecko.driver</em> has to be set up - for more details please go <a href = 'https://github.com/mozilla/geckodriver' target='_blank'>here</a> and <a href = 'https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver' target='_blank'>here</a>.</font>"
                                            )
                                        }
                                    )
@@ -208,11 +198,6 @@ sc3_interactive.SCESet <- function(object) {
                                    width = "100%")
                     ),
                     tabPanel(
-                        "Labels",
-                        div(htmlOutput('labels'),
-                            style = "font-size:80%")
-                    ),
-                    tabPanel(
                         "Stability",
                         plotOutput(
                             'StabilityPlot',
@@ -223,12 +208,6 @@ sc3_interactive.SCESet <- function(object) {
                     tabPanel(
                         "Expression",
                         plotOutput('matrix',
-                                   height = plot.height,
-                                   width = "100%")
-                    ),
-                    tabPanel(
-                        "tSNE",
-                        plotOutput('tSNEplot',
                                    height = plot.height,
                                    width = "100%")
                     ),
@@ -247,12 +226,6 @@ sc3_interactive.SCESet <- function(object) {
                         c(myTabs,
                           id = "main_panel",
                           type = "pills"))
-            })
-            # observer for labels
-            observe({
-                res <- prepare_output(object, input$clusters)
-                values$labels <- res$labels
-                values$labels1 <- res$labels1
             })
             # observer for marker genes
             observe({
@@ -327,17 +300,6 @@ sc3_interactive.SCESet <- function(object) {
                             silhouette width is close to 1."
                         )
                     }
-                    if (grepl("Labels", input$main_panel)) {
-                        res <- HTML(
-                            "The labels panel shows how cells are distributed
-                            in the clusters that were obtained using the
-                            original cell indexes from the expression matrix.
-                            To help visualize how the clustering changes
-                            when changing from <i>k</i> - 1 to <i>k</i>, the labels are
-                            colour-coded corresponding to the custering
-                            results for <i>k</i> - 1."
-                        )
-                    }
                     if (grepl("Stability", input$main_panel)) {
                         res <- HTML(
                             "Stability index shows how stable each cluster
@@ -356,26 +318,6 @@ sc3_interactive.SCESet <- function(object) {
                             (dendrogram on the left) and the heatmap
                             represents the expression levels of the gene
                             cluster centers after <i>log2</i>-scaling."
-                        )
-                    }
-                    if (grepl("tSNE", input$main_panel)) {
-                        res <-
-                            HTML(
-                                "<a href = 'https://lvdmaaten.github.io/tsne/' target='_blank'>tSNE</a> (t-Distributed
-                                Stochastic Neighbor Embedding) method is used to
-                                map high-dimensional data to a 2D
-                                space while preserving local distances between
-                                cells. tSNE has become a very popular visualisation
-                                tool. SC3 imports the Rtsne function from the
-                                <a href='https://cran.r-project.org/web/packages/Rtsne/index.html' target='_blank'>
-                                Rtsne package</a> to perform the tSNE analysis.
-                                The colors on the plot correspond to the clusters
-                                identified by SC3.<br>
-                                One of the most sensitive parameters in tSNE analysis is the
-                                so-called <i>perplexity</i>. SC3 defines the default
-                                <i>perplexity</i> as <i>N</i>/5, where <i>N</i> is
-                                the number of cells, but also allows to change it
-                                in a reasonable interval using the slider in the <b>Parameters</b> panel."
                         )
                     }
                     if (grepl("DE", input$main_panel)) {
@@ -459,44 +401,6 @@ sc3_interactive.SCESet <- function(object) {
             output$silh <- renderPlot({
                 sc3_plot_silhouette(object, as.numeric(input$clusters))
             })
-            # output cell labels
-            output$labels <- renderUI({
-                labs <- "<br/><br/>"
-                if (!is.null(values$labels1)) {
-                    labs1 <- list()
-                    cols <- iwanthue(input$clusters - 1)
-                    for (i in 1:(input$clusters - 1)) {
-                        col <- cols[i]
-                        ind <-
-                            unlist(strsplit(as.character(values$labels1[i,]),
-                                            " "))
-                        for (j in ind) {
-                            labs1[[j]] <-
-                                paste0("<font color=\"",
-                                       col,
-                                       "\">",
-                                       j,
-                                       "</font>")
-                        }
-                    }
-                    for (i in 1:input$clusters) {
-                        ind <- unlist(strsplit(as.character(values$labels[i,]),
-                                               " "))
-                        for (j in ind) {
-                            labs <- c(labs, labs1[[j]])
-                        }
-                        labs <- c(labs, c("<br/>", "<hr>"))
-                    }
-                } else {
-                    for (i in 1:input$clusters) {
-                        ind <- unlist(strsplit(as.character(values$labels[i,]),
-                                               " "))
-                        labs <- c(labs, ind, c("<br/>", "<hr>"))
-                    }
-                }
-                
-                HTML(paste0(labs))
-            })
             # plot stability
             output$StabilityPlot <- renderPlot({
                 validate(need(
@@ -510,14 +414,6 @@ sc3_interactive.SCESet <- function(object) {
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
                     sc3_plot_expression(object, as.numeric(input$clusters), show_pdata = input$pDataColumns)
-                })
-            })
-            # make tSNE plot
-            output$tSNEplot <- renderPlot({
-                withProgress(message = 'Plotting...', value = 0, {
-                    sc3_plot_tsne(object,
-                                  input$clusters,
-                                  input$perplexity)
                 })
             })
             # plot marker genes

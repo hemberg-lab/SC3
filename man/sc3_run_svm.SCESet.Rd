@@ -7,14 +7,12 @@
 \alias{sc3_run_svm.SCESet}
 \title{Run SVM on training cells}
 \usage{
-sc3_run_svm.SCESet(object, k)
+sc3_run_svm.SCESet(object)
 
-\S4method{sc3_run_svm}{SCESet}(object, k)
+\S4method{sc3_run_svm}{SCESet}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
-
-\item{k}{the number of clusters k for which the SVM should be run}
 }
 \value{
 an object of 'SCESet' class

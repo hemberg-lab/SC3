@@ -126,59 +126,6 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
     sc3_plot_expression.SCESet(object, k, show_pdata)
 })
 
-
-#' Plot tSNE map of the cells and highlight SC3 clusters with colors
-#' 
-#' \href{https://lvdmaaten.github.io/tsne/}{tSNE} (t-Distributed Stochastic 
-#' Neighbor Embedding) method is used to map high-dimensional data to a 2D 
-#' space while preserving local distances between cells. tSNE has become a 
-#' very popular visualisation tool. SC3 imports the Rtsne function from the
-#' \href{https://cran.r-project.org/web/packages/Rtsne/index.html}{Rtsne package} 
-#' to perform the tSNE analysis. The colors on the plot correspond to the clusters 
-#' identified by SC3. One of the most sensitive parameters in tSNE analysis is the
-#' so-called perplexity. SC3 defines the default perplexity as N/5, where N is 
-#' the number of cells.
-#' 
-#' @param object an object of 'SCESet' class
-#' @param k number of clusters
-#' @param perplexity perplexity parameter used in \code{\link[Rtsne]{Rtsne}} for tSNE tranformation
-#' @param seed random seed used for tSNE transformation
-#' 
-#' @importFrom ggplot2 ggplot aes geom_point theme_bw aes_string xlab ylab
-#' @importFrom Rtsne Rtsne
-#' 
-#' @export
-sc3_plot_tsne.SCESet <- function(object, k, perplexity = floor(ncol(get_processed_dataset(object))/5), 
-    seed = 1234567) {
-    res <- prepare_output(object, k)
-    
-    dataset <- get_processed_dataset(object)
-    
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
-    }
-    
-    dataset <- dataset[, res$hc$order]
-    colnames(dataset) <- res$new.labels[res$hc$order]
-    
-    set.seed(seed)
-    tsne_out <- Rtsne::Rtsne(t(dataset), perplexity = perplexity)
-    df_to_plot <- as.data.frame(tsne_out$Y)
-    df_to_plot$Cluster <- factor(colnames(dataset), levels = unique(colnames(dataset)))
-    comps <- colnames(df_to_plot)[1:2]
-    ggplot(df_to_plot, aes_string(x = comps[1], y = comps[2], color = "Cluster")) + 
-        geom_point() + xlab("Dimension 1") + ylab("Dimension 2") + theme_bw()
-}
-
-#' @rdname sc3_plot_tsne.SCESet
-#' @aliases sc3_plot_tsne
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_tsne", signature(object = "SCESet"), function(object, k, perplexity = floor(ncol(get_processed_dataset(object))/5), 
-    seed = 1234567) {
-    sc3_plot_tsne.SCESet(object, k, perplexity, seed)
-})
-
 #' Plot expression of DE genes of the clusters identified by SC3 as a heatmap
 #' 
 #' Differential expression is calculated using the non-parametric 
@@ -370,8 +317,6 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
         stop(paste0("Please choose k from: ", paste(names(object@sc3$consensus), 
             collapse = " ")))
     }
-    
-    res <- prepare_output(object, k)
     
     # calculate stability of the clusters check if there are more than 1 k value in
     # ks range

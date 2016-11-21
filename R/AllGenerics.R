@@ -69,11 +69,6 @@ setGeneric("sc3_plot_expression", function(object, ...) {
 })
 
 #' @export
-setGeneric("sc3_plot_tsne", function(object, ...) {
-    standardGeneric("sc3_plot_tsne")
-})
-
-#' @export
 setGeneric("sc3_plot_de_genes", function(object, ...) {
     standardGeneric("sc3_plot_de_genes")
 })

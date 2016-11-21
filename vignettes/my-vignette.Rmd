@@ -248,10 +248,10 @@ treutlein_sceset@sc3$rselenium
 
 When the `SCESet` object is prepared for clustering, `SC3` can also estimate the optimal number of clusters `k` in the dataset. `SC3` utilizes the Tracy-Widom theory on random matrices to estimate `k`. `sc3_estimate_k` method creates and populates the following items of the `sc3` slot:
 
-* `k_prediction` - contains the estimated value of `k`.
+* `k_estimation` - contains the estimated value of `k`.
 ```{r}
 treutlein_sceset <- sc3_estimate_k(treutlein_sceset)
-treutlein_sceset@sc3$k_prediction
+treutlein_sceset@sc3$k_estimation
 ```
 
 ## `sc3_set_ks`

@@ -226,8 +226,8 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' @export
 get_processed_dataset <- function(object) {
     dataset <- object@assayData[[object@sc3$exprs_values]]
-    if(!is.null(object@sc3$gene_filter)) {
-        dataset <- dataset[object@sc3$gene_filter, ]
+    if(!is.null(object@featureData@data$sc3_gene_filter)) {
+        dataset <- dataset[object@featureData@data$sc3_gene_filter, ]
     }
     if(!object@sc3$logged) {
         dataset <- log2(dataset + 1)

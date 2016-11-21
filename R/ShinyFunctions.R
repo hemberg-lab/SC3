@@ -3,25 +3,12 @@
 prepare_output <- function(object, k) {
     consensus <- object@sc3$consensus
     ks <- as.numeric(names(consensus))
-    dataset <- get_processed_dataset(object)
     # get all results for k
     res <- consensus[[as.character(k)]]
-    # get all results for k-1
-    labels1 <- NULL
-    if ((k - 1) %in% ks) {
-        labels1 <- consensus[[as.character(k - 1)]]$labels
-    }
-    # assign results to reactive variables
-    labels <- res$labels
     hc <- res$hc
-    clusts <- stats::cutree(hc, k)
-    
     silh <- res$silhouette
     
-    new.labels <- get_clusts(hc, k)
-    
-    return(list(labels = labels, labels1 = labels1, hc = hc, silh = silh, cell.order = hc$order, 
-        new.labels = new.labels))
+    return(list(hc = hc, silh = silh, cell.order = hc$order))
 }
 
 #' @importFrom stats cutree
@@ -121,9 +108,7 @@ get_outl_cells <- function(dataset, labels) {
         }
     }
     
-    res <- data.frame(sc3_clusters = labels, MCD.dist = out, stringsAsFactors = FALSE)
-    
-    return(res)
+    return(out)
 }
 
 #' @importFrom RSelenium remoteDriver
