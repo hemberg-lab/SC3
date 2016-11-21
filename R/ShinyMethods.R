@@ -244,13 +244,9 @@ sc3_interactive.SCESet <- function(object) {
             # observer for DE genes
             observe({
                 if (biology) {
-                    de.genes <-
-                        object@sc3$biology[[as.character(input$clusters)]]$de.genes
-                    de.genes <-
-                        de.genes[de.genes$p.value < as.numeric(input$p.val.de), , drop = FALSE]
-                    values$n.de.genes <- nrow(de.genes)
-                    values$n.de.plot.height <-
-                        nrow(head(de.genes, 50))
+                    de_genes <- organise_de_genes(object, input$clusters, input$p.val.de)
+                    values$n.de.genes <- length(de_genes)
+                    values$n.de.plot.height <- length(head(de_genes, 50))
                 } else {
                     values$n.de.genes <- 0
                 }

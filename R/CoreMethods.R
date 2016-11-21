@@ -179,20 +179,21 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRU
     }
     
     # gene filter
+    f_data <- object@featureData@data
+    f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
-        f_data <- object@featureData@data
         if(!is.null(f_data$pct_dropout)) {
             f_data$sc3_gene_filter <- f_data$pct_dropout < pct_dropout_max & f_data$pct_dropout > pct_dropout_min
             if (all(!f_data$sc3_gene_filter)) {
                 message("All genes were removed after the gene filter! Stopping now...")
                 return(object)
             }
-            fData(object) <- new("AnnotatedDataFrame", data = f_data)
         } else {
             warning(paste0("Gene filter can not be calculated, please run calculateQCMetrics() first!"))
             return(object)
         }
     }
+    fData(object) <- new("AnnotatedDataFrame", data = f_data)
 
     object@sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
@@ -795,10 +796,15 @@ sc3_calc_biology.SCESet <- function(object) {
     names(biol) <- ks
     
     object@sc3$biology <- biol
-    
+
+    f_data <- object@featureData@data
     p_data <- object@phenoData@data
     for(k in ks) {
-        outl <- object@sc3$biology[[as.character(k)]]$cell.outl[,2]
+        f_data[ , paste0("sc3_", k, "_de_padj")] <- NA
+        f_data[ , paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de.genes
+        fData(object) <- new("AnnotatedDataFrame", data = f_data)
+        
+        outl <- biol[[as.character(k)]]$cell.outl
         # in case of hybrid SVM approach
         if (!is.null(object@sc3$svm_train_inds)) {
             tmp <- rep(NA, nrow(p_data))

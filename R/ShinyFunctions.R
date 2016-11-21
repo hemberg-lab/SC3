@@ -191,8 +191,12 @@ get_marker_genes <- function(dataset, labels) {
 
 #' Find differentially expressed genes
 #'
-#' If the cell labels are available this functions allows a user to calculate
-#' differentially expressed genes manually.
+#' Differential expression is calculated using the non-parametric 
+#' Kruskal-Wallis test. A significant p-value indicates that gene 
+#' expression in at least one cluster stochastically dominates one other cluster.
+#' Note that the calculation of differential 
+#' expression after clustering can introduce a bias in the distribution of 
+#' p-values, and thus we advise to use the p-values for ranking the genes only.
 #'
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix
@@ -206,16 +210,19 @@ get_marker_genes <- function(dataset, labels) {
 #' 
 #' @export
 get_de_genes <- function(dataset, labels) {
-    p.val <- 0.1
     t <- apply(dataset, 1, kruskal.test, g = factor(labels))
     ps <- unlist(lapply(t, "[[", "p.value"))
     ps <- p.adjust(ps)
-    ps <- ps[!is.na(ps)]
-    ps <- ps[ps < p.val]
-    ps <- ps[order(ps)]
-    ps <- as.data.frame(ps, stringsAsFactors = FALSE)
-    colnames(ps) <- "p.value"
     return(ps)
+}
+
+organise_de_genes <- function(object, k, p_val) {
+    de_genes <- object@featureData@data[ , paste0("sc3_", k, "_de_padj")]
+    names(de_genes) <- rownames(object@featureData@data)
+    de_genes <- de_genes[!is.na(de_genes)]
+    de_genes <- de_genes[de_genes < p_val]
+    de_genes <- de_genes[order(de_genes)]
+    return(de_genes)
 }
 
 #' Calculate the stability index of the obtained clusters when changing k

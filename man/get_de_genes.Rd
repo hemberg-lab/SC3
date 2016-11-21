@@ -16,8 +16,12 @@ a numeric vector containing the differentially expressed genes and
 correspoding p-values
 }
 \description{
-If the cell labels are available this functions allows a user to calculate
-differentially expressed genes manually.
+Differential expression is calculated using the non-parametric 
+Kruskal-Wallis test. A significant p-value indicates that gene 
+expression in at least one cluster stochastically dominates one other cluster.
+Note that the calculation of differential 
+expression after clustering can introduce a bias in the distribution of 
+p-values, and thus we advise to use the p-values for ranking the genes only.
 }
 \examples{
 d <- get_de_genes(treutlein, colnames(treutlein))

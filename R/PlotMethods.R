@@ -126,16 +126,12 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
     sc3_plot_expression.SCESet(object, k, show_pdata)
 })
 
-#' Plot expression of DE genes of the clusters identified by SC3 as a heatmap
+#' Plot expression of DE genes of the clusters identified by \code{SC3} as a heatmap
 #' 
-#' Differential expression is calculated using the non-parametric 
-#' Kruskal-Wallis test. A significant p-value indicates that gene 
-#' expression in at least one cluster stochastically dominates one other cluster. 
-#' SC3 provides a list of all differentially expressed genes with 
-#' adjusted p-values < 0.01 and plots gene expression profiles of the 50 
-#' genes with the lowest p-values. Note that the calculation of differential 
-#' expression after clustering can introduce a bias in the distribution of 
-#' p-values, and thus we advise to use the p-values for ranking the genes only.
+#' \code{SC3} plots gene expression profiles of the 50 genes with the lowest p-values. 
+#' 
+#' @name sc3_plot_de_genes
+#' @aliases sc3_plot_de_genes, sc3_plot_de_genes,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
@@ -147,7 +143,6 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
 #' 
 #' @export
 sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL) {
-    
     res <- prepare_output(object, k)
     
     dataset <- get_processed_dataset(object)
@@ -167,19 +162,17 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
         }
     }
     
-    de.genes <- object@sc3$biology[[as.character(k)]]$de.genes
+    de_genes <- organise_de_genes(object, k, p.val)
+    de_genes <- head(de_genes, 50)
+    row_ann <- data.frame(log10_padj = -log10(de_genes))
+    rownames(row_ann) <- names(de_genes)
     
-    de.genes <- de.genes[de.genes$p.value < p.val, , drop = FALSE]
-    d <- head(de.genes, 50)
-    row.ann <- data.frame(p.value = -log10(d))
-    rownames(row.ann) <- rownames(d)
-    
-    do.call(pheatmap::pheatmap, c(list(dataset[rownames(d), , drop = FALSE], show_colnames = FALSE, 
-        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row.ann, 
+    do.call(pheatmap::pheatmap, c(list(dataset[names(de_genes), , drop = FALSE], show_colnames = FALSE, 
+        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row_ann, 
         cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
-#' @rdname sc3_plot_de_genes.SCESet
+#' @rdname sc3_plot_de_genes
 #' @aliases sc3_plot_de_genes
 #' @importClassesFrom scater SCESet
 #' @export
