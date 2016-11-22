@@ -21,7 +21,7 @@ If not NULL will add pData annotations to the columns of the output matrix}
 }
 \description{
 The expression panel represents the original input expression matrix 
-(cells in columns and genes in rows) after cell and gene filters. 
+(cells in columns and genes in rows) after the gene filter. 
 Genes are clustered by kmeans with k = 100 (dendrogram on the left) and 
 the heatmap represents the expression levels of the gene cluster centers 
 after log2-scaling.

@@ -38,7 +38,9 @@ sc3_interactive.SCESet <- function(object) {
     
     biology <- FALSE
     if (!is.null(object@sc3$biology)) {
-        biology <- TRUE
+        if(object@sc3$biology) {
+            biology <- TRUE
+        }
     }
     
     pdata <- colnames(make_col_ann_for_heatmaps(object, colnames(object@phenoData@data)))
@@ -391,7 +393,7 @@ sc3_interactive.SCESet <- function(object) {
             # plot marker genes
             output$mark_genes <- renderPlot({
                 validate(need(
-                    !is.null(object@sc3$biology),
+                    biology,
                     "\nPlease run sc3_calc_biology() first!"
                 ))
                 validate(
@@ -418,7 +420,7 @@ sc3_interactive.SCESet <- function(object) {
             }
             output$plot_mark_genes <- renderUI({
                 validate(need(
-                    !is.null(object@sc3$biology),
+                    biology,
                     "\nPlease run sc3_calc_biology() first!"
                 ))
                 validate(
@@ -439,7 +441,7 @@ sc3_interactive.SCESet <- function(object) {
             # plot DE genes
             output$de_genes <- renderPlot({
                 validate(need(
-                    !is.null(object@sc3$biology),
+                    biology,
                     "\nPlease run sc3_calc_biology() first!"
                 ))
                 validate(
@@ -463,7 +465,7 @@ sc3_interactive.SCESet <- function(object) {
             }
             output$plot_de_genes <- renderUI({
                 validate(need(
-                    !is.null(object@sc3$biology),
+                    biology,
                     "\nPlease run sc3_calc_biology() first!"
                 ))
                 validate(

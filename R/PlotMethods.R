@@ -79,7 +79,7 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, 
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
 #' The expression panel represents the original input expression matrix 
-#' (cells in columns and genes in rows) after cell and gene filters. 
+#' (cells in columns and genes in rows) after the gene filter. 
 #' Genes are clustered by kmeans with k = 100 (dendrogram on the left) and 
 #' the heatmap represents the expression levels of the gene cluster centers 
 #' after log2-scaling.
@@ -182,14 +182,9 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k,
 })
 
 
-#' Plot expression of marker genes of the clusters identified by SC3 as a heatmap
+#' Plot expression of marker genes identified by \code{SC3} as a heatmap.
 #' 
-#' To find marker genes, for each gene a binary classifier is constructed 
-#' based on the mean cluster expression values. The classifier prediction 
-#' is then calculated using the gene expression ranks. The area under the 
-#' receiver operating characteristic (ROC) curve is used to quantify the accuracy 
-#' of the prediction. A p-value is assigned to each gene by using the Wilcoxon 
-#' signed rank test. By default the genes with the area under the ROC curve (AUROC) > 0.85 
+#' By default the genes with the area under the ROC curve (AUROC) > 0.85 
 #' and with the p-value < 0.01 are selected and the top 10 marker 
 #' genes of each cluster are visualized in this heatmap.
 #' 

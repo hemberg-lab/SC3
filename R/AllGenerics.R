@@ -39,11 +39,6 @@ setGeneric("sc3_calc_biology", function(object) {
 })
 
 #' @export
-setGeneric("sc3_summarise_results", function(object, ...) {
-    standardGeneric("sc3_summarise_results")
-})
-
-#' @export
 setGeneric("sc3_interactive", function(object) {
     standardGeneric("sc3_interactive")
 })

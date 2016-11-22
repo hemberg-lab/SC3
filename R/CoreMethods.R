@@ -625,9 +625,14 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
 #' contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SCESet} object. It then
 #' creates and populates the \code{consensus} item of the \code{sc3} slot with 
 #' consensus matrices, their hierarchical clusterings in \code{hclust} objects,
-#' and Silhouette indeces of the clusters.
-#' Additionally, it also removes the previously calculated \code{kmeans} clusterings from
+#' and Silhouette indeces of the clusters. It also removes the previously 
+#' calculated \code{kmeans} clusterings from
 #' the \code{sc3} slot, as they are not needed for further analysis.
+#' 
+#' Additionally, it also adds new columns to the \code{phenoData} slot of the
+#' input \code{object}. The column names correspond to the consensus cell labels
+#' and have the following format: \code{sc3_k_clusters}, where \code{k} is the 
+#' number of clusters.
 #' 
 #' @name sc3_calc_consens
 #' @aliases sc3_calc_consens, sc3_calc_consens,SCESet-method
@@ -726,14 +731,49 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 
 #' Calculate DE genes, marker genes and cell outliers.
 #' 
-#' This function calculates DE genes, marker genes and cell outliers based on 
-#' the consensus clusterings
-#' contained in the consensus item of the object@sc3 slot. It then
-#' creates and populates the following items of the object@sc3 slot:
-#' \itemize{
-#'   \item biology - contains lists of DE genes, marker genes and 
-#'   cell outliers data frames.
-#' }
+#' This function calculates differentially expressed (DE) genes, marker genes 
+#' and cell outliers based on the consensus \code{SC3} clusterings. 
+#' 
+#' Differential expression is calculated using the non-parametric Kruskal-Wallis test.
+#' A significant \code{p-value} indicates that gene expression in at least one cluster
+#' stochastically dominates one other cluster. Note that the calculation of 
+#' differential expression after clustering can introduce a bias in the 
+#' distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s 
+#' for ranking the genes only. Results of the DE analysis are saved as new columns in the 
+#' \code{featureData} slot of the input \code{object}. The column names correspond 
+#' to the adjusted \code{p-value}s of the genes and have the following format: 
+#' \code{sc3_k_de_padj}, where \code{k} is the number of clusters.
+#' 
+#' To find marker genes, for each gene a binary classifier is constructed 
+#' based on the mean cluster expression values. The classifier prediction 
+#' is then calculated using the gene expression ranks. The area under the 
+#' receiver operating characteristic (ROC) curve is used to quantify the accuracy 
+#' of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
+#' signed rank test. Results of the marker gene analysis are saved as three new 
+#' columns (for each \code{k}) to the 
+#' \code{featureData} slot of the input \code{object}. The column names correspond 
+#' to the \code{SC3} cluster labels, to the adjusted \code{p-value}s of the genes 
+#' and to the area under the ROC curve
+#' and have the following format: \code{sc3_k_markers_clusts}, 
+#' \code{sc3_k_markers_padj} and \code{sc3_k_markers_auroc}, where \code{k} is 
+#' the number of clusters.
+#' 
+#' Outlier cells in each cluster are detected using robust distances, calculated 
+#' using the minimum covariance determinant (MCD). The outlier score shows how 
+#' different a cell is from all other cells in the cluster and it is defined as 
+#' the differences between the square root of the robust distance and the square 
+#' root of the 99.99% quantile of the Chi-squared distribution. Results of the 
+#' cell outlier analysis are saved as new columns in the 
+#' \code{phenoData} slot of the input \code{object}. The column names correspond 
+#' to the \code{log2(outlier_score)} and have the following format: 
+#' \code{sc3_k_log2_outlier_score}, where \code{k} is the number of clusters.
+#' 
+#' Additionally, \code{biology} item is added to the \code{sc3} slot and is set to
+#' \code{TRUE} indicating that the biological analysis of the dataset has been
+#' performed.
+#' 
+#' @name sc3_calc_biology
+#' @aliases sc3_calc_biology, sc3_calc_biology,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
 #' 
@@ -793,8 +833,6 @@ sc3_calc_biology.SCESet <- function(object) {
     parallel::stopCluster(cl)
     
     names(biol) <- ks
-    
-    object@sc3$biology <- biol
 
     f_data <- object@featureData@data
     p_data <- object@phenoData@data
@@ -821,10 +859,13 @@ sc3_calc_biology.SCESet <- function(object) {
     }
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    
+    object@sc3$biology <- TRUE
+    
     return(object)
 }
 
-#' @rdname sc3_calc_biology.SCESet
+#' @rdname sc3_calc_biology
 #' @aliases sc3_calc_biology
 #' @importClassesFrom scater SCESet
 #' @export
@@ -891,79 +932,36 @@ setMethod("sc3_run_svm", signature(object = "SCESet"), function(object) {
     sc3_run_svm.SCESet(object)
 })
 
-#' Summarise SC3 results
+#' Write \code{SC3} results to Excel file
 #' 
-#' This function summarised all SC3 results into a single list and populates 
-#' it to the following item of the object@sc3 slot:
-#' \itemize{
-#'   \item results - contains all SC3 results
-#' }
-#' 
-#' @param object an object of 'SCESet' class
-#' @param k the number of clusters k for which the results should be summarised
-#' 
-#' @importFrom scater pData<-
-#' @importFrom methods new
-#' 
-#' @return an object of 'SCESet' class
-#' 
-#' @export
-sc3_summarise_results.SCESet <- function(object, k) {
-    if (is.null(object@sc3$consensus)) {
-        warning(paste0("Please run sc3_consensus() first!"))
-        return(object)
-    }
-    p_data <- object@phenoData@data
-    if (!paste0("sc3_", k, "_clusters") %in% colnames(p_data)) {
-        warning(paste0("There is no clustering result for k = ", k, ", please used a different k!"))
-        return(object)
-    }
-    clusts <- as.data.frame(p_data[, paste0("sc3_", k, "_clusters")])
-    colnames(clusts) <- "sc3_clusters"
-    rownames(clusts) <- rownames(p_data)
-    cell_outliers <- NULL
-    de_genes <- NULL
-    markers <- NULL
-    if (!is.null(object@sc3$biology)) {
-        cell_outliers <- object@sc3$biology[[as.character(k)]]$cell.outl
-        rownames(cell_outliers) <- rownames(p_data)[!is.na(p_data$sc3_clusters)]
-        de_genes <- object@sc3$biology[[as.character(k)]]$de.genes
-        markers <- object@sc3$biology[[as.character(k)]]$markers
-    }
-    res <- list(clusters = clusts, de_genes = de_genes, markers = markers, cell_outliers = cell_outliers)
-    object@sc3$results <- res
-    return(object)
-}
-
-#' @rdname sc3_summarise_results.SCESet
-#' @aliases sc3_summarise_results
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_summarise_results", signature(object = "SCESet"), function(object, 
-    k) {
-    sc3_summarise_results.SCESet(object, k)
-})
-
-#' Write SC3 results to Excel file
-#' 
-#' This function writes SC3 results contained in the object@sc3$results
-#' list to an excel file.
+#' This function writes all \code{SC3} results to an excel file.
 #' 
 #' @param object an object of 'SCESet' class
 #' @param filename name of the excel file, to which the results will be written
+#' 
+#' @name sc3_export_results_xls
+#' @aliases sc3_export_results_xls, sc3_export_results_xls,SCESet-method
 #' 
 #' @importFrom WriteXLS WriteXLS
 #' 
 #' @export
 sc3_export_results_xls.SCESet <- function(object, filename = "sc3_results.xls") {
-    if (is.null(object@sc3$results)) {
-        stop(paste0("Please run sc3_summarise_results() first!"))
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
     }
-    WriteXLS(object@sc3$results, ExcelFileName = filename, SheetNames = names(object@sc3$results), 
-        row.names = TRUE)
+    
+    p_data <- object@phenoData@data
+    f_data <- object@featureData@data
+    
+    cells <- p_data[, grep("sc3_", colnames(p_data))]
+    genes <- f_data[, grep("sc3_", colnames(f_data))]
+    
+    WriteXLS(list(cells, genes), ExcelFileName = filename, SheetNames = c("Cells", "Genes"), 
+        row.names = TRUE, AdjWidth = TRUE)
 }
 
-#' @rdname sc3_export_results_xls.SCESet
+#' @rdname sc3_export_results_xls
 #' @aliases sc3_export_results_xls
 #' @importClassesFrom scater SCESet
 #' @export

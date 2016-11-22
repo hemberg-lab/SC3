@@ -23,8 +23,14 @@ This function calculates consensus matrices based on the clustering solutions
 contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SCESet} object. It then
 creates and populates the \code{consensus} item of the \code{sc3} slot with 
 consensus matrices, their hierarchical clusterings in \code{hclust} objects,
-and Silhouette indeces of the clusters.
-Additionally, it also removes the previously calculated \code{kmeans} clusterings from
+and Silhouette indeces of the clusters. It also removes the previously 
+calculated \code{kmeans} clusterings from
 the \code{sc3} slot, as they are not needed for further analysis.
+}
+\details{
+Additionally, it also adds new columns to the \code{phenoData} slot of the
+input \code{object}. The column names correspond to the consensus cell labels
+and have the following format: \code{sc3_k_clusters}, where \code{k} is the 
+number of clusters.
 }
 
