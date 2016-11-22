@@ -461,13 +461,6 @@ sc3_interactive.SCESet <- function(object) {
             
             # REACTIVE BUTTONS
             
-            # GO button
-            observeEvent(input$GO, {
-                if (!is.null(values$mark.res)) {
-                    open_gprofiler(rownames(values$mark.res[values$mark.res$sc3_clusters == as.numeric(input$cluster),]))
-                }
-            })
-            
             ## OUTPUTS USED FOR CONDITIONAL PANELS
             ks_length <- reactive({
                 return(as.character(length(ks)))

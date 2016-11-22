@@ -6,6 +6,11 @@
 \usage{
 get_auroc(gene, labels)
 }
+\arguments{
+\item{gene}{expression data of a given gene}
+
+\item{labels}{cell labels correspodning to the expression values of the gene}
+}
 \description{
 For a given gene a binary classifier is constructed 
 based on the mean cluster expression values (these are calculated using the

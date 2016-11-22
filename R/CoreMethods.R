@@ -153,6 +153,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' @importFrom parallel detectCores
 #' @importFrom scater fData<- pData<-
 #' @importFrom utils capture.output
+#' @importFrom methods new
 #' 
 #' @export
 sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_filter = TRUE, 
@@ -618,6 +619,7 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
 #' @importFrom cluster silhouette
 #' @importFrom stats hclust dist as.dist
 #' @importFrom scater pData<-
+#' @importFrom methods new
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
@@ -684,8 +686,8 @@ sc3_calc_consens.SCESet <- function(object) {
             clusts <- tmp
         }
         p_data[ , paste0("sc3_", k, "_clusters")] <- clusts
-        pData(object) <- new("AnnotatedDataFrame", data = p_data)
     }
+    pData(object) <- new("AnnotatedDataFrame", data = p_data)
     
     return(object)
 }
@@ -741,6 +743,7 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
+#' @importFrom methods new
 #' 
 #' @export
 sc3_calc_biology.SCESet <- function(object) {
@@ -844,6 +847,8 @@ setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object) {
 #' @aliases sc3_run_svm, sc3_run_svm,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
+#' 
+#' @importFrom methods new
 #' 
 #' @return an object of 'SCESet' class
 #' 

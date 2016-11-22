@@ -115,6 +115,9 @@ get_outl_cells <- function(dataset, labels) {
 #' of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
 #' signed rank test. 
 #' 
+#' @param gene expression data of a given gene
+#' @param labels cell labels correspodning to the expression values of the gene
+#' 
 #' @importFrom ROCR prediction performance
 #' @importFrom stats aggregate wilcox.test
 get_auroc <- function(gene, labels) {
