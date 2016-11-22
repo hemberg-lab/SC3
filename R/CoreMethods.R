@@ -53,14 +53,13 @@ sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = 
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
-    object <- sc3_prepare(object, exprs_values, gene_filter, pct_dropout_min, 
+    object <- sc3_prepare(object, exprs_values, ks, gene_filter, pct_dropout_min, 
         pct_dropout_max, d_region_min, d_region_max, 
         svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
         rand_seed)
     if(k_estimator) {
         object <- sc3_estimate_k(object)
     }
-    object <- sc3_set_ks(object, ks)
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
     object <- sc3_kmeans(object)
@@ -109,8 +108,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #'   \item \code{svm_study_inds} - if SVM is used this item contains indexes of the
 #'    cells to be predicted by SVM.
 #'   \item \code{n_cores} - the same as the \code{n_cores} argument.
-#'   \item \code{rselenium} - a boolean parameter which defines whether 
-#'   \href{https://cran.r-project.org/package=RSelenium}{RSelenium} is properly installed.
+#'   \item \code{ks} - the same as the \code{ks} argument.
 #' }
 #' 
 #' @param object an object of \code{SCESet} class.
@@ -119,6 +117,8 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' as the expression values for \code{SC3} clustering. Valid value is any named element 
 #' of the \code{assayData} slot of the \code{SCESet}
 #' object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
+#' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
+#' Can also be a single integer.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
 #' filtering before SC3 clustering.
 #' @param pct_dropout_min if \code{gene_filter = TRUE}, then genes with percent of dropouts smaller than 
@@ -150,19 +150,29 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' 
 #' @return an object of 'SCESet' class
 #' 
-#' @importFrom httr GET
 #' @importFrom parallel detectCores
-#' @importFrom RSelenium remoteDriver
-#' @importFrom scater fData<-
+#' @importFrom scater fData<- pData<-
 #' @importFrom utils capture.output
 #' 
 #' @export
-sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRUE, 
+sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_filter = TRUE, 
     pct_dropout_min = 10, pct_dropout_max = 90,
     d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, 
     svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1) {
     
     message("Setting SC3 parameters...")
+    
+    # clean up after the previous SC3 run
+    # sc3 slot
+    object@sc3 <- list()
+    # phenoData
+    p_data <- object@phenoData@data
+    p_data <- p_data[ , !grepl("sc3_", colnames(p_data))]
+    pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    # featureData
+    f_data <- object@featureData@data
+    f_data <- f_data[ , !grepl("sc3_", colnames(f_data))]
+    fData(object) <- new("AnnotatedDataFrame", data = f_data)
     
     dataset <- object@assayData[[exprs_values]]
     if (is.null(dataset)) {
@@ -275,19 +285,12 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRU
     
     object@sc3$n_cores <- n_cores
     
-    # RSelenium is always run on 4444 port
-    if (!is.null(tryCatch(httr::GET("http://localhost:4444"), error = function(cond){}))) {
-        remDr <- RSelenium::remoteDriver()
-        # in the latest version of RSelenium webdriver.gecko.driver has to be set up:
-        # http://stackoverflow.com/questions/38751525/firefox-browser-is-not-opening-with-selenium-webbrowser-code
-        if(!is.null(tryCatch(utils::capture.output(tmp <- remDr$open()), error = function(cond){}))) {
-            object@sc3$rselenium <- TRUE
-        } else {
-            object@sc3$rselenium <- FALSE
-        }
-    } else {
-        object@sc3$rselenium <- FALSE
+    if (is.null(ks)) {
+        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
+        return(object)
     }
+    message("Setting a range of k...")
+    object@sc3$ks <- ks
     
     return(object)
 }
@@ -298,11 +301,11 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRU
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, 
+    ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, 
     d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
     svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
     rand_seed = 1) {
-    sc3_prepare.SCESet(object, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, 
+    sc3_prepare.SCESet(object, exprs_values, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
         d_region_min, d_region_max, svm_num_cells, svm_train_inds, 
         svm_max, n_cores, kmeans_nstart, kmeans_iter_max, rand_seed)
 })
@@ -341,39 +344,6 @@ sc3_estimate_k.SCESet <- function(object) {
 #' @export
 setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
     sc3_estimate_k.SCESet(object)
-})
-
-#' Sets a range of the number of clusters k used for SC3 clustering.
-#' 
-#' This function creates and populates the following items of the object@sc3 slot:
-#' \itemize{
-#'   \item ks - contains a range of the number of clusters k to be used by SC3
-#' }
-#' 
-#' @name sc3_set_ks
-#' @aliases sc3_set_ks, sc3_set_ks,SCESet-method
-#' 
-#' @param object an object of 'SCESet' class
-#' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
-#' Can also be a single integer.
-#' 
-#' @export
-sc3_set_ks.SCESet <- function(object, ks = NULL) {
-    if (is.null(ks)) {
-        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
-        return(object)
-    }
-    message("Setting a range of k...")
-    object@sc3$ks <- ks
-    return(object)
-}
-
-#' @rdname sc3_set_ks
-#' @aliases sc3_set_ks
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_set_ks", signature(object = "SCESet"), function(object, ks = NULL) {
-    sc3_set_ks.SCESet(object, ks)
 })
 
 #' Calculate distances between the cells.
@@ -686,7 +656,7 @@ sc3_calc_consens.SCESet <- function(object) {
             rownames(tmp) <- as.character(colnames(dat))
             diss <- stats::as.dist(as.matrix(stats::as.dist(tmp)))
             hc <- stats::hclust(diss)
-            clusts <- get_clusts(hc, i)
+            clusts <- reindex_clusters(hc, i)
             
             silh <- cluster::silhouette(clusts, diss)
             
@@ -706,7 +676,7 @@ sc3_calc_consens.SCESet <- function(object) {
     p_data <- object@phenoData@data
     for(k in ks) {
         hc <- object@sc3$consensus[[as.character(k)]]$hc
-        clusts <- get_clusts(hc, k)
+        clusts <- reindex_clusters(hc, k)
         # in case of hybrid SVM approach
         if (!is.null(object@sc3$svm_train_inds)) {
             tmp <- rep(NA, nrow(p_data))
@@ -732,24 +702,16 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' Calculate DE genes, marker genes and cell outliers.
 #' 
 #' This function calculates differentially expressed (DE) genes, marker genes 
-#' and cell outliers based on the consensus \code{SC3} clusterings. 
+#' and cell outliers based on the consensus \code{SC3} clusterings.
 #' 
-#' Differential expression is calculated using the non-parametric Kruskal-Wallis test.
-#' A significant \code{p-value} indicates that gene expression in at least one cluster
-#' stochastically dominates one other cluster. Note that the calculation of 
-#' differential expression after clustering can introduce a bias in the 
-#' distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s 
-#' for ranking the genes only. Results of the DE analysis are saved as new columns in the 
+#' DE genes are calculated using \code{\link{get_de_genes}}. Results of the DE 
+#' analysis are saved as new columns in the 
 #' \code{featureData} slot of the input \code{object}. The column names correspond 
 #' to the adjusted \code{p-value}s of the genes and have the following format: 
 #' \code{sc3_k_de_padj}, where \code{k} is the number of clusters.
 #' 
-#' To find marker genes, for each gene a binary classifier is constructed 
-#' based on the mean cluster expression values. The classifier prediction 
-#' is then calculated using the gene expression ranks. The area under the 
-#' receiver operating characteristic (ROC) curve is used to quantify the accuracy 
-#' of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
-#' signed rank test. Results of the marker gene analysis are saved as three new 
+#' Marker genes are calculated using \code{\link{get_marker_genes}}. 
+#' Results of the marker gene analysis are saved as three new 
 #' columns (for each \code{k}) to the 
 #' \code{featureData} slot of the input \code{object}. The column names correspond 
 #' to the \code{SC3} cluster labels, to the adjusted \code{p-value}s of the genes 
@@ -758,11 +720,7 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' \code{sc3_k_markers_padj} and \code{sc3_k_markers_auroc}, where \code{k} is 
 #' the number of clusters.
 #' 
-#' Outlier cells in each cluster are detected using robust distances, calculated 
-#' using the minimum covariance determinant (MCD). The outlier score shows how 
-#' different a cell is from all other cells in the cluster and it is defined as 
-#' the differences between the square root of the robust distance and the square 
-#' root of the 99.99% quantile of the Chi-squared distribution. Results of the 
+#' Outlier cells are calculated using \code{\link{get_outl_cells}}. Results of the 
 #' cell outlier analysis are saved as new columns in the 
 #' \code{phenoData} slot of the input \code{object}. The column names correspond 
 #' to the \code{log2(outlier_score)} and have the following format: 
@@ -786,8 +744,7 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' 
 #' @export
 sc3_calc_biology.SCESet <- function(object) {
-    consensus <- object@sc3$consensus
-    if (is.null(consensus)) {
+    if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
@@ -795,15 +752,18 @@ sc3_calc_biology.SCESet <- function(object) {
     message("Computing DE genes, marker genes and cell outliers...")
     
     dataset <- get_processed_dataset(object)
+    p_data <- object@phenoData@data
+    clusts <- p_data[ , grep("sc3_.*_clusters", colnames(p_data))]
     # check whether in the SVM regime
     if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
+        dataset <- dataset[ , object@sc3$svm_train_inds]
+        clusts <- clusts[object@sc3$svm_train_inds, ]
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    ks <- as.numeric(names(consensus))
+    ks <- object@sc3$ks
     
     if (object@sc3$n_cores > length(ks)) {
         n_cores <- length(ks)
@@ -816,16 +776,10 @@ sc3_calc_biology.SCESet <- function(object) {
     
     biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
-            hc <- consensus[[as.character(i)]]$hc
-            clusts <- get_clusts(hc, i)
-            
-            markers <- get_marker_genes(dataset, clusts)
-            
-            de.genes <- get_de_genes(dataset, clusts)
-            
-            cell.outl <- get_outl_cells(dataset, clusts)
-            
-            list(markers = markers, de.genes = de.genes, cell.outl = cell.outl)
+            markers <- get_marker_genes(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
+            de_genes <- get_de_genes(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
+            cell_outl <- get_outl_cells(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
+            list(markers = markers, de_genes = de_genes, cell_outl = cell_outl)
         })
     }
     
@@ -839,7 +793,7 @@ sc3_calc_biology.SCESet <- function(object) {
     for(k in ks) {
         # save DE genes
         f_data[ , paste0("sc3_", k, "_de_padj")] <- NA
-        f_data[ , paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de.genes
+        f_data[ , paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de_genes
         # save marker genes
         f_data[ , paste0("sc3_", k, "_markers_clusts")] <- NA
         f_data[ , paste0("sc3_", k, "_markers_padj")] <- NA
@@ -848,7 +802,7 @@ sc3_calc_biology.SCESet <- function(object) {
         f_data[ , paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,3]
         f_data[ , paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,1]
         # save cell outliers
-        outl <- biol[[as.character(k)]]$cell.outl
+        outl <- biol[[as.character(k)]]$cell_outl
         # in case of hybrid SVM approach
         if (!is.null(object@sc3$svm_train_inds)) {
             tmp <- rep(NA, nrow(p_data))
@@ -874,17 +828,20 @@ setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object) {
 })
 
 
-#' Run SVM on training cells
+#' Run the hybrid \code{SVM} approach.
 #' 
-#' This function performs training of the SVM classifier on the training cells,
-#' which indeces are  
-#' contained in the svm_train_inds item of the object@sc3 slot. Then it 
-#' predicts the labels of the remaining cells using the SVM classifier. Finally it
-#' creates and populates the following items of the object@sc3 slot:
-#' \itemize{
-#'   \item svm_result - contains labels of the cells predicted by the SVM ordered
-#'   as the cells in the original dataset.
-#' }
+#' This method parallelize \code{SVM} prediction for each \code{k} (the number
+#' of clusters). Namely, for each \code{k}, \code{\link{support_vector_machines}} 
+#' function is utilized to predict the labels of study cells. Training cells are
+#' selected using \code{svm_train_inds} item of the \code{sc3} slot of the input
+#' \code{SCESet} object.
+#' 
+#' Results are written to the \code{sc3_k_clusters} columns to the 
+#' \code{phenoData} slot of the input \code{object}, where \code{k} is the 
+#' number of clusters.
+#' 
+#' @name sc3_run_svm
+#' @aliases sc3_run_svm, sc3_run_svm,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
 #' 
@@ -898,33 +855,30 @@ sc3_run_svm.SCESet <- function(object) {
     }
     
     dataset <- get_processed_dataset(object)
-    
-    ks <- names(object@sc3$consensus)
-    
+    ks <- object@sc3$ks
     p_data <- object@phenoData@data
+    svm_train_inds <- object@sc3$svm_train_inds
+    svm_study_inds <- object@sc3$svm_study_inds
     
     for(k in ks) {
-        hc <- object@sc3$consensus[[as.character(k)]]$hc
-        clusts <- get_clusts(hc, k)
+        clusts <- p_data[ , paste0("sc3_", k, "_clusters")]
+        clusts <- clusts[svm_train_inds]
         
-        train.dataset <- dataset[, object@sc3$svm_train_inds]
+        train.dataset <- dataset[, svm_train_inds]
         colnames(train.dataset) <- clusts
         
-        study.labs <- support_vector_machines(train.dataset, dataset[, object@sc3$svm_study_inds], 
+        study.labs <- support_vector_machines(train.dataset, dataset[, svm_study_inds], 
                                               "linear")
-        
         svm.labs <- c(clusts, study.labs)
-        
-        ord <- order(c(object@sc3$svm_train_inds, object@sc3$svm_study_inds))
+        ord <- order(c(svm_train_inds, svm_study_inds))
         
         p_data[ , paste0("sc3_", k, "_clusters")] <- svm.labs[ord]
-        pData(object) <- new("AnnotatedDataFrame", data = p_data)
     }
-
+    pData(object) <- new("AnnotatedDataFrame", data = p_data)
     return(object)
 }
 
-#' @rdname sc3_run_svm.SCESet
+#' @rdname sc3_run_svm
 #' @aliases sc3_run_svm
 #' @importClassesFrom scater SCESet
 #' @export

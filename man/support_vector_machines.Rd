@@ -2,22 +2,22 @@
 % Please edit documentation in R/CoreFunctions.R
 \name{support_vector_machines}
 \alias{support_vector_machines}
-\title{Run support vector machines (SVM) prediction}
+\title{Run support vector machines (\code{SVM}) prediction}
 \usage{
 support_vector_machines(train, study, kern)
 }
 \arguments{
-\item{train}{expression matrix with training cells}
+\item{train}{training dataset with colnames, corresponding to training labels}
 
-\item{study}{expression matrix with study cells}
+\item{study}{study dataset}
 
 \item{kern}{kernel to be used with SVM}
 }
 \value{
-classification of study cells
+classification of the study dataset
 }
 \description{
-Train an SVM classifier on training cells and then
-classify study cells using the classifier.
+Train an \code{SVM} classifier on a training dataset (\code{train}) and then
+classify a study dataset (\code{study}) using the classifier.
 }
 

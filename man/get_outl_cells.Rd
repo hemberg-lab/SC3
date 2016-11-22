@@ -2,7 +2,7 @@
 % Please edit documentation in R/ShinyFunctions.R
 \name{get_outl_cells}
 \alias{get_outl_cells}
-\title{Find cell outliers}
+\title{Find cell outliers in each cluster.}
 \usage{
 get_outl_cells(dataset, labels)
 }
@@ -16,11 +16,15 @@ a numeric vector containing the cell labels and
 correspoding outlier scores ordered by the labels
 }
 \description{
-If the cell labels are available this functions allows a user to calculate
-cell outlier scores manually.
+Outlier cells in each cluster are detected using robust distances, calculated 
+using the minimum covariance determinant (MCD), namely using 
+\code{\link[robustbase]{covMcd}}. The outlier score shows how 
+different a cell is from all other cells in the cluster and it is defined as 
+the differences between the square root of the robust distance and the square 
+root of the 99.99% quantile of the Chi-squared distribution.
 }
 \examples{
-d <- get_outl_cells(treutlein, colnames(treutlein))
+d <- get_outl_cells(treutlein[1:10,], colnames(treutlein))
 head(d)
 
 }

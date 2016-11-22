@@ -82,8 +82,3 @@ setGeneric("sc3_plot_cluster_stability", function(object, ...) {
 setGeneric("sc3_export_results_xls", function(object, ...) {
     standardGeneric("sc3_export_results_xls")
 })
-
-#' @export
-setGeneric("sc3_set_ks", function(object, ...) {
-    standardGeneric("sc3_set_ks")
-})

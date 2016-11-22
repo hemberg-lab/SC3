@@ -16,15 +16,15 @@ a numeric vector containing the differentially expressed genes and
 correspoding p-values
 }
 \description{
-Differential expression is calculated using the non-parametric 
-Kruskal-Wallis test. A significant p-value indicates that gene 
-expression in at least one cluster stochastically dominates one other cluster.
-Note that the calculation of differential 
-expression after clustering can introduce a bias in the distribution of 
-p-values, and thus we advise to use the p-values for ranking the genes only.
+Differential expression is calculated using the non-parametric Kruskal-Wallis test.
+A significant \code{p-value} indicates that gene expression in at least one cluster
+stochastically dominates one other cluster. Note that the calculation of 
+differential expression after clustering can introduce a bias in the 
+distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s 
+for ranking the genes only.
 }
 \examples{
-d <- get_de_genes(treutlein, colnames(treutlein))
+d <- get_de_genes(treutlein[1:10, ], colnames(treutlein))
 head(d)
 
 }

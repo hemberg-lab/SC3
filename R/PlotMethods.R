@@ -12,6 +12,9 @@
 #' clustering is achieved when all diagonal blocks are completely red 
 #' and all off-diagonal elements are completely blue.
 #' 
+#' @name sc3_plot_consensus
+#' @aliases sc3_plot_consensus, sc3_plot_consensus,SCESet-method
+#' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
@@ -21,9 +24,11 @@
 #' 
 #' @export
 sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
-    
-    res <- prepare_output(object, k)
-    
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    hc <- object@sc3$consensus[[as.character(k)]]$hc
     consensus <- object@sc3$consensus[[as.character(k)]]$consensus
     
     add_ann_col <- FALSE
@@ -36,12 +41,12 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
             rownames(ann) <- colnames(consensus)
         }
     }
-    do.call(pheatmap::pheatmap, c(list(consensus, cluster_rows = res$hc, cluster_cols = res$hc, 
+    do.call(pheatmap::pheatmap, c(list(consensus, cluster_rows = hc, cluster_cols = hc, 
         cutree_rows = k, cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), 
         list(annotation_col = ann)[add_ann_col]))
 }
 
-#' @rdname sc3_plot_consensus.SCESet
+#' @rdname sc3_plot_consensus
 #' @aliases sc3_plot_consensus
 #' @importClassesFrom scater SCESet
 #' @export
@@ -59,16 +64,23 @@ setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k
 #' block-diagonal structure. The best clustering is achieved when the average 
 #' silhouette width is close to 1.
 #' 
+#' @name sc3_plot_silhouette
+#' @aliases sc3_plot_silhouette, sc3_plot_silhouette,SCESet-method
+#' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
 #' @export
 sc3_plot_silhouette.SCESet <- function(object, k) {
-    res <- prepare_output(object, k)
-    plot(res$silh, col = "black")
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    silh <- object@sc3$consensus[[as.character(k)]]$silhouette
+    plot(silh, col = "black")
 }
 
-#' @rdname sc3_plot_silhouette.SCESet
+#' @rdname sc3_plot_silhouette
 #' @aliases sc3_plot_silhouette
 #' @importClassesFrom scater SCESet
 #' @export
@@ -84,6 +96,9 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, 
 #' the heatmap represents the expression levels of the gene cluster centers 
 #' after log2-scaling.
 #' 
+#' @name sc3_plot_expression
+#' @aliases sc3_plot_expression, sc3_plot_expression,SCESet-method
+#' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
@@ -93,11 +108,12 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, 
 #' 
 #' @export
 sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
-    
-    res <- prepare_output(object, k)
-    
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    hc <- object@sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
     }
@@ -113,11 +129,11 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
         }
     }
     
-    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = res$hc, kmeans_k = 100, 
+    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, kmeans_k = 100, 
         cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
 }
 
-#' @rdname sc3_plot_expression.SCESet
+#' @rdname sc3_plot_expression
 #' @aliases sc3_plot_expression
 #' @importClassesFrom scater SCESet
 #' @export
@@ -143,10 +159,12 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
 #' 
 #' @export
 sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL) {
-    res <- prepare_output(object, k)
-    
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    hc <- object@sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
     }
@@ -168,7 +186,7 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
     rownames(row_ann) <- names(de_genes)
     
     do.call(pheatmap::pheatmap, c(list(dataset[names(de_genes), , drop = FALSE], show_colnames = FALSE, 
-        cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, annotation_row = row_ann, 
+        cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row_ann, 
         cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
@@ -202,11 +220,12 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k,
 #' 
 #' @export
 sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_pdata = NULL) {
-    
-    res <- prepare_output(object, k)
-    
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    hc <- object@sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
     }
@@ -222,15 +241,17 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
         }
     }
     
+    # get all marker genes
     markers <- organise_marker_genes(object, k, p.val, auroc)
-    mark.res.plot <- mark_gene_heatmap_param(markers)
+    # get top 10 marker genes of each cluster
+    markers <- markers_for_heatmap(markers)
     
-    row.ann <- data.frame(Cluster = factor(mark.res.plot[,1], levels = unique(mark.res.plot[,1])))
-    rownames(row.ann) <- rownames(mark.res.plot)
+    row.ann <- data.frame(Cluster = factor(markers[,1], levels = unique(markers[,1])))
+    rownames(row.ann) <- rownames(markers)
     
-    do.call(pheatmap::pheatmap, c(list(dataset[rownames(mark.res.plot), , drop = FALSE], 
-        show_colnames = FALSE, cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, 
-        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot[,1]) != 
+    do.call(pheatmap::pheatmap, c(list(dataset[rownames(markers), , drop = FALSE], 
+        show_colnames = FALSE, cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, 
+        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(markers[,1]) != 
             0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
@@ -249,6 +270,9 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, 
 #' range of ks. The stability index varies between 0 and 1, where 1 means that 
 #' the same cluster appears in every solution for different k.
 #' 
+#' @name sc3_plot_cluster_stability
+#' @aliases sc3_plot_cluster_stability, sc3_plot_cluster_stability,SCESet-method
+#' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' 
@@ -256,23 +280,26 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, 
 #' 
 #' @export
 sc3_plot_cluster_stability.SCESet <- function(object, k) {
-    
-    if (!as.character(k) %in% names(object@sc3$consensus)) {
-        stop(paste0("Please choose k from: ", paste(names(object@sc3$consensus), 
-            collapse = " ")))
+    if (is.null(object@sc3$consensus)) {
+        warning(paste0("Please run sc3_consensus() first!"))
+        return(object)
+    }
+    if (!k %in% object@sc3$ks) {
+        stop(paste0("Please choose k from: ", object@sc3$ks, 
+            collapse = " "))
     }
     
     # calculate stability of the clusters check if there are more than 1 k value in
     # ks range
     stability <- NULL
-    stability <- StabilityIndex(object@sc3$consensus, k)
+    stability <- calculate_stability(object@sc3$consensus, k)
     
     d <- data.frame(Cluster = factor(1:length(stability)), Stability = stability)
     ggplot(d, aes(x = d$Cluster, y = d$Stability)) + geom_bar(stat = "identity") + 
         ylim(0, 1) + labs(x = "Cluster", y = "Stability Index") + theme_bw()
 }
 
-#' @rdname sc3_plot_cluster_stability.SCESet
+#' @rdname sc3_plot_cluster_stability
 #' @aliases sc3_plot_cluster_stability
 #' @importClassesFrom scater SCESet
 #' @export

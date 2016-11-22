@@ -1,11 +1,14 @@
-#' Open SC3 results in an interactive session in a web browser
+#' Opens \code{SC3} results in an interactive session in a web browser.
 #'
-#' Runs interactive session of SC3 based on precomputed objects
+#' Runs interactive \code{shiny} session of \code{SC3} based on precomputed clusterings.
 #'
-#' @param object an object of "SCESet" class
+#' @param object an object of \code{SCESet} class
 #'
-#' @return Opens a browser window with an interactive shiny app and visualize
+#' @return Opens a browser window with an interactive \code{shiny} app and visualize
 #' all precomputed clusterings.
+#' 
+#' @name sc3_interactive
+#' @aliases sc3_interactive, sc3_interactive,SCESet-method
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions tags radioButtons downloadButton
 #' @importFrom utils head
@@ -101,53 +104,7 @@ sc3_interactive.SCESet <- function(object) {
                                HTML("<font size = 1>"),
                                checkboxGroupInput("pDataColumns", label = NULL, pdata, selected = NULL),
                                HTML("</font>")
-                        )))),
-                    
-                    fluidRow(
-                        column(
-                            12,
-                            conditionalPanel(
-                                "input.main_panel == 'Markers' && output.is_biology",
-                                wellPanel(
-                                    sliderInput(
-                                        "auroc.threshold",
-                                        label = "AUROC threshold",
-                                        min = 0.6,
-                                        max = 0.95,
-                                        value = 0.85,
-                                        step = 0.05
-                                    ),
-                                    radioButtons(
-                                        "p.val.mark",
-                                        label = "p-value threshold",
-                                        choices = c(
-                                            "0.01" = 0.01,
-                                            "0.05" = 0.05,
-                                            "0.1" = 0.1
-                                        ),
-                                        selected = "0.01",
-                                        inline = TRUE
-                                    )
-                                )
-                            ),
-                            conditionalPanel(
-                                "input.main_panel == 'DE' && output.is_biology",
-                                wellPanel(
-                                    radioButtons(
-                                        "p.val.de",
-                                        label = "p-value threshold",
-                                        choices = c(
-                                            "0.01" = 0.01,
-                                            "0.05" = 0.05,
-                                            "0.1" = 0.1
-                                        ),
-                                        selected = "0.01",
-                                        inline = TRUE
-                                    )
-                                )
-                            )
-                        )
-                    )
+                        ))))
                 ),
                 column(6,
                        uiOutput('mytabs')),
@@ -160,23 +117,41 @@ sc3_interactive.SCESet <- function(object) {
                                conditionalPanel(
                                    "input.main_panel == 'Markers' && output.is_biology",
                                    wellPanel(
-                                       selectInput(
-                                           "cluster",
-                                           "Choose a cluster for GO analysis:",
-                                           c("None" = "NULL")
+                                       sliderInput(
+                                           "auroc.threshold",
+                                           label = "AUROC threshold",
+                                           min = 0.6,
+                                           max = 0.95,
+                                           value = 0.85,
+                                           step = 0.05
                                        ),
-                                       if (object@sc3$rselenium) {
-                                           actionButton("GO", label = "Analyze!")
-                                       },
-                                       if (object@sc3$rselenium) {
-                                           HTML(
-                                               "<br>(opens <a href = 'http://biit.cs.ut.ee/gprofiler' target='_blank'>g:Profiler</a> in Firefox)"
-                                           )
-                                       } else {
-                                           HTML(
-                                               "<font color='red'>To be able to run <b>GO</b> analysis in <b>SC3</b> you need to install and start <em>RSelenium</em> server before running <b>SC3</b>. For more details please visit <a href = 'https://cran.r-project.org/package=RSelenium' target='_blank'>RSelenium CRAN page</a>. Additionally, <em>webdriver.gecko.driver</em> has to be set up - for more details please go <a href = 'https://github.com/mozilla/geckodriver' target='_blank'>here</a> and <a href = 'https://developer.mozilla.org/en-US/docs/Mozilla/QA/Marionette/WebDriver' target='_blank'>here</a>.</font>"
-                                           )
-                                       }
+                                       radioButtons(
+                                           "p.val.mark",
+                                           label = "p-value threshold",
+                                           choices = c(
+                                               "0.01" = 0.01,
+                                               "0.05" = 0.05,
+                                               "0.1" = 0.1
+                                           ),
+                                           selected = "0.01",
+                                           inline = TRUE
+                                       )
+                                   )
+                               ),
+                               conditionalPanel(
+                                   "input.main_panel == 'DE' && output.is_biology",
+                                   wellPanel(
+                                       radioButtons(
+                                           "p.val.de",
+                                           label = "p-value threshold",
+                                           choices = c(
+                                               "0.01" = 0.01,
+                                               "0.05" = 0.05,
+                                               "0.1" = 0.1
+                                           ),
+                                           selected = "0.01",
+                                           inline = TRUE
+                                       )
                                    )
                                )
                            )
@@ -226,13 +201,15 @@ sc3_interactive.SCESet <- function(object) {
             # observer for marker genes
             observe({
                 if (biology) {
+                    # get all marker genes
                     markers <- organise_marker_genes(object, input$clusters, as.numeric(input$p.val.mark), as.numeric(input$auroc.threshold))
                     values$n.markers <- nrow(markers)
-                    mark.res.plot <- mark_gene_heatmap_param(markers)
-                    clusts <- unique(mark.res.plot[,1])
+                    # get top 10 marker genes of each cluster
+                    markers <- markers_for_heatmap(markers)
+                    clusts <- unique(markers[,1])
                     if (is.null(clusts))
                         clusts <- "None"
-                    values$mark.res <- mark.res.plot
+                    values$mark.res <- markers
                     updateSelectInput(session, "cluster", choices = clusts)
                 } else {
                     values$n.markers <- 0
@@ -329,7 +306,7 @@ sc3_interactive.SCESet <- function(object) {
                                     a bias in the distribution of <i>p</i>-values,
                                     and thus we advise to use the <i>p</i>-values for
                                     ranking the genes only.<br>The <i>p</i>-value threshold
-                                    can be changed using the radio buttons in the <b>Parameters</b> panel."
+                                    can be changed using the radio buttons below.<br><br>"
                                 )
                                 )
                     }
@@ -355,9 +332,7 @@ sc3_interactive.SCESet <- function(object) {
                                     top 10 marker genes of each cluster are
                                     visualized in this panel. The AUROC and the
                                     p-value thresholds can be changed using the
-                                    slider and radio buttons in the <b>Parameters</b> panel.<br>
-                                    In addition, SC3 allows you to run a Gene
-                                    Ontology (GO) and Pathway Enrichment analysis using a panel below.<br><br>"
+                                    slider and radio buttons below.<br><br>"
                                 )
                                 )
                     }
@@ -532,7 +507,7 @@ sc3_interactive.SCESet <- function(object) {
                         )
                     }
 
-#' @rdname sc3_interactive.SCESet
+#' @rdname sc3_interactive
 #' @aliases sc3_interactive
 #' @importClassesFrom scater SCESet
 #' @export

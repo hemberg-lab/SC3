@@ -82,15 +82,15 @@ consensus_matrix <- function(clusts) {
     return(res)
 }
 
-#' Run support vector machines (SVM) prediction
+#' Run support vector machines (\code{SVM}) prediction
 #'
-#' Train an SVM classifier on training cells and then
-#' classify study cells using the classifier.
+#' Train an \code{SVM} classifier on a training dataset (\code{train}) and then
+#' classify a study dataset (\code{study}) using the classifier.
 #'
-#' @param train expression matrix with training cells
-#' @param study expression matrix with study cells
+#' @param train training dataset with colnames, corresponding to training labels
+#' @param study study dataset
 #' @param kern kernel to be used with SVM
-#' @return classification of study cells
+#' @return classification of the study dataset
 #'
 #' @importFrom e1071 svm
 #' @importFrom stats predict
@@ -238,9 +238,6 @@ get_processed_dataset <- function(object) {
     }
     if(!object@sc3$logged) {
         dataset <- log2(dataset + 1)
-    }
-    if(!is.null(object@sc3$fjlt)) {
-        dataset <- object@sc3$fjlt
     }
     return(dataset)
 }

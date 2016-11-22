@@ -23,22 +23,14 @@ This function calculates differentially expressed (DE) genes, marker genes
 and cell outliers based on the consensus \code{SC3} clusterings.
 }
 \details{
-Differential expression is calculated using the non-parametric Kruskal-Wallis test.
-A significant \code{p-value} indicates that gene expression in at least one cluster
-stochastically dominates one other cluster. Note that the calculation of 
-differential expression after clustering can introduce a bias in the 
-distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s 
-for ranking the genes only. Results of the DE analysis are saved as new columns in the 
+DE genes are calculated using \code{\link{get_de_genes}}. Results of the DE 
+analysis are saved as new columns in the 
 \code{featureData} slot of the input \code{object}. The column names correspond 
 to the adjusted \code{p-value}s of the genes and have the following format: 
 \code{sc3_k_de_padj}, where \code{k} is the number of clusters.
 
-To find marker genes, for each gene a binary classifier is constructed 
-based on the mean cluster expression values. The classifier prediction 
-is then calculated using the gene expression ranks. The area under the 
-receiver operating characteristic (ROC) curve is used to quantify the accuracy 
-of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
-signed rank test. Results of the marker gene analysis are saved as three new 
+Marker genes are calculated using \code{\link{get_marker_genes}}. 
+Results of the marker gene analysis are saved as three new 
 columns (for each \code{k}) to the 
 \code{featureData} slot of the input \code{object}. The column names correspond 
 to the \code{SC3} cluster labels, to the adjusted \code{p-value}s of the genes 
@@ -47,11 +39,7 @@ and have the following format: \code{sc3_k_markers_clusts},
 \code{sc3_k_markers_padj} and \code{sc3_k_markers_auroc}, where \code{k} is 
 the number of clusters.
 
-Outlier cells in each cluster are detected using robust distances, calculated 
-using the minimum covariance determinant (MCD). The outlier score shows how 
-different a cell is from all other cells in the cluster and it is defined as 
-the differences between the square root of the robust distance and the square 
-root of the 99.99% quantile of the Chi-squared distribution. Results of the 
+Outlier cells are calculated using \code{\link{get_outl_cells}}. Results of the 
 cell outlier analysis are saved as new columns in the 
 \code{phenoData} slot of the input \code{object}. The column names correspond 
 to the \code{log2(outlier_score)} and have the following format: 

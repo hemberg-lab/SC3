@@ -7,13 +7,13 @@
 \alias{sc3_prepare.SCESet}
 \title{Prepare the \code{SCESet} object for \code{SC3} clustering.}
 \usage{
-sc3_prepare.SCESet(object, exprs_values = "exprs", gene_filter = TRUE,
-  pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
-  d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
-  svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
-  kmeans_iter_max = 1e+09, rand_seed = 1)
+sc3_prepare.SCESet(object, exprs_values = "exprs", ks = NULL,
+  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
+  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
+  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
+  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1)
 
-\S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs",
+\S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs", ks = NULL,
   gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
   d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
   svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
@@ -27,6 +27,9 @@ indicating which values should be used
 as the expression values for \code{SC3} clustering. Valid value is any named element 
 of the \code{assayData} slot of the \code{SCESet}
 object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
+
+\item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
+Can also be a single integer.}
 
 \item{gene_filter}{a boolen variable which defines whether to perform gene 
 filtering before SC3 clustering.}
@@ -92,8 +95,7 @@ creates and populates the following items of the \code{sc3} slot of the \code{SC
   \item \code{svm_study_inds} - if SVM is used this item contains indexes of the
    cells to be predicted by SVM.
   \item \code{n_cores} - the same as the \code{n_cores} argument.
-  \item \code{rselenium} - a boolean parameter which defines whether 
-  \href{https://cran.r-project.org/package=RSelenium}{RSelenium} is properly installed.
+  \item \code{ks} - the same as the \code{ks} argument.
 }
 }
 
