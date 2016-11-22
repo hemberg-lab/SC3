@@ -77,7 +77,7 @@ sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = 
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs_values = "exprs", 
-    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, gene.reads.ubiq = 0, 
+    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
     d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
     svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
     k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
@@ -137,8 +137,6 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' that should be used for SVM training. The default is \code{NULL}.
 #' @param svm_max define the maximum number of cells below which SVM is not run.
 #' @param n_cores defines the number of cores to be used on the user's machine.
-#' @param ks a range of the number of clusters \code{k} used for \code{SC3} clustering.
-#' Can also be a single integer.
 #' @param kmeans_nstart nstart parameter passed to \code{\link[stats]{kmeans}} function. Default is 
 #' \code{1000} for up to \code{2000} cells and \code{50} for more than \code{2000} cells.
 #' @param kmeans_iter_max iter.max parameter passed to \code{\link[stats]{kmeans}} 
@@ -156,6 +154,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' @importFrom parallel detectCores
 #' @importFrom RSelenium remoteDriver
 #' @importFrom scater fData<-
+#' @importFrom utils capture.output
 #' 
 #' @export
 sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRUE, 
@@ -281,7 +280,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", gene_filter = TRU
         remDr <- RSelenium::remoteDriver()
         # in the latest version of RSelenium webdriver.gecko.driver has to be set up:
         # http://stackoverflow.com/questions/38751525/firefox-browser-is-not-opening-with-selenium-webbrowser-code
-        if(!is.null(tryCatch(capture.output(tmp <- remDr$open()), error = function(cond){}))) {
+        if(!is.null(tryCatch(utils::capture.output(tmp <- remDr$open()), error = function(cond){}))) {
             object@sc3$rselenium <- TRUE
         } else {
             object@sc3$rselenium <- FALSE
@@ -800,10 +799,17 @@ sc3_calc_biology.SCESet <- function(object) {
     f_data <- object@featureData@data
     p_data <- object@phenoData@data
     for(k in ks) {
+        # save DE genes
         f_data[ , paste0("sc3_", k, "_de_padj")] <- NA
         f_data[ , paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de.genes
-        fData(object) <- new("AnnotatedDataFrame", data = f_data)
-        
+        # save marker genes
+        f_data[ , paste0("sc3_", k, "_markers_clusts")] <- NA
+        f_data[ , paste0("sc3_", k, "_markers_padj")] <- NA
+        f_data[ , paste0("sc3_", k, "_markers_auroc")] <- NA
+        f_data[ , paste0("sc3_", k, "_markers_clusts")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,2]
+        f_data[ , paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,3]
+        f_data[ , paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,1]
+        # save cell outliers
         outl <- biol[[as.character(k)]]$cell.outl
         # in case of hybrid SVM approach
         if (!is.null(object@sc3$svm_train_inds)) {
@@ -812,9 +818,9 @@ sc3_calc_biology.SCESet <- function(object) {
             outl <- tmp
         }
         p_data[ , paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
-        pData(object) <- new("AnnotatedDataFrame", data = p_data)
     }
-    
+    fData(object) <- new("AnnotatedDataFrame", data = f_data)
+    pData(object) <- new("AnnotatedDataFrame", data = p_data)
     return(object)
 }
 

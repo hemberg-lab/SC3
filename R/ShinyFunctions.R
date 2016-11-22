@@ -33,8 +33,8 @@ get_clusts <- function(hc, k) {
 
 mark_gene_heatmap_param <- function(markers) {
     mark.res.plot <- NULL
-    for (i in unique(markers$sc3_clusters)) {
-        tmp <- markers[markers$sc3_clusters == i, ]
+    for (i in unique(markers[,1])) {
+        tmp <- markers[markers[,1] == i, ]
         if (nrow(tmp) > 10) {
             mark.res.plot <- rbind(mark.res.plot, tmp[1:10, ])
         } else {
@@ -129,10 +129,10 @@ getAUC <- function(gene, labels) {
     ms <- aggregate(score ~ labels, FUN = mean)
     # Get cluster with highest average score
     posgroup <- ms[ms$score == max(ms$score), ]$labels
-    # Return negatives if there is a tie for cluster with highest average score (by
+    # Return NAs if there is a tie for cluster with highest average score (by
     # definition this is not cluster specific)
     if (length(posgroup) > 1) {
-        return(c(-1, -1, 1))
+        return(c(NA, NA, NA))
     }
     # Create 1/0 vector of truths for predictions, cluster with highest average score
     # vs everything else
@@ -160,32 +160,44 @@ getAUC <- function(gene, labels) {
 #' 
 #' @export
 get_marker_genes <- function(dataset, labels) {
-    auroc.threshold <- 0.5
-    p.val <- 0.1
-    geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
-    geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow = length(geneAUCs)/3, 
-        byrow = TRUE))
-    rownames(geneAUCsdf) <- rownames(dataset)
-    colnames(geneAUCsdf) <- c("AUC", "sc3_clusters", "p.value")
-    # remove genes with ties
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$sc3_clusters != -1, ]
-    geneAUCsdf$AUC <- as.numeric(as.character(geneAUCsdf$AUC))
-    geneAUCsdf$sc3_clusters <- as.numeric(as.character(geneAUCsdf$sc3_clusters))
-    geneAUCsdf$p.value <- as.numeric(as.character(geneAUCsdf$p.value))
+    # auroc.threshold <- 0.5
+    # p.val <- 0.1
+    res <- apply(dataset, 1, getAUC, labels = labels)
+    res <- data.frame(matrix(unlist(res), ncol = 3, byrow = T))
+    colnames(res) <- c("auroc", "clusts", "pvalue")
+    res$pvalue <- p.adjust(res$pvalue)
+    return(res)
     
-    geneAUCsdf$p.value <- p.adjust(geneAUCsdf$p.value)
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$p.value < p.val & !is.na(geneAUCsdf$p.value), 
-        ]
+    # # remove genes with ties
     
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
-    
+    # geneAUCsdf <- geneAUCsdf[geneAUCsdf$p.value < p.val & !is.na(geneAUCsdf$p.value), 
+    #     ]
+    # 
+    # geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
+    # 
+    # d <- NULL
+    # for (i in sort(unique(geneAUCsdf$sc3_clusters))) {
+    #     tmp <- geneAUCsdf[geneAUCsdf$sc3_clusters == i, ]
+    #     tmp <- tmp[order(tmp$AUC, decreasing = TRUE), ]
+    #     d <- rbind(d, tmp)
+    # }
+    # 
+    # return(d)
+}
+
+organise_marker_genes <- function(object, k, p_val, auroc) {
+    dat <- object@featureData@data[ , c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, "_markers_auroc"), paste0("sc3_", k, "_markers_padj"))]
+    dat <- dat[dat[ , paste0("sc3_", k, "_markers_padj")] < p_val & !is.na(dat[ , paste0("sc3_", k, "_markers_padj")]), ]
+    dat <- dat[dat[ , paste0("sc3_", k, "_markers_auroc")] > auroc, ]
+
     d <- NULL
-    for (i in sort(unique(geneAUCsdf$sc3_clusters))) {
-        tmp <- geneAUCsdf[geneAUCsdf$sc3_clusters == i, ]
-        tmp <- tmp[order(tmp$AUC, decreasing = TRUE), ]
+    
+    for (i in sort(unique(dat[ , paste0("sc3_", k, "_markers_clusts")]))) {
+        tmp <- dat[dat[ , paste0("sc3_", k, "_markers_clusts")] == i, ]
+        tmp <- tmp[order(tmp[ , paste0("sc3_", k, "_markers_auroc")], decreasing = TRUE), ]
         d <- rbind(d, tmp)
     }
-    
+
     return(d)
 }
 
@@ -210,8 +222,8 @@ get_marker_genes <- function(dataset, labels) {
 #' 
 #' @export
 get_de_genes <- function(dataset, labels) {
-    t <- apply(dataset, 1, kruskal.test, g = factor(labels))
-    ps <- unlist(lapply(t, "[[", "p.value"))
+    tmp <- apply(dataset, 1, kruskal.test, g = factor(labels))
+    ps <- unlist(lapply(tmp, "[[", "p.value"))
     ps <- p.adjust(ps)
     return(ps)
 }

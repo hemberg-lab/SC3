@@ -33,7 +33,7 @@ The basic `scater` data container is an `SCESet` object. `SC3` implements severa
 
 If you already have an `SCESet` object created and QCed using `scater` then proceed to the next chapter.
 
-If you have a matrix containing expression data that was QCed and normalised by some other tool, then we first need to form an `SCESet` object containing the data. For illustrative purposes we will use an example expression matrix provided with `SC3`. This matrix (`treutein`) represents gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.htm)) had computationally identified 5 clusters in the data. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
+If you have a matrix containing expression data that was QCed and normalised by some other tool, then we first need to form an `SCESet` object containing the data. For illustrative purposes we will use an example expression matrix provided with `SC3`. This matrix (`treutein`) represents __FPKM__ gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.htm)) had computationally identified 5 clusters in the data. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
 
 ```{r, message=FALSE, warning=FALSE}
 library(scater)
@@ -43,22 +43,25 @@ treutlein[1:3, 1:3]
 
 It is easy to create an `SCESet` object from `treutlein` expression matrix. We will follow the [`scater`'s manual](https://www.bioconductor.org/packages/release/bioc/vignettes/scater/inst/doc/vignette.html):
 ```{r}
+# cell annotation
 treutlein_cell_info <- data.frame(cell_id = colnames(treutlein))
 cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
 rownames(treutlein_cell_info) <- cell_inds
+pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
+# cell expression
 treutlein_cell_exprs <- treutlein
 colnames(treutlein_cell_exprs) <- cell_inds
-pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
+# SCESEt object
 treutlein_sceset <- newSCESet(fpkmData = treutlein_cell_exprs, phenoData = pd)
 ```
 
-To be able to create plots using `scater` we will also calculate the QC metrics:
+It is also essential for `SC3` that the QC metrics is computed for the created object:
 ```{r}
 is_exprs(treutlein_sceset) <- exprs(treutlein_sceset) > 0
 treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
 ```
 
-Note that `treutlein_cell_info` data frame can contain more information about the cells, such as plate, run, well, date etc. In our case it just contains `cell_id` column which correspond to the cell labels provided by authors of the original publication.
+The `treutlein_cell_info` dataframe contains just `cell_id` column which correspond to the cell labels provided by authors of the original publication. Note that in general it can also contain more information about the cells, such as plate, run, well, date etc.
 
 After the `SCESet` object is created and QC is run, `scater` allows a user to quickly visualize and assess the data, for example using a PCA plot:
 ```{r}

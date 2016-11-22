@@ -193,6 +193,9 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k,
 #' and with the p-value < 0.01 are selected and the top 10 marker 
 #' genes of each cluster are visualized in this heatmap.
 #' 
+#' @name sc3_plot_markers
+#' @aliases sc3_plot_markers, sc3_plot_markers,SCESet-method
+#' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 #' @param auroc area under the ROC curve
@@ -224,22 +227,19 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
         }
     }
     
-    markers <- object@sc3$biology[[as.character(k)]]$markers
-    
-    markers <- markers[markers$AUC >= auroc & markers$p.value < p.val, ]
-    
+    markers <- organise_marker_genes(object, k, p.val, auroc)
     mark.res.plot <- mark_gene_heatmap_param(markers)
     
-    row.ann <- data.frame(Cluster = factor(mark.res.plot$sc3_clusters, levels = unique(mark.res.plot$sc3_clusters)))
+    row.ann <- data.frame(Cluster = factor(mark.res.plot[,1], levels = unique(mark.res.plot[,1])))
     rownames(row.ann) <- rownames(mark.res.plot)
     
     do.call(pheatmap::pheatmap, c(list(dataset[rownames(mark.res.plot), , drop = FALSE], 
         show_colnames = FALSE, cluster_rows = FALSE, cluster_cols = res$hc, cutree_cols = k, 
-        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot$sc3_clusters) != 
+        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(mark.res.plot[,1]) != 
             0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
-#' @rdname sc3_plot_markers.SCESet
+#' @rdname sc3_plot_markers
 #' @aliases sc3_plot_markers
 #' @importClassesFrom scater SCESet
 #' @export

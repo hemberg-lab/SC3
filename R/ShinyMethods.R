@@ -224,15 +224,10 @@ sc3_interactive.SCESet <- function(object) {
             # observer for marker genes
             observe({
                 if (biology) {
-                    markers <-
-                        object@sc3$biology[[as.character(input$clusters)]]$markers
-                    markers <-
-                        markers[markers$AUC >= as.numeric(input$auroc.threshold) &
-                                    markers$p.value < as.numeric(input$p.val.mark),]
+                    markers <- organise_marker_genes(object, input$clusters, as.numeric(input$p.val.mark), as.numeric(input$auroc.threshold))
                     values$n.markers <- nrow(markers)
-                    mark.res.plot <-
-                        mark_gene_heatmap_param(markers)
-                    clusts <- unique(mark.res.plot$sc3_clusters)
+                    mark.res.plot <- mark_gene_heatmap_param(markers)
+                    clusts <- unique(mark.res.plot[,1])
                     if (is.null(clusts))
                         clusts <- "None"
                     values$mark.res <- mark.res.plot
@@ -244,7 +239,7 @@ sc3_interactive.SCESet <- function(object) {
             # observer for DE genes
             observe({
                 if (biology) {
-                    de_genes <- organise_de_genes(object, input$clusters, input$p.val.de)
+                    de_genes <- organise_de_genes(object, input$clusters, as.numeric(input$p.val.de))
                     values$n.de.genes <- length(de_genes)
                     values$n.de.plot.height <- length(head(de_genes, 50))
                 } else {

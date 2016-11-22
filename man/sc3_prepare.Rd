@@ -65,9 +65,6 @@ function. Default is \code{1e+09}.}
 method, so setting the \code{rand_seed} to a fixed values can be used for reproducibility
 purposes.}
 
-\item{ks}{a range of the number of clusters \code{k} used for \code{SC3} clustering.
-Can also be a single integer.}
-
 \item{...}{further arguments passed to \code{\link{sc3_prepare.SCESet}}}
 }
 \value{

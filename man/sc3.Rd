@@ -16,10 +16,10 @@ sc3.SCESet(object, ks = NULL, exprs_values = "exprs", gene_filter = TRUE,
 
 \S4method{sc3}{SCESet}(object, ks = NULL, exprs_values = "exprs",
   gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-  gene.reads.ubiq = 0, d_region_min = 0.04, d_region_max = 0.07,
-  svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000,
-  n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09,
-  k_estimator = FALSE, biology = FALSE, rand_seed = 1)
+  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
+  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
+  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE,
+  biology = FALSE, rand_seed = 1)
 }
 \arguments{
 \item{object}{an object of \code{SCESet} class.}
