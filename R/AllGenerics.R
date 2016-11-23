@@ -39,11 +39,6 @@ setGeneric("sc3_calc_biology", function(object) {
 })
 
 #' @export
-setGeneric("sc3_summarise_results", function(object, ...) {
-    standardGeneric("sc3_summarise_results")
-})
-
-#' @export
 setGeneric("sc3_interactive", function(object) {
     standardGeneric("sc3_interactive")
 })
@@ -69,11 +64,6 @@ setGeneric("sc3_plot_expression", function(object, ...) {
 })
 
 #' @export
-setGeneric("sc3_plot_tsne", function(object, ...) {
-    standardGeneric("sc3_plot_tsne")
-})
-
-#' @export
 setGeneric("sc3_plot_de_genes", function(object, ...) {
     standardGeneric("sc3_plot_de_genes")
 })
@@ -84,11 +74,6 @@ setGeneric("sc3_plot_markers", function(object, ...) {
 })
 
 #' @export
-setGeneric("sc3_plot_cell_outliers", function(object, ...) {
-    standardGeneric("sc3_plot_cell_outliers")
-})
-
-#' @export
 setGeneric("sc3_plot_cluster_stability", function(object, ...) {
     standardGeneric("sc3_plot_cluster_stability")
 })
@@ -96,9 +81,4 @@ setGeneric("sc3_plot_cluster_stability", function(object, ...) {
 #' @export
 setGeneric("sc3_export_results_xls", function(object, ...) {
     standardGeneric("sc3_export_results_xls")
-})
-
-#' @export
-setGeneric("sc3_set_ks", function(object, ...) {
-    standardGeneric("sc3_set_ks")
 })

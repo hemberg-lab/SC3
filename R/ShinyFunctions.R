@@ -1,31 +1,22 @@
-
+#' Reindex cluster labels in ascending order
+#' 
+#' Given an \code{\link[stats]{hclust}} object and the number of clusters \code{k}
+#' this function reindex the clusters inferred by \code{cutree(hc, k)[hc$order]}, so that
+#' they appear in ascending order. This is particularly useful when plotting
+#' heatmaps in which the clusters should be numbered from left to right.
+#' 
+#' @param hc an object of class hclust
+#' @param k number of cluster to be inferred from hc
+#'
 #' @importFrom stats cutree
-prepare_output <- function(object, k) {
-    consensus <- object@sc3$consensus
-    ks <- as.numeric(names(consensus))
-    dataset <- get_processed_dataset(object)
-    # get all results for k
-    res <- consensus[[as.character(k)]]
-    # get all results for k-1
-    labels1 <- NULL
-    if ((k - 1) %in% ks) {
-        labels1 <- consensus[[as.character(k - 1)]]$labels
-    }
-    # assign results to reactive variables
-    labels <- res$labels
-    hc <- res$hc
-    clusts <- stats::cutree(hc, k)
-    
-    silh <- res$silhouette
-    
-    new.labels <- get_clusts(hc, k)
-    
-    return(list(labels = labels, labels1 = labels1, hc = hc, silh = silh, cell.order = hc$order, 
-        new.labels = new.labels))
-}
-
-#' @importFrom stats cutree
-get_clusts <- function(hc, k) {
+#' 
+#' @examples
+#' hc <- hclust(dist(USArrests), "ave")
+#' cutree(hc, 10)[hc$order]
+#' reindex_clusters(hc, 10)[hc$order]
+#' 
+#' @export
+reindex_clusters <- function(hc, k) {
     clusts <- stats::cutree(hc, k)
     labels <- names(clusts)
     names(clusts) <- 1:length(clusts)
@@ -44,31 +35,21 @@ get_clusts <- function(hc, k) {
     return(clusts)
 }
 
-mark_gene_heatmap_param <- function(markers) {
-    mark.res.plot <- NULL
-    for (i in unique(markers$sc3_clusters)) {
-        tmp <- markers[markers$sc3_clusters == i, ]
-        if (nrow(tmp) > 10) {
-            mark.res.plot <- rbind(mark.res.plot, tmp[1:10, ])
-        } else {
-            mark.res.plot <- rbind(mark.res.plot, tmp)
-        }
-    }
-    
-    return(mark.res.plot)
-}
-
-#' Find cell outliers
+#' Find cell outliers in each cluster.
 #'
-#' If the cell labels are available this functions allows a user to calculate
-#' cell outlier scores manually.
+#' Outlier cells in each cluster are detected using robust distances, calculated 
+#' using the minimum covariance determinant (MCD), namely using 
+#' \code{\link[robustbase]{covMcd}}. The outlier score shows how 
+#' different a cell is from all other cells in the cluster and it is defined as 
+#' the differences between the square root of the robust distance and the square 
+#' root of the 99.99% quantile of the Chi-squared distribution. 
 #'
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix
 #' @return a numeric vector containing the cell labels and 
 #' correspoding outlier scores ordered by the labels
 #' @examples
-#' d <- get_outl_cells(treutlein, colnames(treutlein))
+#' d <- get_outl_cells(treutlein[1:10,], colnames(treutlein))
 #' head(d)
 #' 
 #' @importFrom robustbase covMcd
@@ -121,33 +102,34 @@ get_outl_cells <- function(dataset, labels) {
         }
     }
     
-    res <- data.frame(sc3_clusters = labels, MCD.dist = out, stringsAsFactors = FALSE)
-    
-    return(res)
+    return(out)
 }
 
-#' @importFrom RSelenium remoteDriver
-open_gprofiler <- function(genes) {
-    remDr <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")
-    remDr$open()
-    remDr$navigate("http://biit.cs.ut.ee/gprofiler")
-    webElem <- remDr$findElement(using = "id", "query")
-    webElem$sendKeysToElement(as.list(paste0(genes, "\n")))
-}
-
-
+#' Calculate the area under the ROC curve for a given gene.
+#' 
+#' For a given gene a binary classifier is constructed 
+#' based on the mean cluster expression values (these are calculated using the
+#' cell labels). The classifier prediction 
+#' is then calculated using the gene expression ranks. The area under the 
+#' receiver operating characteristic (ROC) curve is used to quantify the accuracy 
+#' of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
+#' signed rank test. 
+#' 
+#' @param gene expression data of a given gene
+#' @param labels cell labels correspodning to the expression values of the gene
+#' 
 #' @importFrom ROCR prediction performance
 #' @importFrom stats aggregate wilcox.test
-getAUC <- function(gene, labels) {
+get_auroc <- function(gene, labels) {
     score <- rank(gene)
     # Get average score for each cluster
     ms <- aggregate(score ~ labels, FUN = mean)
     # Get cluster with highest average score
     posgroup <- ms[ms$score == max(ms$score), ]$labels
-    # Return negatives if there is a tie for cluster with highest average score (by
+    # Return NAs if there is a tie for cluster with highest average score (by
     # definition this is not cluster specific)
     if (length(posgroup) > 1) {
-        return(c(-1, -1, 1))
+        return(c(NA, NA, NA))
     }
     # Create 1/0 vector of truths for predictions, cluster with highest average score
     # vs everything else
@@ -159,78 +141,124 @@ getAUC <- function(gene, labels) {
     return(c(val, posgroup, pval))
 }
 
-#' Find marker genes
+#' Calculate marker genes
 #'
-#' If the cell labels are available this functions allows a user to calculate
-#' marker genes manually.
+#' Find marker genes in the dataset. The \code{\link{get_auroc}} is used to calculate
+#' marker values for each gene.
 #'
 #' @param dataset expression matrix
-#' @param labels cell labels corresponding to the columns of the expression matrix.
-#' Labels must be integers or character integers, e.g. 1, 2, 3 or '1', '2', '3' ect.
-#' @return data.frame containing the marker genes
+#' @param labels cell labels corresponding clusters
+#' @return data.frame containing the marker genes, corresponding cluster indexes
+#' and adjusted \code{p-value}s
 #' @importFrom stats p.adjust
 #' @examples
-#' d <- get_marker_genes(treutlein, colnames(treutlein))
-#' head(d)
+#' d <- get_marker_genes(treutlein[1:10,], colnames(treutlein))
+#' d
 #' 
 #' @export
 get_marker_genes <- function(dataset, labels) {
-    auroc.threshold <- 0.5
-    p.val <- 0.1
-    geneAUCs <- apply(dataset, 1, getAUC, labels = labels)
-    geneAUCsdf <- data.frame(matrix(unlist(geneAUCs), nrow = length(geneAUCs)/3, 
-        byrow = TRUE))
-    rownames(geneAUCsdf) <- rownames(dataset)
-    colnames(geneAUCsdf) <- c("AUC", "sc3_clusters", "p.value")
-    # remove genes with ties
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$sc3_clusters != -1, ]
-    geneAUCsdf$AUC <- as.numeric(as.character(geneAUCsdf$AUC))
-    geneAUCsdf$sc3_clusters <- as.numeric(as.character(geneAUCsdf$sc3_clusters))
-    geneAUCsdf$p.value <- as.numeric(as.character(geneAUCsdf$p.value))
-    
-    geneAUCsdf$p.value <- p.adjust(geneAUCsdf$p.value)
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$p.value < p.val & !is.na(geneAUCsdf$p.value), 
-        ]
-    
-    geneAUCsdf <- geneAUCsdf[geneAUCsdf$AUC > auroc.threshold, ]
-    
+    res <- apply(dataset, 1, get_auroc, labels = labels)
+    res <- data.frame(matrix(unlist(res), ncol = 3, byrow = T))
+    colnames(res) <- c("auroc", "clusts", "pvalue")
+    res$pvalue <- p.adjust(res$pvalue)
+    return(res)
+}
+
+#' Get marker genes from an object of \code{SCESet} class
+#' 
+#' This functions returns all marker gene columns from the \code{phenoData} slot 
+#' of the input object corresponding to the number of clusters \code{k}. Additionally,
+#' it rearranges genes by the cluster index and order them by the area under the 
+#' ROC curve value inside of each cluster.
+#'
+#' @param object an objec of \code{SCESet} class
+#' @param k number of cluster
+#' @param p_val p-value threshold
+#' @param auroc area under the ROC curve threshold
+#'
+organise_marker_genes <- function(object, k, p_val, auroc) {
+    dat <- object@featureData@data[ , c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, "_markers_auroc"), paste0("sc3_", k, "_markers_padj"))]
+    dat <- dat[dat[ , paste0("sc3_", k, "_markers_padj")] < p_val & !is.na(dat[ , paste0("sc3_", k, "_markers_padj")]), ]
+    dat <- dat[dat[ , paste0("sc3_", k, "_markers_auroc")] > auroc, ]
+
     d <- NULL
-    for (i in sort(unique(geneAUCsdf$sc3_clusters))) {
-        tmp <- geneAUCsdf[geneAUCsdf$sc3_clusters == i, ]
-        tmp <- tmp[order(tmp$AUC, decreasing = TRUE), ]
+    
+    for (i in sort(unique(dat[ , paste0("sc3_", k, "_markers_clusts")]))) {
+        tmp <- dat[dat[ , paste0("sc3_", k, "_markers_clusts")] == i, ]
+        tmp <- tmp[order(tmp[ , paste0("sc3_", k, "_markers_auroc")], decreasing = TRUE), ]
         d <- rbind(d, tmp)
     }
-    
+
     return(d)
+}
+
+#' Reorder and subset gene markers for plotting on a heatmap
+#' 
+#' Reorders the rows of the input data.frame based on the \code{sc3_k_markers_clusts}
+#' column and also keeps only the top 10 genes for each value of \code{sc3_k_markers_clusts}.
+#'
+#' @param markers a \code{data.frame} object with the following colnames:
+#' \code{sc3_k_markers_clusts}, \code{sc3_k_markers_auroc}, \code{sc3_k_markers_padj}.
+#' 
+markers_for_heatmap <- function(markers) {
+    res <- NULL
+    for (i in unique(markers[,1])) {
+        tmp <- markers[markers[,1] == i, ]
+        if (nrow(tmp) > 10) {
+            res <- rbind(res, tmp[1:10, ])
+        } else {
+            res <- rbind(res, tmp)
+        }
+    }
+    
+    return(res)
 }
 
 #' Find differentially expressed genes
 #'
-#' If the cell labels are available this functions allows a user to calculate
-#' differentially expressed genes manually.
+#' Differential expression is calculated using the non-parametric Kruskal-Wallis test.
+#' A significant \code{p-value} indicates that gene expression in at least one cluster
+#' stochastically dominates one other cluster. Note that the calculation of 
+#' differential expression after clustering can introduce a bias in the 
+#' distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s 
+#' for ranking the genes only.
 #'
 #' @param dataset expression matrix
 #' @param labels cell labels corresponding to the columns of the expression matrix
 #' @return a numeric vector containing the differentially expressed genes and 
 #' correspoding p-values
 #' @examples
-#' d <- get_de_genes(treutlein, colnames(treutlein))
+#' d <- get_de_genes(treutlein[1:10, ], colnames(treutlein))
 #' head(d)
 #' 
 #' @importFrom stats kruskal.test p.adjust
 #' 
 #' @export
 get_de_genes <- function(dataset, labels) {
-    p.val <- 0.1
-    t <- apply(dataset, 1, kruskal.test, g = factor(labels))
-    ps <- unlist(lapply(t, "[[", "p.value"))
+    tmp <- apply(dataset, 1, kruskal.test, g = factor(labels))
+    ps <- unlist(lapply(tmp, "[[", "p.value"))
     ps <- p.adjust(ps)
-    ps <- ps[!is.na(ps)]
-    ps <- ps[ps < p.val]
-    ps <- ps[order(ps)]
-    ps <- as.data.frame(ps, stringsAsFactors = FALSE)
-    colnames(ps) <- "p.value"
     return(ps)
+}
+
+#' Get differentiall expressed genes from an object of \code{SCESet} class
+#' 
+#' This functions returns all marker gene columns from the \code{phenoData} slot 
+#' of the input object corresponding to the number of clusters \code{k}. Additionally,
+#' it rearranges genes by the cluster index and order them by the area under the 
+#' ROC curve value inside of each cluster.
+#'
+#' @param object an objec of \code{SCESet} class
+#' @param k number of cluster
+#' @param p_val p-value threshold
+#' 
+organise_de_genes <- function(object, k, p_val) {
+    de_genes <- object@featureData@data[ , paste0("sc3_", k, "_de_padj")]
+    names(de_genes) <- rownames(object@featureData@data)
+    de_genes <- de_genes[!is.na(de_genes)]
+    de_genes <- de_genes[de_genes < p_val]
+    de_genes <- de_genes[order(de_genes)]
+    return(de_genes)
 }
 
 #' Calculate the stability index of the obtained clusters when changing k
@@ -246,9 +274,9 @@ get_de_genes <- function(dataset, labels) {
 #' @param consensus consensus item of the sc3 slot of an object of 'SCESet' class
 #' @param k number of clusters k
 #' @return a numeric vector containing a stability index of each cluster
-StabilityIndex <- function(consensus, k) {
+calculate_stability <- function(consensus, k) {
     hc <- consensus[[as.character(k)]]$hc
-    labs <- get_clusts(hc, k)
+    labs <- reindex_clusters(hc, k)
     
     kMax <- max(as.numeric(names(consensus)))
     kMin <- min(as.numeric(names(consensus)))
@@ -267,9 +295,9 @@ StabilityIndex <- function(consensus, k) {
                 N <- length(clusts)
                 # sum over new clusters, taking into account new cells from other clusters
                 for (j in clusts) {
-                  inds2 <- names(labs2[labs2 == j])
-                  s <- length(inds[inds %in% inds2])/length(inds2)/N/N/kRange
-                  stability[i] <- stability[i] + s
+                    inds2 <- names(labs2[labs2 == j])
+                    s <- length(inds[inds %in% inds2])/length(inds2)/N/N/kRange
+                    stability[i] <- stability[i] + s
                 }
             }
         }

@@ -1,3 +1,12 @@
+23/11/2016
+
+Version 1.3.7:
+* RSelenium functionality is removed due to no further support
+* All results (clustering and biology) are now written to phenoData and 
+featureData slots of the input 'SCESet' object
+* 'Labels' and 'Cell Outliers' tabs in the interactive shiny session are removed,
+because these data can now be visualized on the other heatmaps
+
 14/09/2016
 
 Version 1.1.7:

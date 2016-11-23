@@ -2,26 +2,26 @@
 % Please edit documentation in R/ShinyFunctions.R
 \name{get_marker_genes}
 \alias{get_marker_genes}
-\title{Find marker genes}
+\title{Calculate marker genes}
 \usage{
 get_marker_genes(dataset, labels)
 }
 \arguments{
 \item{dataset}{expression matrix}
 
-\item{labels}{cell labels corresponding to the columns of the expression matrix.
-Labels must be integers or character integers, e.g. 1, 2, 3 or '1', '2', '3' ect.}
+\item{labels}{cell labels corresponding clusters}
 }
 \value{
-data.frame containing the marker genes
+data.frame containing the marker genes, corresponding cluster indexes
+and adjusted \code{p-value}s
 }
 \description{
-If the cell labels are available this functions allows a user to calculate
-marker genes manually.
+Find marker genes in the dataset. The \code{\link{get_auroc}} is used to calculate
+marker values for each gene.
 }
 \examples{
-d <- get_marker_genes(treutlein, colnames(treutlein))
-head(d)
+d <- get_marker_genes(treutlein[1:10,], colnames(treutlein))
+d
 
 }
 

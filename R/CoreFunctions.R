@@ -8,27 +8,6 @@
 #'
 "treutlein"
 
-#' Gene filter
-#'
-#' The gene filter removes genes/transcripts that are either expressed 
-#' (expression value is more than 2) in less than X% of cells 
-#' (rare genes/transcripts) or expressed (expression value is more than 0) 
-#' in at least (100-X)% of cells (ubiquitous genes/transcripts).
-#'
-#' @param data input expression matrix
-#' @param fraction fraction of cells (X/100).
-#' @param reads.rare expression value threshold for genes that are expressed in
-#' less than fraction*N cells (rare genes)
-#' @param reads.ubiq expression value threshold for genes that are expressed in
-#' more than (1-fraction)*N cells (ubiquitous genes)
-#' @return a boolean vector representing the gene filter
-gene_filter <- function(data, fraction = 0.06, reads.rare = 2, reads.ubiq = 0) {
-    frac.cells <- ceiling(fraction * ncol(data))
-    res <- rowSums(data > reads.rare) >= frac.cells & rowSums(data > reads.ubiq) <= 
-        ncol(data) - frac.cells
-    return(res)
-}
-
 #' Calculate a distance matrix
 #'
 #' Distance between the cells, i.e. columns, in the input expression matrix are
@@ -103,15 +82,15 @@ consensus_matrix <- function(clusts) {
     return(res)
 }
 
-#' Run support vector machines (SVM) prediction
+#' Run support vector machines (\code{SVM}) prediction
 #'
-#' Train an SVM classifier on training cells and then
-#' classify study cells using the classifier.
+#' Train an \code{SVM} classifier on a training dataset (\code{train}) and then
+#' classify a study dataset (\code{study}) using the classifier.
 #'
-#' @param train expression matrix with training cells
-#' @param study expression matrix with study cells
+#' @param train training dataset with colnames, corresponding to training labels
+#' @param study study dataset
 #' @param kern kernel to be used with SVM
-#' @return classification of study cells
+#' @return classification of the study dataset
 #'
 #' @importFrom e1071 svm
 #' @importFrom stats predict
@@ -126,35 +105,35 @@ support_vector_machines <- function(train, study, kern) {
 
 #' A helper function for the SVM analysis
 #'
-#' Defines train and study cell indeces based on the svm.num.cells and
-#' svm.train.inds input parameters
+#' Defines train and study cell indeces based on the svm_num_cells and
+#' svm_train_inds input parameters
 #'
 #' @param N number of cells in the input dataset
-#' @param svm.num.cells number of random cells to be used for training
-#' @param svm.train.inds indeces of cells to be used for training
-#' @param svm.max define the maximum number of cells below which SVM is not run
+#' @param svm_num_cells number of random cells to be used for training
+#' @param svm_train_inds indeces of cells to be used for training
+#' @param svm_max define the maximum number of cells below which SVM is not run
 #' @return A list of indeces of the train and the study cells
-prepare_for_svm <- function(N, svm.num.cells = NULL, svm.train.inds = NULL, svm.max) {
+prepare_for_svm <- function(N, svm_num_cells = NULL, svm_train_inds = NULL, svm_max) {
     
-    if (!is.null(svm.num.cells)) {
-        message("Defining training cells for SVM using svm.num.cells parameter...")
-        train.inds <- sample(1:N, svm.num.cells)
-        study.inds <- setdiff(1:N, train.inds)
+    if (!is.null(svm_num_cells)) {
+        message("Defining training cells for SVM using svm_num_cells parameter...")
+        train_inds <- sample(1:N, svm_num_cells)
+        study_inds <- setdiff(1:N, train_inds)
     }
     
-    if (!is.null(svm.train.inds)) {
-        message("Defining training cells for SVM using svm.train.inds parameter...")
-        train.inds <- svm.train.inds
-        study.inds <- setdiff(1:N, svm.train.inds)
+    if (!is.null(svm_train_inds)) {
+        message("Defining training cells for SVM using svm_train_inds parameter...")
+        train_inds <- svm_train_inds
+        study_inds <- setdiff(1:N, svm_train_inds)
     }
     
-    if (is.null(svm.num.cells) & is.null(svm.train.inds)) {
-        message(paste0("Defining training cells for SVM using ", svm.max, " random cells..."))
-        train.inds <- sample(1:N, svm.max)
-        study.inds <- setdiff(1:N, train.inds)
+    if (is.null(svm_num_cells) & is.null(svm_train_inds)) {
+        message(paste0("Defining training cells for SVM using ", svm_max, " random cells..."))
+        train_inds <- sample(1:N, svm_max)
+        study_inds <- setdiff(1:N, train_inds)
     }
     
-    return(list(svm.train.inds = train.inds, svm.study.inds = study.inds))
+    return(list(svm_train_inds = train_inds, svm_study_inds = study_inds))
 }
 
 #' Estimate the optimal k for k-means clustering
@@ -206,29 +185,36 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     }
     # remove columns with 1 value only
     if (length(show_pdata) > 1) {
-        tmp <- ann[, unlist(lapply(ann, function(x) {
-            length(unique(x))
-        })) > 1]
-        if (length(colnames(tmp)) != length(colnames(ann))) {
-            message(paste0("Columns '", paste(setdiff(colnames(ann), colnames(tmp)), 
+        keep <- unlist(lapply(ann, function(x) {length(unique(x))})) > 1
+        if (!all(keep)) {
+            message(paste0("Columns '", paste(names(keep)[!keep], 
                 collapse = "', '"), "' were excluded from annotation since they contained only a single value."))
         }
-        ann <- ann[, colnames(ann) %in% colnames(tmp)]
-        ann <- as.data.frame(lapply(ann, function(x) {
-            if (nlevels(as.factor(x)) > 10) 
-                x else as.factor(x)
-        }))
+        ann <- ann[, names(keep)[keep]]
         if (ncol(ann) == 0) {
             ann <- NULL
+        } else {
+            ann <- as.data.frame(lapply(ann, function(x) {
+                if (nlevels(as.factor(x)) > 9) 
+                    x else as.factor(x)
+            }))
+            # convert outlier scores back to numeric
+            for( i in grep("_log2_outlier_score", colnames(ann))) {
+                if(class(ann[ , i]) == "factor") {
+                    ann[ , i] <- as.numeric(levels(ann[,i]))[ann[,i]]
+                }
+            }
         }
     } else {
         if (length(unique(ann)) > 1) {
             ann <- as.data.frame(ann)
             colnames(ann) <- show_pdata
-            ann <- as.data.frame(lapply(ann, function(x) {
-                if (nlevels(as.factor(x)) > 10) 
-                  return(x) else return(as.factor(x))
-            }))
+            if(!grepl("_log2_outlier_score", show_pdata)) {
+                ann <- as.data.frame(lapply(ann, function(x) {
+                    if (nlevels(as.factor(x)) > 9) 
+                      return(x) else return(as.factor(x))
+                }))
+            }
         } else {
             message(paste0("Column '", show_pdata, "' was excluded from annotation since they contained only a single value."))
             ann <- NULL
@@ -247,14 +233,11 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' @export
 get_processed_dataset <- function(object) {
     dataset <- object@assayData[[object@sc3$exprs_values]]
-    if(!is.null(object@sc3$gene_filter)) {
-        dataset <- dataset[object@sc3$gene_filter, ]
+    if(!is.null(object@featureData@data$sc3_gene_filter)) {
+        dataset <- dataset[object@featureData@data$sc3_gene_filter, ]
     }
     if(!object@sc3$logged) {
         dataset <- log2(dataset + 1)
-    }
-    if(!is.null(object@sc3$fjlt)) {
-        dataset <- object@sc3$fjlt
     }
     return(dataset)
 }
