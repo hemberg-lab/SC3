@@ -120,7 +120,7 @@ head(f_data[ , grep("sc3_", colnames(f_data))])
 Because the biological features were also calculated for each `k`, one can find ajusted p-values for both differential expression and marker genes, as well as the area under the ROC curve values (see `?sc3_calcl_biology` for more information).
 
 Again, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
-```{r}
+```{r, eval=FALSE}
 plotFeatureData(
     treutlein_sceset, 
     aes(
