@@ -421,8 +421,9 @@ svm_labels <- pData(treutlein_sceset)$sc3_3_clusters
 
 Now we can compare the labels using the adjusted rand index (`ARI`):
 ```{r}
-library(mclust)
-adjustedRandIndex(no_svm_labels, svm_labels)
+if (require("mclust")) {
+  adjustedRandIndex(no_svm_labels, svm_labels)
+}
 ```
 
 `ARI` is less than `1`, which means that `SVM` results are different from the non-`SVM` results, however `ARI` is still pretty close to `1` meaning that the solutions are very similar.
