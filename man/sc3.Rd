@@ -31,7 +31,7 @@ Can also be a single integer.}
 indicating which values should be used
 as the expression values for \code{SC3} clustering. Valid value is any named element 
 of the \code{assayData} slot of the \code{SCESet}
-object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
+object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
 
 \item{gene_filter}{a boolen variable which defines whether to perform gene 
 filtering before SC3 clustering.}

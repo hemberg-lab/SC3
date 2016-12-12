@@ -41,17 +41,15 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
             rownames(ann) <- colnames(consensus)
         }
     }
-    do.call(pheatmap::pheatmap, c(list(consensus, cluster_rows = hc, cluster_cols = hc, 
-        cutree_rows = k, cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), 
-        list(annotation_col = ann)[add_ann_col]))
+    do.call(pheatmap::pheatmap, c(list(consensus, cluster_rows = hc, cluster_cols = hc, cutree_rows = k, 
+        cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_consensus
 #' @aliases sc3_plot_consensus
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k, 
-    show_pdata = NULL) {
+setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k, show_pdata = NULL) {
     sc3_plot_consensus.SCESet(object, k, show_pdata)
 })
 
@@ -129,16 +127,15 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
         }
     }
     
-    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, kmeans_k = 100, 
-        cutree_cols = k, show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
+    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, kmeans_k = 100, cutree_cols = k, 
+        show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_expression
 #' @aliases sc3_plot_expression
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k, 
-    show_pdata = NULL) {
+setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k, show_pdata = NULL) {
     sc3_plot_expression.SCESet(object, k, show_pdata)
 })
 
@@ -186,16 +183,16 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
     rownames(row_ann) <- names(de_genes)
     
     do.call(pheatmap::pheatmap, c(list(dataset[names(de_genes), , drop = FALSE], show_colnames = FALSE, 
-        cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row_ann, 
-        cellheight = 10), list(annotation_col = ann)[add_ann_col]))
+        cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row_ann, cellheight = 10), 
+        list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_de_genes
 #' @aliases sc3_plot_de_genes
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k, 
-    p.val = 0.01, show_pdata = NULL) {
+setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k, p.val = 0.01, 
+    show_pdata = NULL) {
     sc3_plot_de_genes.SCESet(object, k, p.val, show_pdata)
 })
 
@@ -246,13 +243,12 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
     # get top 10 marker genes of each cluster
     markers <- markers_for_heatmap(markers)
     
-    row.ann <- data.frame(Cluster = factor(markers[,1], levels = unique(markers[,1])))
+    row.ann <- data.frame(Cluster = factor(markers[, 1], levels = unique(markers[, 1])))
     rownames(row.ann) <- rownames(markers)
     
-    do.call(pheatmap::pheatmap, c(list(dataset[rownames(markers), , drop = FALSE], 
-        show_colnames = FALSE, cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, 
-        annotation_row = row.ann, annotation_names_row = FALSE, gaps_row = which(diff(markers[,1]) != 
-            0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
+    do.call(pheatmap::pheatmap, c(list(dataset[rownames(markers), , drop = FALSE], show_colnames = FALSE, 
+        cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row.ann, annotation_names_row = FALSE, 
+        gaps_row = which(diff(markers[, 1]) != 0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_markers
@@ -285,25 +281,22 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
         return(object)
     }
     if (!k %in% object@sc3$ks) {
-        stop(paste0("Please choose k from: ", object@sc3$ks, 
-            collapse = " "))
+        stop(paste0("Please choose k from: ", object@sc3$ks, collapse = " "))
     }
     
-    # calculate stability of the clusters check if there are more than 1 k value in
-    # ks range
+    # calculate stability of the clusters check if there are more than 1 k value in ks range
     stability <- NULL
     stability <- calculate_stability(object@sc3$consensus, k)
     
     d <- data.frame(Cluster = factor(1:length(stability)), Stability = stability)
-    ggplot(d, aes(x = d$Cluster, y = d$Stability)) + geom_bar(stat = "identity") + 
-        ylim(0, 1) + labs(x = "Cluster", y = "Stability Index") + theme_bw()
+    ggplot(d, aes(x = d$Cluster, y = d$Stability)) + geom_bar(stat = "identity") + ylim(0, 1) + 
+        labs(x = "Cluster", y = "Stability Index") + theme_bw()
 }
 
 #' @rdname sc3_plot_cluster_stability
 #' @aliases sc3_plot_cluster_stability
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"), function(object, 
-    k) {
+setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"), function(object, k) {
     sc3_plot_cluster_stability.SCESet(object, k)
 })

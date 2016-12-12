@@ -18,7 +18,7 @@ they appear in ascending order. This is particularly useful when plotting
 heatmaps in which the clusters should be numbered from left to right.
 }
 \examples{
-hc <- hclust(dist(USArrests), "ave")
+hc <- hclust(dist(USArrests), 'ave')
 cutree(hc, 10)[hc$order]
 reindex_clusters(hc, 10)[hc$order]
 

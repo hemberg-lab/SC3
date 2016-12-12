@@ -46,7 +46,8 @@ sc3_interactive.SCESet <- function(object) {
         }
     }
     
-    pdata <- colnames(make_col_ann_for_heatmaps(object, colnames(object@phenoData@data)))
+    pdata <- colnames(make_col_ann_for_heatmaps(object, 
+                                                colnames(object@phenoData@data)))
     
     shinyApp(
         ui = fluidPage(
@@ -95,14 +96,14 @@ sc3_interactive.SCESet <- function(object) {
                                              )
                                          )))
                     ))),
-                    
                     conditionalPanel(
                         "input.main_panel == 'Consensus' || input.main_panel == 'Expression' || input.main_panel == 'DE' || input.main_panel == 'Markers'",
                     wellPanel(fluidRow(
                         column(12,
                                HTML("<b>Show phenoData</b>"),
                                HTML("<font size = 1>"),
-                               checkboxGroupInput("pDataColumns", label = NULL, pdata, selected = NULL),
+                               checkboxGroupInput("pDataColumns", label = NULL, 
+                                                  pdata, selected = NULL),
                                HTML("</font>")
                         ))))
                 ),
@@ -202,7 +203,9 @@ sc3_interactive.SCESet <- function(object) {
             observe({
                 if (biology) {
                     # get all marker genes
-                    markers <- organise_marker_genes(object, input$clusters, as.numeric(input$p.val.mark), as.numeric(input$auroc.threshold))
+                    markers <- organise_marker_genes(object, input$clusters, 
+                                                     as.numeric(input$p.val.mark), 
+                                                     as.numeric(input$auroc.threshold))
                     values$n.markers <- nrow(markers)
                     # get top 10 marker genes of each cluster
                     markers <- markers_for_heatmap(markers)
@@ -218,7 +221,8 @@ sc3_interactive.SCESet <- function(object) {
             # observer for DE genes
             observe({
                 if (biology) {
-                    de_genes <- organise_de_genes(object, input$clusters, as.numeric(input$p.val.de))
+                    de_genes <- organise_de_genes(object, input$clusters, 
+                                                  as.numeric(input$p.val.de))
                     values$n.de.genes <- length(de_genes)
                     values$n.de.plot.height <- length(head(de_genes, 50))
                 } else {
@@ -343,7 +347,8 @@ sc3_interactive.SCESet <- function(object) {
             # plot consensus matrix
             output$consensus <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
-                    sc3_plot_consensus(object, as.numeric(input$clusters), show_pdata = input$pDataColumns)
+                    sc3_plot_consensus(object, as.numeric(input$clusters), 
+                                       show_pdata = input$pDataColumns)
                 })
             })
             # plot silhouette
@@ -362,7 +367,8 @@ sc3_interactive.SCESet <- function(object) {
             output$matrix <- renderPlot({
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
-                    sc3_plot_expression(object, as.numeric(input$clusters), show_pdata = input$pDataColumns)
+                    sc3_plot_expression(object, as.numeric(input$clusters), 
+                                        show_pdata = input$pDataColumns)
                 })
             })
             # plot marker genes
@@ -405,8 +411,7 @@ sc3_interactive.SCESet <- function(object) {
                     )
                 )
                 validate(need(
-                    try(!is.null(rownames(dataset)))
-                    ,
+                    try(!is.null(rownames(dataset))),
                     "\nNo gene names provided in the input expression matrix!"
                 ))
                 plotOutput("mark_genes",
@@ -426,8 +431,7 @@ sc3_interactive.SCESet <- function(object) {
                     )
                 )
                 validate(need(
-                    try(!is.null(rownames(dataset)))
-                    ,
+                    try(!is.null(rownames(dataset))),
                     "\nNo gene names provided in the input expression matrix!"
                 ))
                 sc3_plot_de_genes(object,

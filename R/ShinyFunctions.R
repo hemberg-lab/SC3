@@ -11,7 +11,7 @@
 #' @importFrom stats cutree
 #' 
 #' @examples
-#' hc <- hclust(dist(USArrests), "ave")
+#' hc <- hclust(dist(USArrests), 'ave')
 #' cutree(hc, 10)[hc$order]
 #' reindex_clusters(hc, 10)[hc$order]
 #' 
@@ -91,9 +91,8 @@ get_outl_cells <- function(dataset, labels) {
                 }
                 
                 if (class(mcd) != "NULL") {
-                  # sqrt(mcd$mah) - sqrt of robust distance sqrt(qchisq(.95, df =
-                  # length(mcd$best))) - sqrt of 97.5% quantile of a chi-squared distribution with
-                  # p degrees of freedom
+                  # sqrt(mcd$mah) - sqrt of robust distance sqrt(qchisq(.95, df = length(mcd$best))) - sqrt of
+                  # 97.5% quantile of a chi-squared distribution with p degrees of freedom
                   outliers <- sqrt(mcd$mah) - sqrt(qchisq(chisq.quantile, df = df))
                   outliers[which(outliers < 0)] <- 0
                   out[labels == i] <- outliers
@@ -126,13 +125,13 @@ get_auroc <- function(gene, labels) {
     ms <- aggregate(score ~ labels, FUN = mean)
     # Get cluster with highest average score
     posgroup <- ms[ms$score == max(ms$score), ]$labels
-    # Return NAs if there is a tie for cluster with highest average score (by
-    # definition this is not cluster specific)
+    # Return NAs if there is a tie for cluster with highest average score (by definition this is
+    # not cluster specific)
     if (length(posgroup) > 1) {
         return(c(NA, NA, NA))
     }
-    # Create 1/0 vector of truths for predictions, cluster with highest average score
-    # vs everything else
+    # Create 1/0 vector of truths for predictions, cluster with highest average score vs
+    # everything else
     truth <- as.numeric(labels == posgroup)
     # Make predictions & get auc using RCOR package.
     pred <- prediction(score, truth)
@@ -177,18 +176,20 @@ get_marker_genes <- function(dataset, labels) {
 #' @param auroc area under the ROC curve threshold
 #'
 organise_marker_genes <- function(object, k, p_val, auroc) {
-    dat <- object@featureData@data[ , c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, "_markers_auroc"), paste0("sc3_", k, "_markers_padj"))]
-    dat <- dat[dat[ , paste0("sc3_", k, "_markers_padj")] < p_val & !is.na(dat[ , paste0("sc3_", k, "_markers_padj")]), ]
-    dat <- dat[dat[ , paste0("sc3_", k, "_markers_auroc")] > auroc, ]
-
+    dat <- object@featureData@data[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
+        "_markers_auroc"), paste0("sc3_", k, "_markers_padj"))]
+    dat <- dat[dat[, paste0("sc3_", k, "_markers_padj")] < p_val & !is.na(dat[, paste0("sc3_", 
+        k, "_markers_padj")]), ]
+    dat <- dat[dat[, paste0("sc3_", k, "_markers_auroc")] > auroc, ]
+    
     d <- NULL
     
-    for (i in sort(unique(dat[ , paste0("sc3_", k, "_markers_clusts")]))) {
-        tmp <- dat[dat[ , paste0("sc3_", k, "_markers_clusts")] == i, ]
-        tmp <- tmp[order(tmp[ , paste0("sc3_", k, "_markers_auroc")], decreasing = TRUE), ]
+    for (i in sort(unique(dat[, paste0("sc3_", k, "_markers_clusts")]))) {
+        tmp <- dat[dat[, paste0("sc3_", k, "_markers_clusts")] == i, ]
+        tmp <- tmp[order(tmp[, paste0("sc3_", k, "_markers_auroc")], decreasing = TRUE), ]
         d <- rbind(d, tmp)
     }
-
+    
     return(d)
 }
 
@@ -202,8 +203,8 @@ organise_marker_genes <- function(object, k, p_val, auroc) {
 #' 
 markers_for_heatmap <- function(markers) {
     res <- NULL
-    for (i in unique(markers[,1])) {
-        tmp <- markers[markers[,1] == i, ]
+    for (i in unique(markers[, 1])) {
+        tmp <- markers[markers[, 1] == i, ]
         if (nrow(tmp) > 10) {
             res <- rbind(res, tmp[1:10, ])
         } else {
@@ -253,7 +254,7 @@ get_de_genes <- function(dataset, labels) {
 #' @param p_val p-value threshold
 #' 
 organise_de_genes <- function(object, k, p_val) {
-    de_genes <- object@featureData@data[ , paste0("sc3_", k, "_de_padj")]
+    de_genes <- object@featureData@data[, paste0("sc3_", k, "_de_padj")]
     names(de_genes) <- rownames(object@featureData@data)
     de_genes <- de_genes[!is.na(de_genes)]
     de_genes <- de_genes[de_genes < p_val]
@@ -295,9 +296,9 @@ calculate_stability <- function(consensus, k) {
                 N <- length(clusts)
                 # sum over new clusters, taking into account new cells from other clusters
                 for (j in clusts) {
-                    inds2 <- names(labs2[labs2 == j])
-                    s <- length(inds[inds %in% inds2])/length(inds2)/N/N/kRange
-                    stability[i] <- stability[i] + s
+                  inds2 <- names(labs2[labs2 == j])
+                  s <- length(inds[inds %in% inds2])/length(inds2)/N/N/kRange
+                  stability[i] <- stability[i] + s
                 }
             }
         }

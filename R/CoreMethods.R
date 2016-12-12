@@ -9,7 +9,7 @@
 #' indicating which values should be used
 #' as the expression values for \code{SC3} clustering. Valid value is any named element 
 #' of the \code{assayData} slot of the \code{SCESet}
-#' object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
+#' object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
 #' filtering before SC3 clustering.
 #' @param pct_dropout_min if \code{gene_filter = TRUE}, then genes with percent of dropouts smaller than 
@@ -46,25 +46,24 @@
 #' 
 #' @export
 sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = TRUE, pct_dropout_min = 10, 
-    pct_dropout_max = 90, d_region_min = 0.04, 
-    d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, 
-    kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
+    pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, 
+    svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE, 
+    biology = FALSE, rand_seed = 1) {
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
-    object <- sc3_prepare(object, exprs_values, ks, gene_filter, pct_dropout_min, 
-        pct_dropout_max, d_region_min, d_region_max, 
-        svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
-        rand_seed)
-    if(k_estimator) {
+    object <- sc3_prepare(object, exprs_values, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+        d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
+        kmeans_iter_max, rand_seed)
+    if (k_estimator) {
         object <- sc3_estimate_k(object)
     }
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
     object <- sc3_kmeans(object)
     object <- sc3_calc_consens(object)
-    if(biology) {
+    if (biology) {
         object <- sc3_calc_biology(object)
     }
     return(object)
@@ -76,13 +75,12 @@ sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = 
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs_values = "exprs", 
-    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-    d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
-    svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
-    k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
-    sc3.SCESet(object, ks, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, 
-        d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, 
-        n_cores, kmeans_nstart, kmeans_iter_max, k_estimator, biology, rand_seed)
+    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, 
+    svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, 
+    kmeans_iter_max = 1e+09, k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
+    sc3.SCESet(object, ks, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
+        d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
+        k_estimator, biology, rand_seed)
 })
 
 #' Prepare the \code{SCESet} object for \code{SC3} clustering.
@@ -92,7 +90,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' \itemize{
 #'   \item \code{exprs_values} - the same as the \code{exprs_values} argument.
 #'   \item \code{logged} - a boolen variable which defines whether expression 
-#'   values have been log-transformed. If \code{exprs_values != "exprs"} or 
+#'   values have been log-transformed. If \code{exprs_values != 'exprs'} or 
 #'   \code{object@logged == FALSE} then it is set to \code{FALSE}. Otherwise it 
 #'   is set to \code{TRUE}. Works correctly for all default elements of the
 #'   \code{assayData} slot of the \code{SCESet} object. If during the analysis you create your own
@@ -116,7 +114,7 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' indicating which values should be used
 #' as the expression values for \code{SC3} clustering. Valid value is any named element 
 #' of the \code{assayData} slot of the \code{SCESet}
-#' object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
+#' object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
 #' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
 #' Can also be a single integer.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
@@ -157,22 +155,21 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' 
 #' @export
 sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_filter = TRUE, 
-    pct_dropout_min = 10, pct_dropout_max = 90,
-    d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, 
-    svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1) {
+    pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
+    svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
+    rand_seed = 1) {
     
     message("Setting SC3 parameters...")
     
-    # clean up after the previous SC3 run
-    # sc3 slot
+    # clean up after the previous SC3 run sc3 slot
     object@sc3 <- list()
     # phenoData
     p_data <- object@phenoData@data
-    p_data <- p_data[ , !grepl("sc3_", colnames(p_data))]
+    p_data <- p_data[, !grepl("sc3_", colnames(p_data))]
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
     # featureData
     f_data <- object@featureData@data
-    f_data <- f_data[ , !grepl("sc3_", colnames(f_data))]
+    f_data <- f_data[, !grepl("sc3_", colnames(f_data))]
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
     
     dataset <- object@assayData[[exprs_values]]
@@ -184,7 +181,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
     object@sc3$exprs_values <- exprs_values
     
     object@sc3$logged <- TRUE
-    if(exprs_values != "exprs" | !object@logged) {
+    if (exprs_values != "exprs" | !object@logged) {
         object@sc3$logged <- FALSE
     }
     
@@ -192,8 +189,9 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
     f_data <- object@featureData@data
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
-        if(!is.null(f_data$pct_dropout)) {
-            f_data$sc3_gene_filter <- f_data$pct_dropout < pct_dropout_max & f_data$pct_dropout > pct_dropout_min
+        if (!is.null(f_data$pct_dropout)) {
+            f_data$sc3_gene_filter <- f_data$pct_dropout < pct_dropout_max & f_data$pct_dropout > 
+                pct_dropout_min
             if (all(!f_data$sc3_gene_filter)) {
                 message("All genes were removed after the gene filter! Stopping now...")
                 return(object)
@@ -204,7 +202,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
         }
     }
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
-
+    
     object@sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
         if (ncol(dataset) > 2000) {
@@ -302,13 +300,12 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
 #' @importClassesFrom scater SCESet
 #' @export
 setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
-    ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, 
-    d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
-    svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
-    rand_seed = 1) {
+    ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, 
+    d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, 
+    kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1) {
     sc3_prepare.SCESet(object, exprs_values, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
-        d_region_min, d_region_max, svm_num_cells, svm_train_inds, 
-        svm_max, n_cores, kmeans_nstart, kmeans_iter_max, rand_seed)
+        d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
+        kmeans_iter_max, rand_seed)
 })
 
 #' Estimate the optimal k for k-means clustering
@@ -479,7 +476,7 @@ sc3_calc_transfs.SCESet <- function(object) {
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dopar% {
         try({
             tmp <- transformation(get(hash.table[i, 1], dists), hash.table[i, 2])
-            tmp[ , 1:max(n_dim)]
+            tmp[, 1:max(n_dim)]
         })
     }
     
@@ -542,8 +539,7 @@ sc3_kmeans.SCESet <- function(object) {
     
     n_dim <- object@sc3$n_dim
     
-    hash.table <- expand.grid(transf = names(transfs), ks = object@sc3$ks, n_dim = n_dim, 
-        stringsAsFactors = FALSE)
+    hash.table <- expand.grid(transf = names(transfs), ks = object@sc3$ks, n_dim = n_dim, stringsAsFactors = FALSE)
     
     message("Performing k-means clustering...")
     
@@ -559,15 +555,14 @@ sc3_kmeans.SCESet <- function(object) {
     pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
     
     # calculate the 6 distinct transformations in parallel
-    labs <- foreach::foreach(i = 1:nrow(hash.table), .options.RNG = rand_seed) %dopar% 
-        {
-            try({
-                utils::setTxtProgressBar(pb, i)
-                transf <- get(hash.table$transf[i], transfs)
-                stats::kmeans(transf[, 1:hash.table$n_dim[i]], hash.table$ks[i], 
-                  iter.max = kmeans_iter_max, nstart = kmeans_nstart)$cluster
-            })
-        }
+    labs <- foreach::foreach(i = 1:nrow(hash.table), .options.RNG = rand_seed) %dopar% {
+        try({
+            utils::setTxtProgressBar(pb, i)
+            transf <- get(hash.table$transf[i], transfs)
+            stats::kmeans(transf[, 1:hash.table$n_dim[i]], hash.table$ks[i], iter.max = kmeans_iter_max, 
+                nstart = kmeans_nstart)$cluster
+        })
+    }
     
     close(pb)
     
@@ -651,7 +646,7 @@ sc3_calc_consens.SCESet <- function(object) {
     cons <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
-            d <- matrix(unlist(d), nrow=length(d[[1]]))
+            d <- matrix(unlist(d), nrow = length(d[[1]]))
             dat <- consensus_matrix(d)
             tmp <- ED2(dat)
             colnames(tmp) <- as.character(colnames(dat))
@@ -676,7 +671,7 @@ sc3_calc_consens.SCESet <- function(object) {
     object@sc3$kmeans <- NULL
     
     p_data <- object@phenoData@data
-    for(k in ks) {
+    for (k in ks) {
         hc <- object@sc3$consensus[[as.character(k)]]$hc
         clusts <- reindex_clusters(hc, k)
         # in case of hybrid SVM approach
@@ -685,7 +680,7 @@ sc3_calc_consens.SCESet <- function(object) {
             tmp[object@sc3$svm_train_inds] <- clusts
             clusts <- tmp
         }
-        p_data[ , paste0("sc3_", k, "_clusters")] <- clusts
+        p_data[, paste0("sc3_", k, "_clusters")] <- clusts
     }
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
     
@@ -756,10 +751,10 @@ sc3_calc_biology.SCESet <- function(object) {
     
     dataset <- get_processed_dataset(object)
     p_data <- object@phenoData@data
-    clusts <- p_data[ , grep("sc3_.*_clusters", colnames(p_data))]
+    clusts <- p_data[, grep("sc3_.*_clusters", colnames(p_data))]
     # check whether in the SVM regime
     if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[ , object@sc3$svm_train_inds]
+        dataset <- dataset[, object@sc3$svm_train_inds]
         clusts <- clusts[object@sc3$svm_train_inds, ]
     }
     
@@ -779,9 +774,9 @@ sc3_calc_biology.SCESet <- function(object) {
     
     biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
         try({
-            markers <- get_marker_genes(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
-            de_genes <- get_de_genes(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
-            cell_outl <- get_outl_cells(dataset, clusts[ , paste0("sc3_", i, "_clusters")])
+            markers <- get_marker_genes(dataset, clusts[, paste0("sc3_", i, "_clusters")])
+            de_genes <- get_de_genes(dataset, clusts[, paste0("sc3_", i, "_clusters")])
+            cell_outl <- get_outl_cells(dataset, clusts[, paste0("sc3_", i, "_clusters")])
             list(markers = markers, de_genes = de_genes, cell_outl = cell_outl)
         })
     }
@@ -790,20 +785,23 @@ sc3_calc_biology.SCESet <- function(object) {
     parallel::stopCluster(cl)
     
     names(biol) <- ks
-
+    
     f_data <- object@featureData@data
     p_data <- object@phenoData@data
-    for(k in ks) {
+    for (k in ks) {
         # save DE genes
-        f_data[ , paste0("sc3_", k, "_de_padj")] <- NA
-        f_data[ , paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de_genes
+        f_data[, paste0("sc3_", k, "_de_padj")] <- NA
+        f_data[, paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de_genes
         # save marker genes
-        f_data[ , paste0("sc3_", k, "_markers_clusts")] <- NA
-        f_data[ , paste0("sc3_", k, "_markers_padj")] <- NA
-        f_data[ , paste0("sc3_", k, "_markers_auroc")] <- NA
-        f_data[ , paste0("sc3_", k, "_markers_clusts")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,2]
-        f_data[ , paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,3]
-        f_data[ , paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[,1]
+        f_data[, paste0("sc3_", k, "_markers_clusts")] <- NA
+        f_data[, paste0("sc3_", k, "_markers_padj")] <- NA
+        f_data[, paste0("sc3_", k, "_markers_auroc")] <- NA
+        f_data[, paste0("sc3_", k, "_markers_clusts")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
+            2]
+        f_data[, paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
+            3]
+        f_data[, paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
+            1]
         # save cell outliers
         outl <- biol[[as.character(k)]]$cell_outl
         # in case of hybrid SVM approach
@@ -812,7 +810,7 @@ sc3_calc_biology.SCESet <- function(object) {
             tmp[object@sc3$svm_train_inds] <- outl
             outl <- tmp
         }
-        p_data[ , paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
+        p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
     }
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
@@ -865,19 +863,18 @@ sc3_run_svm.SCESet <- function(object) {
     svm_train_inds <- object@sc3$svm_train_inds
     svm_study_inds <- object@sc3$svm_study_inds
     
-    for(k in ks) {
-        clusts <- p_data[ , paste0("sc3_", k, "_clusters")]
+    for (k in ks) {
+        clusts <- p_data[, paste0("sc3_", k, "_clusters")]
         clusts <- clusts[svm_train_inds]
         
         train.dataset <- dataset[, svm_train_inds]
         colnames(train.dataset) <- clusts
         
-        study.labs <- support_vector_machines(train.dataset, dataset[, svm_study_inds], 
-                                              "linear")
+        study.labs <- support_vector_machines(train.dataset, dataset[, svm_study_inds], "linear")
         svm.labs <- c(clusts, study.labs)
         ord <- order(c(svm_train_inds, svm_study_inds))
         
-        p_data[ , paste0("sc3_", k, "_clusters")] <- svm.labs[ord]
+        p_data[, paste0("sc3_", k, "_clusters")] <- svm.labs[ord]
     }
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
     return(object)
@@ -924,7 +921,6 @@ sc3_export_results_xls.SCESet <- function(object, filename = "sc3_results.xls") 
 #' @aliases sc3_export_results_xls
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_export_results_xls", signature(object = "SCESet"), function(object, 
-    filename = "sc3_results.xls") {
+setMethod("sc3_export_results_xls", signature(object = "SCESet"), function(object, filename = "sc3_results.xls") {
     sc3_export_results_xls.SCESet(object, filename)
 })
