@@ -26,7 +26,7 @@ sc3_prepare.SCESet(object, exprs_values = "exprs", ks = NULL,
 indicating which values should be used
 as the expression values for \code{SC3} clustering. Valid value is any named element 
 of the \code{assayData} slot of the \code{SCESet}
-object. Default is \code{"exprs"}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
+object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
 
 \item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
 Can also be a single integer.}
@@ -79,7 +79,7 @@ creates and populates the following items of the \code{sc3} slot of the \code{SC
 \itemize{
   \item \code{exprs_values} - the same as the \code{exprs_values} argument.
   \item \code{logged} - a boolen variable which defines whether expression 
-  values have been log-transformed. If \code{exprs_values != "exprs"} or 
+  values have been log-transformed. If \code{exprs_values != 'exprs'} or 
   \code{object@logged == FALSE} then it is set to \code{FALSE}. Otherwise it 
   is set to \code{TRUE}. Works correctly for all default elements of the
   \code{assayData} slot of the \code{SCESet} object. If during the analysis you create your own

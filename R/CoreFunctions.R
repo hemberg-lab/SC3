@@ -171,24 +171,25 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     if (any(!show_pdata %in% colnames(object@phenoData@data))) {
         show_pdata_excl <- show_pdata[!show_pdata %in% colnames(object@phenoData@data)]
         show_pdata <- show_pdata[show_pdata %in% colnames(object@phenoData@data)]
-        message(paste0("Provided columns '", paste(show_pdata_excl, collapse = "', '"), 
-            "' do not exist in the phenoData table!"))
+        message(paste0("Provided columns '", paste(show_pdata_excl, collapse = "', '"), "' do not exist in the phenoData table!"))
         if (length(show_pdata) == 0) {
             return(NULL)
         }
     }
     ann <- NULL
-    if(is.null(object@sc3$svm_train_inds)) {
+    if (is.null(object@sc3$svm_train_inds)) {
         ann <- object@phenoData@data[, colnames(object@phenoData@data) %in% show_pdata]
     } else {
-        ann <- object@phenoData@data[object@sc3$svm_train_inds, colnames(object@phenoData@data) %in% show_pdata]
+        ann <- object@phenoData@data[object@sc3$svm_train_inds, colnames(object@phenoData@data) %in% 
+            show_pdata]
     }
     # remove columns with 1 value only
     if (length(show_pdata) > 1) {
-        keep <- unlist(lapply(ann, function(x) {length(unique(x))})) > 1
+        keep <- unlist(lapply(ann, function(x) {
+            length(unique(x))
+        })) > 1
         if (!all(keep)) {
-            message(paste0("Columns '", paste(names(keep)[!keep], 
-                collapse = "', '"), "' were excluded from annotation since they contained only a single value."))
+            message(paste0("Columns '", paste(names(keep)[!keep], collapse = "', '"), "' were excluded from annotation since they contained only a single value."))
         }
         ann <- ann[, names(keep)[keep]]
         if (ncol(ann) == 0) {
@@ -196,12 +197,12 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
         } else {
             ann <- as.data.frame(lapply(ann, function(x) {
                 if (nlevels(as.factor(x)) > 9) 
-                    x else as.factor(x)
+                  x else as.factor(x)
             }))
             # convert outlier scores back to numeric
-            for( i in grep("_log2_outlier_score", colnames(ann))) {
-                if(class(ann[ , i]) == "factor") {
-                    ann[ , i] <- as.numeric(levels(ann[,i]))[ann[,i]]
+            for (i in grep("_log2_outlier_score", colnames(ann))) {
+                if (class(ann[, i]) == "factor") {
+                  ann[, i] <- as.numeric(levels(ann[, i]))[ann[, i]]
                 }
             }
         }
@@ -209,10 +210,10 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
         if (length(unique(ann)) > 1) {
             ann <- as.data.frame(ann)
             colnames(ann) <- show_pdata
-            if(!grepl("_log2_outlier_score", show_pdata)) {
+            if (!grepl("_log2_outlier_score", show_pdata)) {
                 ann <- as.data.frame(lapply(ann, function(x) {
-                    if (nlevels(as.factor(x)) > 9) 
-                      return(x) else return(as.factor(x))
+                  if (nlevels(as.factor(x)) > 9) 
+                    return(x) else return(as.factor(x))
                 }))
             }
         } else {
@@ -233,10 +234,10 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' @export
 get_processed_dataset <- function(object) {
     dataset <- object@assayData[[object@sc3$exprs_values]]
-    if(!is.null(object@featureData@data$sc3_gene_filter)) {
+    if (!is.null(object@featureData@data$sc3_gene_filter)) {
         dataset <- dataset[object@featureData@data$sc3_gene_filter, ]
     }
-    if(!object@sc3$logged) {
+    if (!object@sc3$logged) {
         dataset <- log2(dataset + 1)
     }
     return(dataset)
