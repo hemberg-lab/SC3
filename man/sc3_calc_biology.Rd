@@ -8,12 +8,21 @@
 \alias{sc3_calc_biology.SCESet}
 \title{Calculate DE genes, marker genes and cell outliers.}
 \usage{
-sc3_calc_biology.SCESet(object)
+sc3_calc_biology.SCESet(object, ks = NULL, regime = NULL)
 
-\S4method{sc3_calc_biology}{SCESet}(object)
+\S4method{sc3_calc_biology}{SCESet}(object, ks = NULL, regime = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
+
+\item{ks}{number of clusters k (should be used in the case when a user
+would like to run k-means on a manually chosen k)}
+
+\item{regime}{defines what biological analysis to perform. "marker" for
+marker genes, "de" for differentiall expressed genes and "outl" for outlier
+cells}
+
+\item{...}{further arguments passed to \code{\link{sc3_calc_biology.SCESet}}}
 }
 \value{
 an object of 'SCESet' class

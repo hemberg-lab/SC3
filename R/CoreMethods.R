@@ -439,7 +439,7 @@ setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom doRNG %dorng%
-#' @importFrom foreach foreach %dopar%
+#' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 #' 
@@ -473,7 +473,7 @@ sc3_calc_transfs.SCESet <- function(object) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     # calculate the 6 distinct transformations in parallel
-    transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dopar% {
+    transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
             tmp <- transformation(get(hash.table[i, 1], dists), hash.table[i, 2])
             tmp[, 1:max(n_dim)]
@@ -507,8 +507,6 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' \itemize{
 #'   \item \code{kmeans} - contains a list of kmeans clusterings.
 #' }
-#' Additionally, it also removes the previously calculated \code{transformations} from
-#' the \code{sc3} slot, as they are not needed for further analysis.
 #' 
 #' See \code{\link{sc3_prepare}} for the default clustering parameters.
 #' 
@@ -516,18 +514,20 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' @aliases sc3_kmeans, sc3_kmeans,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
+#' @param ks number of clusters k (should be used in the case when a user
+#' would like to run k-means on a manually chosen k)
 #' 
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom doRNG %dorng%
-#' @importFrom foreach foreach %dopar%
+#' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom stats kmeans
 #' 
 #' @export
-sc3_kmeans.SCESet <- function(object) {
+sc3_kmeans.SCESet <- function(object, ks = NULL) {
     transfs <- object@sc3$transformations
     if (is.null(transfs)) {
         warning(paste0("Please run sc3_calc_transfs() first!"))
@@ -539,7 +539,11 @@ sc3_kmeans.SCESet <- function(object) {
     
     n_dim <- object@sc3$n_dim
     
-    hash.table <- expand.grid(transf = names(transfs), ks = object@sc3$ks, n_dim = n_dim, stringsAsFactors = FALSE)
+    if (is.null(ks)) {
+        ks <- object@sc3$ks
+    }
+    
+    hash.table <- expand.grid(transf = names(transfs), ks = ks, n_dim = n_dim, stringsAsFactors = FALSE)
     
     message("Performing k-means clustering...")
     
@@ -547,7 +551,6 @@ sc3_kmeans.SCESet <- function(object) {
     
     kmeans_iter_max <- object@sc3$kmeans_iter_max
     kmeans_nstart <- object@sc3$kmeans_nstart
-    rand_seed <- object@sc3$rand_seed
     
     cl <- parallel::makeCluster(n_cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n_cores)
@@ -555,7 +558,7 @@ sc3_kmeans.SCESet <- function(object) {
     pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
     
     # calculate the 6 distinct transformations in parallel
-    labs <- foreach::foreach(i = 1:nrow(hash.table), .options.RNG = rand_seed) %dopar% {
+    labs <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
             utils::setTxtProgressBar(pb, i)
             transf <- get(hash.table$transf[i], transfs)
@@ -572,17 +575,16 @@ sc3_kmeans.SCESet <- function(object) {
     names(labs) <- paste(hash.table$transf, hash.table$ks, hash.table$n_dim, sep = "_")
     
     object@sc3$kmeans <- labs
-    # remove transformations after calculating clusterings
-    object@sc3$transformations <- NULL
     return(object)
 }
 
 #' @rdname sc3_kmeans
 #' @aliases sc3_kmeans
+#' @param ... further arguments passed to \code{\link{sc3_kmeans.SCESet}}
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
-    sc3_kmeans.SCESet(object)
+setMethod("sc3_kmeans", signature(object = "SCESet"), function(object, ks = NULL) {
+    sc3_kmeans.SCESet(object, ks)
 })
 
 #' Calculate consensus matrix.
@@ -608,7 +610,7 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object) {
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom doRNG %dorng%
-#' @importFrom foreach foreach %dopar%
+#' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom cluster silhouette
@@ -643,7 +645,7 @@ sc3_calc_consens.SCESet <- function(object) {
     cl <- parallel::makeCluster(n_cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n_cores)
     
-    cons <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
+    cons <- foreach::foreach(i = ks) %dorng% {
         try({
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
             d <- matrix(unlist(d), nrow = length(d[[1]]))
@@ -665,8 +667,13 @@ sc3_calc_consens.SCESet <- function(object) {
     parallel::stopCluster(cl)
     
     names(cons) <- ks
+    if(is.null(object@sc3$consensus)) {
+        object@sc3$consensus <- list()
+    }
+    for (n in names(cons)) {
+        object@sc3$consensus[[n]] <- cons[[n]]
+    }
     
-    object@sc3$consensus <- cons
     # remove kmeans results after calculating consensus
     object@sc3$kmeans <- NULL
     
@@ -731,27 +738,50 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' @aliases sc3_calc_biology, sc3_calc_biology,SCESet-method
 #' 
 #' @param object an object of 'SCESet' class
+#' @param ks number of clusters k (should be used in the case when a user
+#' would like to run k-means on a manually chosen k)
+#' @param regime defines what biological analysis to perform. "marker" for
+#' marker genes, "de" for differentiall expressed genes and "outl" for outlier
+#' cells
 #' 
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom doRNG %dorng%
-#' @importFrom foreach foreach %dopar%
+#' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom methods new
 #' 
 #' @export
-sc3_calc_biology.SCESet <- function(object) {
+sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
+    if (is.null(ks)) {
+        ks <- object@sc3$ks
+    }
+    if (!all(ks %in% as.numeric(names(object@sc3$consensus)))) {
+        warning(paste0("Range of the number of clusters ks is not consistent with the consensus results! Please redefine the ks!"))
+        return(object)
+    }
+    if (is.null(regime)) {
+        regime <- c("marker", "de", "outl")
+    }
+    if (!all(regime %in% c("marker", "de", "outl"))) {
+        warning(paste0("Regime value must be either 'marker', 'de' or 'outl', or any combination of these three!"))
+        return(object)
+    }
     
-    message("Computing DE genes, marker genes and cell outliers...")
+    message("Calculating biology...")
+    
+    hash.table <- expand.grid(ks = ks, regime = regime, stringsAsFactors = FALSE)
     
     dataset <- get_processed_dataset(object)
     p_data <- object@phenoData@data
-    clusts <- p_data[, grep("sc3_.*_clusters", colnames(p_data))]
+    clusts <- as.data.frame(p_data[, grep("sc3_.*_clusters", colnames(p_data))])
+    colnames(clusts) <- colnames(p_data)[grep("sc3_.*_clusters", colnames(p_data))]
+    rownames(clusts) <- rownames(p_data)
     # check whether in the SVM regime
     if (!is.null(object@sc3$svm_train_inds)) {
         dataset <- dataset[, object@sc3$svm_train_inds]
@@ -761,10 +791,8 @@ sc3_calc_biology.SCESet <- function(object) {
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    ks <- object@sc3$ks
-    
-    if (object@sc3$n_cores > length(ks)) {
-        n_cores <- length(ks)
+    if (object@sc3$n_cores > nrow(hash.table)) {
+        n_cores <- nrow(hash.table)
     } else {
         n_cores <- object@sc3$n_cores
     }
@@ -772,45 +800,50 @@ sc3_calc_biology.SCESet <- function(object) {
     cl <- parallel::makeCluster(n_cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n_cores)
     
-    biol <- foreach::foreach(i = min(ks):max(ks)) %dorng% {
+    biol <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
-            markers <- get_marker_genes(dataset, clusts[, paste0("sc3_", i, "_clusters")])
-            de_genes <- get_de_genes(dataset, clusts[, paste0("sc3_", i, "_clusters")])
-            cell_outl <- get_outl_cells(dataset, clusts[, paste0("sc3_", i, "_clusters")])
-            list(markers = markers, de_genes = de_genes, cell_outl = cell_outl)
+            get_biolgy(dataset, clusts[, paste0("sc3_", hash.table[i, 1], "_clusters")], hash.table[i, 2])
         })
     }
     
     # stop local cluster
     parallel::stopCluster(cl)
     
-    names(biol) <- ks
+    names(biol) <- paste(hash.table$ks, hash.table$regime, sep = "_")
     
     f_data <- object@featureData@data
     p_data <- object@phenoData@data
-    for (k in ks) {
+    for (b in names(biol)) {
+        k <- strsplit(b, "_")[[1]][1]
+        regime <- strsplit(b, "_")[[1]][2]
         # save DE genes
-        f_data[, paste0("sc3_", k, "_de_padj")] <- NA
-        f_data[, paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$de_genes
-        # save marker genes
-        f_data[, paste0("sc3_", k, "_markers_clusts")] <- NA
-        f_data[, paste0("sc3_", k, "_markers_padj")] <- NA
-        f_data[, paste0("sc3_", k, "_markers_auroc")] <- NA
-        f_data[, paste0("sc3_", k, "_markers_clusts")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
-            2]
-        f_data[, paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
-            3]
-        f_data[, paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[as.character(k)]]$markers[, 
-            1]
-        # save cell outliers
-        outl <- biol[[as.character(k)]]$cell_outl
-        # in case of hybrid SVM approach
-        if (!is.null(object@sc3$svm_train_inds)) {
-            tmp <- rep(NA, nrow(p_data))
-            tmp[object@sc3$svm_train_inds] <- outl
-            outl <- tmp
+        if(regime == "de") {
+            f_data[, paste0("sc3_", k, "_de_padj")] <- NA
+            f_data[, paste0("sc3_", k, "_de_padj")][which(f_data$sc3_gene_filter)] <- biol[[b]]
         }
-        p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
+        # save marker genes
+        if(regime == "marker") {
+            f_data[, paste0("sc3_", k, "_markers_clusts")] <- NA
+            f_data[, paste0("sc3_", k, "_markers_padj")] <- NA
+            f_data[, paste0("sc3_", k, "_markers_auroc")] <- NA
+            f_data[, paste0("sc3_", k, "_markers_clusts")][which(f_data$sc3_gene_filter)] <- biol[[b]][, 
+                2]
+            f_data[, paste0("sc3_", k, "_markers_padj")][which(f_data$sc3_gene_filter)] <- biol[[b]][, 
+                3]
+            f_data[, paste0("sc3_", k, "_markers_auroc")][which(f_data$sc3_gene_filter)] <- biol[[b]][, 
+                1]
+        }
+        # save cell outliers
+        if(regime == "outl") {
+            outl <- biol[[b]]
+            # in case of hybrid SVM approach
+            if (!is.null(object@sc3$svm_train_inds)) {
+                tmp <- rep(NA, nrow(p_data))
+                tmp[object@sc3$svm_train_inds] <- outl
+                outl <- tmp
+            }
+            p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
+        }
     }
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
     pData(object) <- new("AnnotatedDataFrame", data = p_data)
@@ -822,10 +855,11 @@ sc3_calc_biology.SCESet <- function(object) {
 
 #' @rdname sc3_calc_biology
 #' @aliases sc3_calc_biology
+#' @param ... further arguments passed to \code{\link{sc3_calc_biology.SCESet}}
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object) {
-    sc3_calc_biology.SCESet(object)
+setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object, ks = NULL, regime = NULL) {
+    sc3_calc_biology.SCESet(object, ks, regime)
 })
 
 
@@ -910,11 +944,31 @@ sc3_export_results_xls.SCESet <- function(object, filename = "sc3_results.xls") 
     p_data <- object@phenoData@data
     f_data <- object@featureData@data
     
-    cells <- p_data[, grep("sc3_", colnames(p_data))]
-    genes <- f_data[, grep("sc3_", colnames(f_data))]
+    res <- list()
     
-    WriteXLS(list(cells, genes), ExcelFileName = filename, SheetNames = c("Cells", "Genes"), 
-        row.names = TRUE, AdjWidth = TRUE)
+    if(length(grep("sc3_", colnames(p_data))) != 0) {
+        cells <- as.data.frame(p_data[, grep("sc3_", colnames(p_data))])
+        colnames(cells) <- colnames(p_data)[grep("sc3_", colnames(p_data))]
+        rownames(cells) <- rownames(p_data)
+        res[["Cells"]] <- cells
+    } else {
+        warning("There is no cell data provided by SC3!")
+    }
+    if(length(grep("sc3_", colnames(f_data))) != 0) {
+        genes <- as.data.frame(f_data[, grep("sc3_", colnames(f_data))])
+        colnames(genes) <- colnames(f_data)[grep("sc3_", colnames(f_data))]
+        rownames(genes) <- rownames(f_data)
+        res[["Genes"]] <- genes
+    } else {
+        warning("There is no gene data provided by SC3!")
+    }
+    
+    if(length(res) != 0) {
+        WriteXLS(res, ExcelFileName = filename, SheetNames = names(res), 
+            row.names = TRUE, AdjWidth = TRUE)
+    } else {
+        warning("There are no SC3 results in your data object, the Excel file will not be produced. Please run SC3 first!")
+    }
 }
 
 #' @rdname sc3_export_results_xls

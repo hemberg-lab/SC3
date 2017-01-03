@@ -35,6 +35,29 @@ reindex_clusters <- function(hc, k) {
     return(clusts)
 }
 
+#' Wrapper for calculating biological properties
+#'
+#' @param dataset expression matrix
+#' @param labels cell labels corresponding clusters
+#' @param regime defines what biological analysis to perform. "marker" for
+#' marker genes, "de" for differentiall expressed genes and "outl" for outlier
+#' cells
+#' @return results of either 
+#' @importFrom stats p.adjust
+get_biolgy <- function(dataset, labels, regime) {
+    if(regime == "marker") {
+        res <- get_marker_genes(dataset, labels)
+    }
+    if(regime == "de") {
+        res <- get_de_genes(dataset, labels)
+    }
+    if(regime == "outl") {
+        res <- get_outl_cells(dataset, labels)
+    }
+    return(res)
+}
+
+
 #' Find cell outliers in each cluster.
 #'
 #' Outlier cells in each cluster are detected using robust distances, calculated 
@@ -279,16 +302,15 @@ calculate_stability <- function(consensus, k) {
     hc <- consensus[[as.character(k)]]$hc
     labs <- reindex_clusters(hc, k)
     
-    kMax <- max(as.numeric(names(consensus)))
-    kMin <- min(as.numeric(names(consensus)))
-    kRange <- kMax - kMin
+    ks <- as.numeric(names(consensus))
+    kRange <- length(ks)
     
     stability <- rep(0, k)
     
     for (i in 1:k) {
         inds <- names(labs[labs == i])
         # sum over k range
-        for (k2 in kMin:kMax) {
+        for (k2 in ks) {
             if (k2 != k) {
                 hc2 <- consensus[[as.character(k2)]]$hc
                 labs2 <- cutree(hc2, k2)

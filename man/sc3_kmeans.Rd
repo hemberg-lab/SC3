@@ -8,12 +8,17 @@
 \alias{sc3_kmeans.SCESet}
 \title{\code{kmeans} clustering of cells.}
 \usage{
-sc3_kmeans.SCESet(object)
+sc3_kmeans.SCESet(object, ks = NULL)
 
-\S4method{sc3_kmeans}{SCESet}(object)
+\S4method{sc3_kmeans}{SCESet}(object, ks = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
+
+\item{ks}{number of clusters k (should be used in the case when a user
+would like to run k-means on a manually chosen k)}
+
+\item{...}{further arguments passed to \code{\link{sc3_kmeans.SCESet}}}
 }
 \value{
 an object of 'SCESet' class
@@ -25,8 +30,6 @@ creates and populates the following items of the \code{sc3} slot:
 \itemize{
   \item \code{kmeans} - contains a list of kmeans clusterings.
 }
-Additionally, it also removes the previously calculated \code{transformations} from
-the \code{sc3} slot, as they are not needed for further analysis.
 }
 \details{
 See \code{\link{sc3_prepare}} for the default clustering parameters.

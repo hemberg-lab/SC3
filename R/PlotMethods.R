@@ -280,10 +280,6 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    if (!k %in% object@sc3$ks) {
-        stop(paste0("Please choose k from: ", object@sc3$ks, collapse = " "))
-    }
-    
     # calculate stability of the clusters check if there are more than 1 k value in ks range
     stability <- NULL
     stability <- calculate_stability(object@sc3$consensus, k)

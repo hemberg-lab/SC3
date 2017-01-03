@@ -24,7 +24,7 @@ setGeneric("sc3_calc_transfs", function(object) {
 })
 
 #' @export
-setGeneric("sc3_kmeans", function(object) {
+setGeneric("sc3_kmeans", function(object, ...) {
     standardGeneric("sc3_kmeans")
 })
 
@@ -34,7 +34,7 @@ setGeneric("sc3_calc_consens", function(object) {
 })
 
 #' @export
-setGeneric("sc3_calc_biology", function(object) {
+setGeneric("sc3_calc_biology", function(object, ...) {
     standardGeneric("sc3_calc_biology")
 })
 
