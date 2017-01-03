@@ -346,6 +346,10 @@ sc3_interactive.SCESet <- function(object) {
             ## REACTIVE PANELS
             # plot consensus matrix
             output$consensus <- renderPlot({
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
+                ))
                 withProgress(message = 'Plotting...', value = 0, {
                     sc3_plot_consensus(object, as.numeric(input$clusters), 
                                        show_pdata = input$pDataColumns)
@@ -353,10 +357,18 @@ sc3_interactive.SCESet <- function(object) {
             })
             # plot silhouette
             output$silh <- renderPlot({
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
+                ))
                 sc3_plot_silhouette(object, as.numeric(input$clusters))
             })
             # plot stability
             output$StabilityPlot <- renderPlot({
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
+                ))
                 validate(need(
                     length(object@sc3$consensus) > 1,
                     "\nStability cannot be calculated for a single k value!"
@@ -365,6 +377,10 @@ sc3_interactive.SCESet <- function(object) {
             })
             # plot expression matrix
             output$matrix <- renderPlot({
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
+                ))
                 withProgress(message = 'Plotting...', value = 0, {
                     set.seed(1234567)
                     sc3_plot_expression(object, as.numeric(input$clusters), 
@@ -373,21 +389,6 @@ sc3_interactive.SCESet <- function(object) {
             })
             # plot marker genes
             output$mark_genes <- renderPlot({
-                validate(need(
-                    biology,
-                    "\nPlease run sc3_calc_biology() first!"
-                ))
-                validate(
-                    need(
-                        !is.null(values$mark.res),
-                        "\nThere were no marker genes found! Try change the parameters."
-                    )
-                )
-                validate(need(
-                    try(!is.null(rownames(dataset)))
-                    ,
-                    "\nNo gene names provided in the input expression matrix!"
-                ))
                 sc3_plot_markers(
                     object,
                     as.numeric(input$clusters),
@@ -403,6 +404,10 @@ sc3_interactive.SCESet <- function(object) {
                 validate(need(
                     biology,
                     "\nPlease run sc3_calc_biology() first!"
+                ))
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
                 ))
                 validate(
                     need(
@@ -420,20 +425,6 @@ sc3_interactive.SCESet <- function(object) {
             })
             # plot DE genes
             output$de_genes <- renderPlot({
-                validate(need(
-                    biology,
-                    "\nPlease run sc3_calc_biology() first!"
-                ))
-                validate(
-                    need(
-                        values$n.de.genes > 0,
-                        "\nThere were no DE genes found! Try change the parameters."
-                    )
-                )
-                validate(need(
-                    try(!is.null(rownames(dataset))),
-                    "\nNo gene names provided in the input expression matrix!"
-                ))
                 sc3_plot_de_genes(object,
                                   as.numeric(input$clusters),
                                   as.numeric(input$p.val.de),
@@ -446,6 +437,10 @@ sc3_interactive.SCESet <- function(object) {
                 validate(need(
                     biology,
                     "\nPlease run sc3_calc_biology() first!"
+                ))
+                validate(need(
+                    input$clusters %in% ks,
+                    paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
                 ))
                 validate(
                     need(
