@@ -311,11 +311,6 @@ treutlein_sceset <- sc3_kmeans(treutlein_sceset)
 names(treutlein_sceset@sc3$kmeans)
 ```
 
-It also removes the previously calculated `transformations` item from the `sc3` slot:
-```{r}
-treutlein_sceset@sc3$transformations
-```
-
 ## `sc3_calc_consens`
 
 In this step `SC3` will provide you with a clustering solution. Let's first check that there are no `SC3` related columns in the `phenoData` slot:
