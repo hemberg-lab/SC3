@@ -1,7 +1,7 @@
 #include <RcppArmadillo.h>
 
-using namespace arma;
 using namespace Rcpp;
+using namespace arma;
 
 //' Compute Euclidean distance matrix by rows
 //' 
