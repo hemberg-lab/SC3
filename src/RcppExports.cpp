@@ -18,12 +18,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // ED2
-NumericMatrix ED2(const NumericMatrix& x);
+Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix& x);
 RcppExport SEXP SC3_ED2(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(ED2(x));
     return rcpp_result_gen;
 END_RCPP
