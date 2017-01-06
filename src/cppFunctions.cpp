@@ -1,8 +1,6 @@
-#include <armadillo>
 #include <RcppArmadillo.h>
 
 using namespace arma;
-using namespace Rcpp;
 
 //' Compute Euclidean distance matrix by rows
 //' 
@@ -13,7 +11,7 @@ using namespace Rcpp;
 arma::mat ED1(const arma::mat & x) {
 	unsigned int outrows = x.n_rows, i = 0, j = 0;
 	double d;
-	mat  out = zeros<mat>(outrows, outrows);
+	mat out = zeros<mat>(outrows, outrows);
 
 	for (i = 0; i < outrows - 1; i++) {
 		arma::rowvec v1 = x.row(i);
@@ -34,13 +32,13 @@ arma::mat ED1(const arma::mat & x) {
 //' 
 //' @param x A numeric matrix.
 // [[Rcpp::export]]
-NumericMatrix ED2(const NumericMatrix & x) {
+Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
 	unsigned int outcols = x.ncol(), i = 0, j = 0;
 	double d;
-	NumericMatrix out(outcols, outcols);
+	Rcpp::NumericMatrix out(outcols, outcols);
 
 	for (j = 0; j < outcols - 1; j++) {
-		NumericVector v1 = x.column(j);
+	    Rcpp::NumericVector v1 = x.column(j);
 		for (i = j + 1; i < outcols; i++) {
 			d = sqrt(sum(pow(v1 - x.column(i), 2.0)));
 			out(i, j) = d;
@@ -87,7 +85,7 @@ arma::mat norm_laplacian(arma::mat A) {
     A = exp(-A/A.max());
     arma::rowvec D_row = pow(sum(A), -0.5);
     A.each_row() %= D_row;
-    colvec D_col = conv_to< colvec >::from(D_row);
+    arma::colvec D_col = conv_to< colvec >::from(D_row);
     A.each_col() %= D_col;
     arma::mat res = eye(A.n_cols, A.n_cols) - A;
     return(res);
