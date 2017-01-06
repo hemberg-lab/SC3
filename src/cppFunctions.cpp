@@ -1,4 +1,3 @@
-#include <armadillo>
 #include <RcppArmadillo.h>
 
 using namespace arma;
@@ -87,7 +86,7 @@ arma::mat norm_laplacian(arma::mat A) {
     A = exp(-A/A.max());
     arma::rowvec D_row = pow(sum(A), -0.5);
     A.each_row() %= D_row;
-    colvec D_col = conv_to< colvec >::from(D_row);
+    arma::colvec D_col = conv_to< colvec >::from(D_row);
     A.each_col() %= D_col;
     arma::mat res = eye(A.n_cols, A.n_cols) - A;
     return(res);
