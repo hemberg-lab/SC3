@@ -21,4 +21,3 @@ results of either
 \description{
 Wrapper for calculating biological properties
 }
-

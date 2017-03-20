@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_calc_consens}
 \alias{sc3_calc_consens}
+\alias{sc3_calc_consens.SCESet}
 \alias{sc3_calc_consens,}
 \alias{sc3_calc_consens,SCESet-method}
-\alias{sc3_calc_consens.SCESet}
+\alias{sc3_calc_consens,SCESet-method}
+\alias{sc3_calc_consens}
 \title{Calculate consensus matrix.}
 \usage{
 sc3_calc_consens.SCESet(object)
@@ -33,4 +35,3 @@ input \code{object}. The column names correspond to the consensus cell labels
 and have the following format: \code{sc3_k_clusters}, where \code{k} is the 
 number of clusters.
 }
-

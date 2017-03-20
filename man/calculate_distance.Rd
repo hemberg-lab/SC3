@@ -19,4 +19,3 @@ Distance between the cells, i.e. columns, in the input expression matrix are
 calculated using the Euclidean, Pearson and Spearman metrics to construct
 distance matrices.
 }
-

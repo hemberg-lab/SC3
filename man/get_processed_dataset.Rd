@@ -13,4 +13,3 @@ get_processed_dataset(object)
 Takes data from the 'exprs_values' slot, applies gene filter and log
 transformation.
 }
-

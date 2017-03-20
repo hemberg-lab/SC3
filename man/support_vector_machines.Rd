@@ -20,4 +20,3 @@ classification of the study dataset
 Train an \code{SVM} classifier on a training dataset (\code{train}) and then
 classify a study dataset (\code{study}) using the classifier.
 }
-

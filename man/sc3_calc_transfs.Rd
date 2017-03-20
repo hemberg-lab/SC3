@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_calc_transfs}
 \alias{sc3_calc_transfs}
+\alias{sc3_calc_transfs.SCESet}
 \alias{sc3_calc_transfs,}
 \alias{sc3_calc_transfs,SCESet-method}
-\alias{sc3_calc_transfs.SCESet}
+\alias{sc3_calc_transfs,SCESet-method}
+\alias{sc3_calc_transfs}
 \title{Calculate transformations of the distance matrices.}
 \usage{
 sc3_calc_transfs.SCESet(object)
@@ -29,4 +31,3 @@ written to the \code{transformations} item of the \code{sc3} slot.
 Additionally, this function also removes the previously calculated \code{distances} from
 the \code{sc3} slot, as they are not needed for further analysis.
 }
-

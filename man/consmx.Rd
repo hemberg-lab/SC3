@@ -12,4 +12,3 @@ consmx(dat)
 \description{
 Computes consensus matrix given cluster labels
 }
-

@@ -28,4 +28,3 @@ d <- get_de_genes(treutlein[1:10, ], colnames(treutlein))
 head(d)
 
 }
-

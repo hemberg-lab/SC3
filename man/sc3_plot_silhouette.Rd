@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_plot_silhouette}
 \alias{sc3_plot_silhouette}
+\alias{sc3_plot_silhouette.SCESet}
 \alias{sc3_plot_silhouette,}
 \alias{sc3_plot_silhouette,SCESet-method}
-\alias{sc3_plot_silhouette.SCESet}
+\alias{sc3_plot_silhouette,SCESet-method}
+\alias{sc3_plot_silhouette}
 \title{Plot silhouette indexes of the cells}
 \usage{
 sc3_plot_silhouette.SCESet(object, k)
@@ -25,4 +27,3 @@ consensus matrix and 0 represents a situation where there is no
 block-diagonal structure. The best clustering is achieved when the average 
 silhouette width is close to 1.
 }
-

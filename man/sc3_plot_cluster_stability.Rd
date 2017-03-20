@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_plot_cluster_stability}
 \alias{sc3_plot_cluster_stability}
+\alias{sc3_plot_cluster_stability.SCESet}
 \alias{sc3_plot_cluster_stability,}
 \alias{sc3_plot_cluster_stability,SCESet-method}
-\alias{sc3_plot_cluster_stability.SCESet}
+\alias{sc3_plot_cluster_stability,SCESet-method}
+\alias{sc3_plot_cluster_stability}
 \title{Plot stability of the clusters}
 \usage{
 sc3_plot_cluster_stability.SCESet(object, k)
@@ -22,4 +24,3 @@ Stability index shows how stable each cluster is accross the selected
 range of ks. The stability index varies between 0 and 1, where 1 means that 
 the same cluster appears in every solution for different k.
 }
-

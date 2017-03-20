@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_calc_biology}
 \alias{sc3_calc_biology}
+\alias{sc3_calc_biology.SCESet}
 \alias{sc3_calc_biology,}
 \alias{sc3_calc_biology,SCESet-method}
-\alias{sc3_calc_biology.SCESet}
+\alias{sc3_calc_biology,SCESet-method}
+\alias{sc3_calc_biology}
 \title{Calculate DE genes, marker genes and cell outliers.}
 \usage{
 sc3_calc_biology.SCESet(object, ks = NULL, regime = NULL)
@@ -58,4 +60,3 @@ Additionally, \code{biology} item is added to the \code{sc3} slot and is set to
 \code{TRUE} indicating that the biological analysis of the dataset has been
 performed.
 }
-

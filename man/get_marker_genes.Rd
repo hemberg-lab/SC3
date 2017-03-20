@@ -24,4 +24,3 @@ d <- get_marker_genes(treutlein[1:10,], colnames(treutlein))
 d
 
 }
-

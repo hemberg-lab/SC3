@@ -28,4 +28,3 @@ d <- get_outl_cells(treutlein[1:10,], colnames(treutlein))
 head(d)
 
 }
-

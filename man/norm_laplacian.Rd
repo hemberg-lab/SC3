@@ -12,4 +12,3 @@ norm_laplacian(A)
 \description{
 Calculate graph Laplacian of a symmetrix matrix
 }
-

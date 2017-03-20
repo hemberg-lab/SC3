@@ -12,4 +12,3 @@ tmult(x)
 \description{
 Given matrix A, the procedure returns A'A.
 }
-

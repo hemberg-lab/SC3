@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_interactive}
 \alias{sc3_interactive}
+\alias{sc3_interactive.SCESet}
 \alias{sc3_interactive,}
 \alias{sc3_interactive,SCESet-method}
-\alias{sc3_interactive.SCESet}
+\alias{sc3_interactive,SCESet-method}
+\alias{sc3_interactive}
 \title{Opens \code{SC3} results in an interactive session in a web browser.}
 \usage{
 sc3_interactive.SCESet(object)
@@ -22,4 +24,3 @@ all precomputed clusterings.
 \description{
 Runs interactive \code{shiny} session of \code{SC3} based on precomputed clusterings.
 }
-

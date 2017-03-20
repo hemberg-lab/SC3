@@ -19,4 +19,3 @@ of the input object corresponding to the number of clusters \code{k}. Additional
 it rearranges genes by the cluster index and order them by the area under the 
 ROC curve value inside of each cluster.
 }
-

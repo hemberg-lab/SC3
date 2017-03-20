@@ -3,8 +3,10 @@
 \docType{methods}
 \name{sc3_prepare}
 \alias{sc3_prepare}
-\alias{sc3_prepare,SCESet-method}
 \alias{sc3_prepare.SCESet}
+\alias{sc3_prepare,SCESet-method}
+\alias{sc3_prepare,SCESet-method}
+\alias{sc3_prepare}
 \title{Prepare the \code{SCESet} object for \code{SC3} clustering.}
 \usage{
 sc3_prepare.SCESet(object, exprs_values = "exprs", ks = NULL,
@@ -98,4 +100,3 @@ creates and populates the following items of the \code{sc3} slot of the \code{SC
   \item \code{ks} - the same as the \code{ks} argument.
 }
 }
-
