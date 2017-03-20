@@ -22,4 +22,3 @@ A list of indeces of the train and the study cells
 Defines train and study cell indeces based on the svm_num_cells and
 svm_train_inds input parameters
 }
-

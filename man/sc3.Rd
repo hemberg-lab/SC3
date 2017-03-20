@@ -3,8 +3,10 @@
 \docType{methods}
 \name{sc3}
 \alias{sc3}
-\alias{sc3,SCESet-method}
 \alias{sc3.SCESet}
+\alias{sc3,SCESet-method}
+\alias{sc3,SCESet-method}
+\alias{sc3}
 \title{Run all steps of \code{SC3} in one go}
 \usage{
 sc3.SCESet(object, ks = NULL, exprs_values = "exprs", gene_filter = TRUE,
@@ -83,4 +85,3 @@ an object of \code{SCESet} class
 \description{
 This function is a wrapper that executes all steps of \code{SC3} analysis in one go.
 }
-

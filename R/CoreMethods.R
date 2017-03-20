@@ -326,6 +326,10 @@ setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_va
 #' @export
 sc3_estimate_k.SCESet <- function(object) {
     message("Estimating k...")
+    if(is.null(object@sc3$exprs_values)) {
+        warning("Please run sc3_prepare() first!")
+        return(object)
+    }
     dataset <- get_processed_dataset(object)
     if (is.null(dataset)) {
         warning(paste0("Please run sc3_prepare() first!"))

@@ -20,4 +20,3 @@ if two cells belong to the same cluster, their similarity is 1, otherwise
 the similarity is 0. A consensus matrix is calculated by averaging all 
 similarity matrices.
 }
-

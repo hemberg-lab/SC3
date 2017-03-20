@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_plot_consensus}
 \alias{sc3_plot_consensus}
+\alias{sc3_plot_consensus.SCESet}
 \alias{sc3_plot_consensus,}
 \alias{sc3_plot_consensus,SCESet-method}
-\alias{sc3_plot_consensus.SCESet}
+\alias{sc3_plot_consensus,SCESet-method}
+\alias{sc3_plot_consensus}
 \title{Plot consensus matrix as a heatmap}
 \usage{
 sc3_plot_consensus.SCESet(object, k, show_pdata = NULL)
@@ -33,4 +35,3 @@ clustering and has a diagonal-block structure. Intuitively, the perfect
 clustering is achieved when all diagonal blocks are completely red 
 and all off-diagonal elements are completely blue.
 }
-

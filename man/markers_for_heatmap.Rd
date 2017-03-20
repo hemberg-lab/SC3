@@ -14,4 +14,3 @@ markers_for_heatmap(markers)
 Reorders the rows of the input data.frame based on the \code{sc3_k_markers_clusts}
 column and also keeps only the top 10 genes for each value of \code{sc3_k_markers_clusts}.
 }
-

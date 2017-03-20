@@ -12,4 +12,3 @@ ED1(x)
 \description{
 Used in consmx function
 }
-

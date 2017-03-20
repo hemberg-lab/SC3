@@ -3,8 +3,10 @@
 \docType{methods}
 \name{sc3_estimate_k}
 \alias{sc3_estimate_k}
-\alias{sc3_estimate_k,SCESet-method}
 \alias{sc3_estimate_k.SCESet}
+\alias{sc3_estimate_k,SCESet-method}
+\alias{sc3_estimate_k,SCESet-method}
+\alias{sc3_estimate_k}
 \title{Estimate the optimal k for k-means clustering}
 \usage{
 sc3_estimate_k.SCESet(object)
@@ -25,4 +27,3 @@ It creates and populates the following items of the `sc3` slot:
   \item k_estimation - contains the estimated value of `k`.
 }
 }
-

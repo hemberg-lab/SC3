@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_plot_markers}
 \alias{sc3_plot_markers}
+\alias{sc3_plot_markers.SCESet}
 \alias{sc3_plot_markers,}
 \alias{sc3_plot_markers,SCESet-method}
-\alias{sc3_plot_markers.SCESet}
+\alias{sc3_plot_markers,SCESet-method}
+\alias{sc3_plot_markers}
 \title{Plot expression of marker genes identified by \code{SC3} as a heatmap.}
 \usage{
 sc3_plot_markers.SCESet(object, k, auroc = 0.85, p.val = 0.01,
@@ -31,4 +33,3 @@ By default the genes with the area under the ROC curve (AUROC) > 0.85
 and with the p-value < 0.01 are selected and the top 10 marker 
 genes of each cluster are visualized in this heatmap.
 }
-

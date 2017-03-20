@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_run_svm}
 \alias{sc3_run_svm}
+\alias{sc3_run_svm.SCESet}
 \alias{sc3_run_svm,}
 \alias{sc3_run_svm,SCESet-method}
-\alias{sc3_run_svm.SCESet}
+\alias{sc3_run_svm,SCESet-method}
+\alias{sc3_run_svm}
 \title{Run the hybrid \code{SVM} approach.}
 \usage{
 sc3_run_svm.SCESet(object)
@@ -30,4 +32,3 @@ Results are written to the \code{sc3_k_clusters} columns to the
 \code{phenoData} slot of the input \code{object}, where \code{k} is the 
 number of clusters.
 }
-

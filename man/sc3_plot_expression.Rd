@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_plot_expression}
 \alias{sc3_plot_expression}
+\alias{sc3_plot_expression.SCESet}
 \alias{sc3_plot_expression,}
 \alias{sc3_plot_expression,SCESet-method}
-\alias{sc3_plot_expression.SCESet}
+\alias{sc3_plot_expression,SCESet-method}
+\alias{sc3_plot_expression}
 \title{Plot expression matrix used for SC3 clustering as a heatmap}
 \usage{
 sc3_plot_expression.SCESet(object, k, show_pdata = NULL)
@@ -27,4 +29,3 @@ Genes are clustered by kmeans with k = 100 (dendrogram on the left) and
 the heatmap represents the expression levels of the gene cluster centers 
 after log2-scaling.
 }
-

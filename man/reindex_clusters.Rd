@@ -23,4 +23,3 @@ cutree(hc, 10)[hc$order]
 reindex_clusters(hc, 10)[hc$order]
 
 }
-

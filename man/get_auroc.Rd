@@ -20,4 +20,3 @@ receiver operating characteristic (ROC) curve is used to quantify the accuracy
 of the prediction. A \code{p-value} is assigned to each gene by using the Wilcoxon 
 signed rank test.
 }
-

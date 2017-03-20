@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_calc_dists}
 \alias{sc3_calc_dists}
+\alias{sc3_calc_dists.SCESet}
 \alias{sc3_calc_dists,}
 \alias{sc3_calc_dists,SCESet-method}
-\alias{sc3_calc_dists.SCESet}
+\alias{sc3_calc_dists,SCESet-method}
+\alias{sc3_calc_dists}
 \title{Calculate distances between the cells.}
 \usage{
 sc3_calc_dists.SCESet(object)
@@ -27,4 +29,3 @@ creates and populates the following items of the \code{sc3} slot:
   Euclidean, Pearson and Spearman distances.
 }
 }
-

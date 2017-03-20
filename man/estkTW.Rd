@@ -17,4 +17,3 @@ The function finds the eigenvalues of the sample covariance matrix.
 It will then return the number of significant eigenvalues according to 
 the Tracy-Widom test.
 }
-

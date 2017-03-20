@@ -19,4 +19,3 @@ treutlein
 Single cell RNA-Seq data extracted from a publication by Treutlein et al.
 }
 \keyword{datasets}
-

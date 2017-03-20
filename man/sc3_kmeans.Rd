@@ -3,9 +3,11 @@
 \docType{methods}
 \name{sc3_kmeans}
 \alias{sc3_kmeans}
+\alias{sc3_kmeans.SCESet}
 \alias{sc3_kmeans,}
 \alias{sc3_kmeans,SCESet-method}
-\alias{sc3_kmeans.SCESet}
+\alias{sc3_kmeans,SCESet-method}
+\alias{sc3_kmeans}
 \title{\code{kmeans} clustering of cells.}
 \usage{
 sc3_kmeans.SCESet(object, ks = NULL)
@@ -34,4 +36,3 @@ creates and populates the following items of the \code{sc3} slot:
 \details{
 See \code{\link{sc3_prepare}} for the default clustering parameters.
 }
-

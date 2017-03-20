@@ -127,8 +127,13 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
         }
     }
     
-    do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, kmeans_k = 100, cutree_cols = k, 
-        show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
+    if(nrow(dataset) > 100) {
+        do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, kmeans_k = 100, cutree_cols = k, 
+                                           show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
+    } else {
+        do.call(pheatmap::pheatmap, c(list(dataset, cluster_cols = hc, cutree_cols = k, 
+                                           show_rownames = FALSE, show_colnames = FALSE), list(annotation_col = ann)[add_ann_col]))
+    }
 }
 
 #' @rdname sc3_plot_expression

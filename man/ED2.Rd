@@ -13,4 +13,3 @@ ED2(x)
 Used in sc3-funcs.R distance matrix calculation
 and within the consensus clustering.
 }
-

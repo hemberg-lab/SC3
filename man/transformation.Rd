@@ -22,4 +22,3 @@ eigenvectors of the graph Laplacian (Spectral).
 The columns of the resulting matrices are then sorted in 
 descending order by their corresponding eigenvalues.
 }
-
