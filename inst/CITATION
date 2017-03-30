@@ -13,12 +13,11 @@ citEntry(entry="article",
                               as.person("Mauricio Barahona"),
                               as.person("Anthony R Green"),
                               as.person("Martin Hemberg")),
-         year = 2016,
-         journal = "bioRxiv",
-         doi = "10.1101/036558",
-         url = "http://biorxiv.org/content/early/2016/09/02/036558",
+         year = 2017,
+         journal = "Nature Methods",
+         url = "http://dx.doi.org/10.1038/nmeth.4236",
          textVersion = 
-         paste("Vladimir Yu. Kiselev, et al. (2016):", 
+         paste("Vladimir Yu. Kiselev, et al. (2017):", 
                "SC3 - consensus clustering of single-cell RNA-Seq data.",
-               "bioRxiv, ",
-                "URL: http://biorxiv.org/content/early/2016/09/02/036558." ) )
+               "Nature Methods, ",
+                "URL: http://dx.doi.org/10.1038/nmeth.4236" ) )

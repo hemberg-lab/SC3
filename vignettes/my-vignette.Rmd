@@ -19,7 +19,7 @@ opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
 
 # Introduction
 
-Single-Cell Consensus Clustering (`SC3`) is a tool for unsupervised clustering of scRNA-seq data. `SC3` achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes `SC3` accessible to a wide audience of users. In addition, `SC3` also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing `SC3` in details is currently under review but a copy of it is available on [bioRxiv](http://biorxiv.org/content/early/2016/09/02/036558).
+Single-Cell Consensus Clustering (`SC3`) is a tool for unsupervised clustering of scRNA-seq data. `SC3` achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes `SC3` accessible to a wide audience of users. In addition, `SC3` also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing `SC3` in details is published in [Nature Methods](http://dx.doi.org/10.1038/nmeth.4236).
 
 # Quality Control, Normalisation and `scater`
 
