@@ -1,15 +1,16 @@
 #' Run all steps of \code{SC3} in one go
 #' 
 #' This function is a wrapper that executes all steps of \code{SC3} analysis in one go.
+#' Please note that by default the "exprs" slot of the input \code{scater} object 
+#' is used for the SC3 analysis. If the scater object has been created in a standard
+#' way then the expression values in the "exprs" slot will be automatically log-transformed.
+#' If you have overwritten the "exprs" slot manually, please make sure that the values
+#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+#' assumes that the data is log-transformed by default.
 #' 
 #' @param object an object of \code{SCESet} class.
 #' @param ks a range of the number of clusters \code{k} used for \code{SC3} clustering.
 #' Can also be a single integer.
-#' @param exprs_values character string 
-#' indicating which values should be used
-#' as the expression values for \code{SC3} clustering. Valid value is any named element 
-#' of the \code{assayData} slot of the \code{SCESet}
-#' object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
 #' filtering before SC3 clustering.
 #' @param pct_dropout_min if \code{gene_filter = TRUE}, then genes with percent of dropouts smaller than 
@@ -45,7 +46,7 @@
 #' @return an object of \code{SCESet} class
 #' 
 #' @export
-sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = TRUE, pct_dropout_min = 10, 
+sc3.SCESet <- function(object, ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, 
     pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, 
     svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE, 
     biology = FALSE, rand_seed = 1) {
@@ -53,7 +54,7 @@ sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = 
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
-    object <- sc3_prepare(object, exprs_values, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+    object <- sc3_prepare(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
         d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
         kmeans_iter_max, rand_seed)
     if (k_estimator) {
@@ -74,11 +75,11 @@ sc3.SCESet <- function(object, ks = NULL, exprs_values = "exprs", gene_filter = 
 #' @aliases sc3
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs_values = "exprs", 
+setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, 
     gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, 
     svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, 
     kmeans_iter_max = 1e+09, k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
-    sc3.SCESet(object, ks, exprs_values, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
+    sc3.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
         d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
         k_estimator, biology, rand_seed)
 })
@@ -88,14 +89,6 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' This function prepares an object of \code{SCESet} class for \code{SC3} clustering. It
 #' creates and populates the following items of the \code{sc3} slot of the \code{SCESet} object:
 #' \itemize{
-#'   \item \code{exprs_values} - the same as the \code{exprs_values} argument.
-#'   \item \code{logged} - a boolen variable which defines whether expression 
-#'   values have been log-transformed. If \code{exprs_values != 'exprs'} or 
-#'   \code{object@logged == FALSE} then it is set to \code{FALSE}. Otherwise it 
-#'   is set to \code{TRUE}. Works correctly for all default elements of the
-#'   \code{assayData} slot of the \code{SCESet} object. If during the analysis you create your own
-#'   element of the \code{assayData} slot, please set the \code{logged} parameter of the 
-#'   \code{sc3} slot manually and accordingly after running \code{sc3_prepare}.
 #'   \item \code{kmeans_iter_max} - the same as the \code{kmeans_iter_max} argument.
 #'   \item \code{kmeans_nstart} - the same as the \code{kmeans_nstart} argument.
 #'   \item \code{n_dim} - contains numbers of the number of eigenvectors to be used
@@ -108,13 +101,14 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #'   \item \code{n_cores} - the same as the \code{n_cores} argument.
 #'   \item \code{ks} - the same as the \code{ks} argument.
 #' }
+#' Please note that by default the "exprs" slot of the input \code{scater} object 
+#' is used for the SC3 analysis. If the scater object has been created in a standard
+#' way then the expression values in the "exprs" slot will be automatically log-transformed.
+#' If you have overwritten the "exprs" slot manually, please make sure that the values
+#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+#' assumes that the data is log-transformed by default.
 #' 
 #' @param object an object of \code{SCESet} class.
-#' @param exprs_values character string 
-#' indicating which values should be used
-#' as the expression values for \code{SC3} clustering. Valid value is any named element 
-#' of the \code{assayData} slot of the \code{SCESet}
-#' object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.
 #' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
 #' Can also be a single integer.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
@@ -149,12 +143,12 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, exprs
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom parallel detectCores
-#' @importFrom scater fData<- pData<-
+#' @importFrom scater fData<- pData<- get_exprs
 #' @importFrom utils capture.output
 #' @importFrom methods new
 #' 
 #' @export
-sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_filter = TRUE, 
+sc3_prepare.SCESet <- function(object, ks = NULL, gene_filter = TRUE, 
     pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
     svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
     rand_seed = 1) {
@@ -172,18 +166,7 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
     f_data <- f_data[, !grepl("sc3_", colnames(f_data))]
     fData(object) <- new("AnnotatedDataFrame", data = f_data)
     
-    dataset <- object@assayData[[exprs_values]]
-    if (is.null(dataset)) {
-        warning(paste0("The object does not contain ", exprs_values, " expression values."))
-        return(object)
-    }
-    
-    object@sc3$exprs_values <- exprs_values
-    
-    object@sc3$logged <- TRUE
-    if (exprs_values != "exprs" | !object@logged) {
-        object@sc3$logged <- FALSE
-    }
+    dataset <- scater::get_exprs(object, "exprs")
     
     # gene filter
     f_data <- object@featureData@data
@@ -299,11 +282,11 @@ sc3_prepare.SCESet <- function(object, exprs_values = "exprs", ks = NULL, gene_f
 #' @param ... further arguments passed to \code{\link{sc3_prepare.SCESet}}
 #' @importClassesFrom scater SCESet
 #' @export
-setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_values = "exprs", 
+setMethod("sc3_prepare", signature(object = "SCESet"), function(object,
     ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, 
     d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, 
     kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1) {
-    sc3_prepare.SCESet(object, exprs_values, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+    sc3_prepare.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
         d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
         kmeans_iter_max, rand_seed)
 })
@@ -316,6 +299,12 @@ setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_va
 #' \itemize{
 #'   \item k_estimation - contains the estimated value of `k`.
 #' }
+#' Please note that by default the "exprs" slot of the input \code{scater} object 
+#' is used for the SC3 analysis. If the scater object has been created in a standard
+#' way then the expression values in the "exprs" slot will be automatically log-transformed.
+#' If you have overwritten the "exprs" slot manually, please make sure that the values
+#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+#' assumes that the data is log-transformed by default.
 #' 
 #' @name sc3_estimate_k
 #' @aliases sc3_estimate_k sc3_estimate_k,SCESet-method
@@ -326,10 +315,6 @@ setMethod("sc3_prepare", signature(object = "SCESet"), function(object, exprs_va
 #' @export
 sc3_estimate_k.SCESet <- function(object) {
     message("Estimating k...")
-    if(is.null(object@sc3$exprs_values)) {
-        warning("Please run sc3_prepare() first!")
-        return(object)
-    }
     dataset <- get_processed_dataset(object)
     if (is.null(dataset)) {
         warning(paste0("Please run sc3_prepare() first!"))
@@ -357,6 +342,12 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #'   \item \code{distances} - contains a list of distance matrices corresponding to
 #'   Euclidean, Pearson and Spearman distances.
 #' }
+#' Please note that by default the "exprs" slot of the input \code{scater} object 
+#' is used for the SC3 analysis. If the scater object has been created in a standard
+#' way then the expression values in the "exprs" slot will be automatically log-transformed.
+#' If you have overwritten the "exprs" slot manually, please make sure that the values
+#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+#' assumes that the data is log-transformed by default.
 #' 
 #' @name sc3_calc_dists
 #' @aliases sc3_calc_dists, sc3_calc_dists,SCESet-method

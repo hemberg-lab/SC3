@@ -28,4 +28,10 @@ creates and populates the following items of the \code{sc3} slot:
   \item \code{distances} - contains a list of distance matrices corresponding to
   Euclidean, Pearson and Spearman distances.
 }
+Please note that by default the "exprs" slot of the input \code{scater} object 
+is used for the SC3 analysis. If the scater object has been created in a standard
+way then the expression values in the "exprs" slot will be automatically log-transformed.
+If you have overwritten the "exprs" slot manually, please make sure that the values
+in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+assumes that the data is log-transformed by default.
 }

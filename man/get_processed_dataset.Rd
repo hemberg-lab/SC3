@@ -10,6 +10,5 @@ get_processed_dataset(object)
 \item{object}{an object of 'SCESet' class}
 }
 \description{
-Takes data from the 'exprs_values' slot, applies gene filter and log
-transformation.
+Takes data from the 'exprs' slot and applies the gene filter
 }
