@@ -9,26 +9,20 @@
 \alias{sc3_prepare}
 \title{Prepare the \code{SCESet} object for \code{SC3} clustering.}
 \usage{
-sc3_prepare.SCESet(object, exprs_values = "exprs", ks = NULL,
-  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
-  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
-  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1)
+sc3_prepare.SCESet(object, ks = NULL, gene_filter = TRUE,
+  pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
+  d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
+  svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
+  kmeans_iter_max = 1e+09, rand_seed = 1)
 
-\S4method{sc3_prepare}{SCESet}(object, exprs_values = "exprs", ks = NULL,
-  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
-  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
-  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1)
+\S4method{sc3_prepare}{SCESet}(object, ks = NULL, gene_filter = TRUE,
+  pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
+  d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
+  svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
+  kmeans_iter_max = 1e+09, rand_seed = 1)
 }
 \arguments{
 \item{object}{an object of \code{SCESet} class.}
-
-\item{exprs_values}{character string 
-indicating which values should be used
-as the expression values for \code{SC3} clustering. Valid value is any named element 
-of the \code{assayData} slot of the \code{SCESet}
-object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
 
 \item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
 Can also be a single integer.}
@@ -79,14 +73,6 @@ an object of 'SCESet' class
 This function prepares an object of \code{SCESet} class for \code{SC3} clustering. It
 creates and populates the following items of the \code{sc3} slot of the \code{SCESet} object:
 \itemize{
-  \item \code{exprs_values} - the same as the \code{exprs_values} argument.
-  \item \code{logged} - a boolen variable which defines whether expression 
-  values have been log-transformed. If \code{exprs_values != 'exprs'} or 
-  \code{object@logged == FALSE} then it is set to \code{FALSE}. Otherwise it 
-  is set to \code{TRUE}. Works correctly for all default elements of the
-  \code{assayData} slot of the \code{SCESet} object. If during the analysis you create your own
-  element of the \code{assayData} slot, please set the \code{logged} parameter of the 
-  \code{sc3} slot manually and accordingly after running \code{sc3_prepare}.
   \item \code{kmeans_iter_max} - the same as the \code{kmeans_iter_max} argument.
   \item \code{kmeans_nstart} - the same as the \code{kmeans_nstart} argument.
   \item \code{n_dim} - contains numbers of the number of eigenvectors to be used
@@ -99,4 +85,10 @@ creates and populates the following items of the \code{sc3} slot of the \code{SC
   \item \code{n_cores} - the same as the \code{n_cores} argument.
   \item \code{ks} - the same as the \code{ks} argument.
 }
+Please note that by default the "exprs" slot of the input \code{scater} object 
+is used for the SC3 analysis. If the scater object has been created in a standard
+way then the expression values in the "exprs" slot will be automatically log-transformed.
+If you have overwritten the "exprs" slot manually, please make sure that the values
+in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+assumes that the data is log-transformed by default.
 }

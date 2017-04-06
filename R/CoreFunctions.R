@@ -226,19 +226,17 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 
 #' Get processed dataset used by SC3 from the default scater slots
 #' 
-#' Takes data from the 'exprs_values' slot, applies gene filter and log
-#' transformation.
+#' Takes data from the 'exprs' slot and applies the gene filter
 #' 
 #' @param object an object of 'SCESet' class
+#' 
+#' @importFrom scater get_exprs
 #'
 #' @export
 get_processed_dataset <- function(object) {
-    dataset <- object@assayData[[object@sc3$exprs_values]]
+    dataset <- scater::get_exprs(object, "exprs")
     if (!is.null(object@featureData@data$sc3_gene_filter)) {
         dataset <- dataset[object@featureData@data$sc3_gene_filter, ]
-    }
-    if (!object@sc3$logged) {
-        dataset <- log2(dataset + 1)
     }
     return(dataset)
 }

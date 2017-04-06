@@ -44,28 +44,25 @@ treutlein[1:3, 1:3]
 It is easy to create an `SCESet` object from `treutlein` expression matrix. We will follow the [`scater`'s manual](https://www.bioconductor.org/packages/release/bioc/vignettes/scater/inst/doc/vignette.html):
 ```{r}
 # cell annotation
-treutlein_cell_info <- data.frame(cell_id = colnames(treutlein))
-cell_inds <- paste("Cell", 1:ncol(treutlein), sep = "_")
-rownames(treutlein_cell_info) <- cell_inds
-pd <- new("AnnotatedDataFrame", data = treutlein_cell_info)
+ann <- data.frame(cell_type1 = colnames(treutlein))
+pd <- new("AnnotatedDataFrame", data = ann)
 # cell expression
-treutlein_cell_exprs <- treutlein
-colnames(treutlein_cell_exprs) <- cell_inds
+tmp <- treutlein
+colnames(tmp) <- rownames(ann)
 # SCESEt object
-treutlein_sceset <- newSCESet(fpkmData = treutlein_cell_exprs, phenoData = pd)
+sceset <- newSCESet(fpkmData = tmp, phenoData = pd, logExprsOffset = 1)
 ```
 
 It is also essential for `SC3` that the QC metrics is computed for the created object:
 ```{r}
-is_exprs(treutlein_sceset) <- exprs(treutlein_sceset) > 0
-treutlein_sceset <- calculateQCMetrics(treutlein_sceset)
+sceset <- calculateQCMetrics(sceset)
 ```
 
-The `treutlein_cell_info` dataframe contains just `cell_id` column which correspond to the cell labels provided by authors of the original publication. Note that in general it can also contain more information about the cells, such as plate, run, well, date etc.
+The `treutlein_cell_info` dataframe contains just `cell_type1` column which correspond to the cell labels provided by authors of the original publication. Note that in general it can also contain more information about the cells, such as plate, run, well, date etc.
 
 After the `SCESet` object is created and QC is run, `scater` allows a user to quickly visualize and assess the data, for example using a PCA plot:
 ```{r}
-plotPCA(treutlein_sceset, colour_by = "cell_id")
+plotPCA(sceset, colour_by = "cell_type1")
 ```
 
 ## Run SC3
@@ -74,18 +71,18 @@ If you would like to explore clustering of your data in the range of `k`s (the n
 ```{r}
 # Note that n_cores = 1 is required for compilation of this vignette.
 # Please remove this parameter when running on your computer:
-# treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, biology = TRUE)
-treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, biology = TRUE, n_cores = 1)
+# sceset <- sc3(sceset, ks = 2:4, biology = TRUE)
+sceset <- sc3(sceset, ks = 2:4, biology = TRUE, n_cores = 1)
 ```
 
 To quickly and easily explore the `SC3` solutions using an interactive Shiny application use the following method:
 ```{r, eval=FALSE}
-sc3_interactive(treutlein_sceset)
+sc3_interactive(sceset)
 ```
 
 Visual exploration can provide a reasonable estimate of the number of clusters `k`. Once a preferable `k` is chosen it is also possible to export the results into an Excel file:
 ```{r eval=FALSE}
-sc3_export_results_xls(treutlein_sceset)
+sc3_export_results_xls(sceset)
 ```
 
 This will write all results to `sc3_results.xls` file. The name of the file can be controlled by the `filename` parameter.
@@ -95,14 +92,14 @@ This will write all results to `sc3_results.xls` file. The name of the file can 
 `SC3` writes all its results obtained for cells to the `phenoData` slot of the `SCESet` object by adding additional columns to it. This slot also contains all other cell features calculated by the `scater` package either automatically during the `SCESet` object creation or during the `calculateQCMetrics` call. One can identify the `SC3` results using the `"sc3_"` prefix:
 
 ```{r}
-p_data <- pData(treutlein_sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
 Additionally, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
 ```{r}
 plotPCA(
-    treutlein_sceset, 
+    sceset, 
     colour_by = "sc3_3_clusters", 
     size_by = "sc3_3_log2_outlier_score"
 )
@@ -113,7 +110,7 @@ plotPCA(
 `SC3` writes all its results obtained for features (genes/transcripts) to the `featureData` slot of the `SCESet` object by adding additional columns to it. This slot also contains all other feature values calculated by the `scater` package either automatically during the `SCESet` object creation or during the `calculateQCMetrics` call. One can identify the `SC3` results using the `"sc3_"` prefix:
 
 ```{r}
-f_data <- fData(treutlein_sceset)
+f_data <- fData(sceset)
 head(f_data[ , grep("sc3_", colnames(f_data))])
 ```
 
@@ -122,7 +119,7 @@ Because the biological features were also calculated for each `k`, one can find 
 Again, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
 ```{r}
 plotFeatureData(
-    treutlein_sceset, 
+    sceset, 
     aes(
         x = sc3_3_markers_clusts, 
         y = sc3_3_markers_auroc, 
@@ -147,15 +144,15 @@ For datasets with more than 5,000 cells `SC3` utilizes a hybrid approach that co
 
 The consensus matrix is a <em>N</em> by <em>N</em> matrix, where <em>N</em> is the number of cells in the input dataset. It represents similarity between the cells based on the averaging of clustering results from all  combinations of clustering parameters. Similarity 0 (blue) means that the two cells are always assigned to different clusters. In contrast, similarity 1 (red) means that the two cells are always assigned to the same cluster. The consensus matrix is clustered by hierarchical clustering and has a diagonal-block structure. Intuitively, the perfect  clustering is achieved when all diagonal blocks are completely red and all off-diagonal elements are completely blue.
 ```{r, fig.height=6}
-sc3_plot_consensus(treutlein_sceset, k = 3)
+sc3_plot_consensus(sceset, k = 3)
 ```
 
 It is also possible to annotate cells (columns of the consensus matrix) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_consensus(
-    treutlein_sceset, k = 3, 
+    sceset, k = 3, 
     show_pdata = c(
-        "cell_id", 
+        "cell_type1", 
         "log10_total_features",
         "sc3_3_clusters", 
         "sc3_3_log2_outlier_score"
@@ -167,22 +164,22 @@ sc3_plot_consensus(
 
 A silhouette is a quantitative measure of the diagonality of the consensus matrix. An average silhouette width (shown at the bottom left of the silhouette plot) varies from 0 to 1, where 1 represents a perfectly block-diagonal consensus matrix and 0 represents a situation where there is no block-diagonal structure. The best clustering is achieved when the average silhouette width is close to 1.
 ```{r}
-sc3_plot_silhouette(treutlein_sceset, k = 3)
+sc3_plot_silhouette(sceset, k = 3)
 ```
 
 ## Expression Matrix
 
 The expression panel represents the original input expression matrix (cells in columns and genes in rows) after cell and gene filters. Genes are clustered by kmeans with k = 100 (dendrogram on the left) and the heatmap represents the expression levels of the gene cluster centers after log2-scaling.
 ```{r, fig.height=6}
-sc3_plot_expression(treutlein_sceset, k = 3)
+sc3_plot_expression(sceset, k = 3)
 ```
 
 It is also possible to annotate cells (columns of the expression matrix) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_expression(
-    treutlein_sceset, k = 3, 
+    sceset, k = 3, 
     show_pdata = c(
-        "cell_id", 
+        "cell_type1", 
         "log10_total_features",
         "sc3_3_clusters", 
         "sc3_3_log2_outlier_score"
@@ -194,22 +191,22 @@ sc3_plot_expression(
 
 Stability index shows how stable each cluster is accross the selected range of `k`s. The stability index varies between 0 and 1, where 1 means that the same cluster appears in every solution for different `k`.
 ```{r, fig.height=3}
-sc3_plot_cluster_stability(treutlein_sceset, k = 3)
+sc3_plot_cluster_stability(sceset, k = 3)
 ```
 
 ## DE genes
 
 Differential expression is calculated using the non-parametric Kruskal-Wallis test. A significant p-value indicates that gene expression in at least one cluster stochastically dominates one other cluster. SC3 provides a list of all differentially expressed genes with adjusted p-values < 0.01 and plots gene expression profiles of the 50 genes with the lowest p-values. Note that the calculation of differential expression after clustering can introduce a bias in the distribution of p-values, and thus we advise to use the p-values for ranking the genes only.
 ```{r, fig.height=9}
-sc3_plot_de_genes(treutlein_sceset, k = 3)
+sc3_plot_de_genes(sceset, k = 3)
 ```
 
 It is also possible to annotate cells (columns of the matrix containing DE genes) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=9, fig.width=8}
 sc3_plot_de_genes(
-    treutlein_sceset, k = 3, 
+    sceset, k = 3, 
     show_pdata = c(
-        "cell_id", 
+        "cell_type1", 
         "log10_total_features",
         "sc3_3_clusters", 
         "sc3_3_log2_outlier_score"
@@ -221,15 +218,15 @@ sc3_plot_de_genes(
 
 To find marker genes, for each gene a binary classifier is constructed based on the mean cluster expression values. The classifier prediction is then calculated using the gene expression ranks. The area under the receiver operating characteristic (ROC) curve is used to quantify the accuracy of the prediction. A p-value is assigned to each gene by using the Wilcoxon signed rank test. By default the genes with the area under the ROC curve (AUROC) > 0.85 and with the p-value < 0.01 are selected and the top 10 marker genes of each cluster are visualized in this heatmap.
 ```{r, fig.height=6}
-sc3_plot_markers(treutlein_sceset, k = 3)
+sc3_plot_markers(sceset, k = 3)
 ```
 
 It is also possible to annotate cells (columns of the matrix containing marker genes) with any column of the `phenoData` slot of the `SCESet` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_markers(
-    treutlein_sceset, k = 3, 
+    sceset, k = 3, 
     show_pdata = c(
-        "cell_id", 
+        "cell_type1", 
         "log10_total_features",
         "sc3_3_clusters", 
         "sc3_3_log2_outlier_score"
@@ -258,9 +255,9 @@ We start with `sc3_prepare`. This method prepares an object of `SCESet` class fo
 ```{r}
 # Note that n_cores = 1 is required for compilation of this vignette.
 # Please remove this parameter when running on your computer:
-# treutlein_sceset <- sc3_prepare(treutlein_sceset, ks = 2:4)
-treutlein_sceset <- sc3_prepare(treutlein_sceset, ks = 2:4, n_cores = 1)
-str(treutlein_sceset@sc3)
+# sceset <- sc3_prepare(sceset, ks = 2:4)
+sceset <- sc3_prepare(sceset, ks = 2:4, n_cores = 1)
+str(sceset@sc3)
 ```
 
 ## _(optional)_ `sc3_estimate_k`
@@ -269,8 +266,8 @@ When the `SCESet` object is prepared for clustering, `SC3` can also estimate the
 
 * `k_estimation` - contains the estimated value of `k`.
 ```{r}
-treutlein_sceset <- sc3_estimate_k(treutlein_sceset)
-str(treutlein_sceset@sc3)
+sceset <- sc3_estimate_k(sceset)
+str(sceset@sc3)
 ```
 
 ## `sc3_calc_dists`
@@ -279,8 +276,8 @@ Now we are ready to perform the clustering itself. First `SC3` calculates distan
 
 * `distances` - contains a list of distance matrices corresponding to Euclidean, Pearson and Spearman distances.
 ```{r}
-treutlein_sceset <- sc3_calc_dists(treutlein_sceset)
-names(treutlein_sceset@sc3$distances)
+sceset <- sc3_calc_dists(sceset)
+names(sceset@sc3$distances)
 ```
 
 ## `sc3_calc_transfs`
@@ -290,13 +287,13 @@ the `distances` item of the `sc3` slot. It then creates and populates the follow
 
 * `transformations` - contains a list of transformations of the distance matrices corresponding to PCA and graph Laplacian transformations.
 ```{r}
-treutlein_sceset <- sc3_calc_transfs(treutlein_sceset)
-names(treutlein_sceset@sc3$transformations)
+sceset <- sc3_calc_transfs(sceset)
+names(sceset@sc3$transformations)
 ```
 
 It also removes the previously calculated `distances` item from the `sc3` slot:
 ```{r}
-treutlein_sceset@sc3$distances
+sceset@sc3$distances
 ```
 
 ## `sc3_kmeans`
@@ -307,15 +304,15 @@ kmeans should then be performed on the transformed distance matrices contained i
 
 By default the `nstart` parameter passed to `kmeans` defined in `sc3_prepare` method, is set 1000 and written to `kmeans_nstart` item of the `sc3` slot. If the number of cells in the dataset is more than 2,000, this parameter is set to 50. A user can also manually define this parameter by changing the value of the `kmeans_nstart` item of the `sc3` slot.
 ```{r}
-treutlein_sceset <- sc3_kmeans(treutlein_sceset)
-names(treutlein_sceset@sc3$kmeans)
+sceset <- sc3_kmeans(sceset)
+names(sceset@sc3$kmeans)
 ```
 
 ## `sc3_calc_consens`
 
 In this step `SC3` will provide you with a clustering solution. Let's first check that there are no `SC3` related columns in the `phenoData` slot:
 ```{r}
-p_data <- pData(treutlein_sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
@@ -323,19 +320,19 @@ When calculating consensus for each value of `k` `SC3` averages the clustering r
 
 * `consensus` - for each value of `k` it contains: a consensus matrix, an `hclust` object, corresponding to hierarchical clustering of the consensus matrix and the Silhouette indeces of the clusters.
 ```{r}
-treutlein_sceset <- sc3_calc_consens(treutlein_sceset)
-names(treutlein_sceset@sc3$consensus)
-names(treutlein_sceset@sc3$consensus$`3`)
+sceset <- sc3_calc_consens(sceset)
+names(sceset@sc3$consensus)
+names(sceset@sc3$consensus$`3`)
 ```
 
 It also removes the previously calculated `kmeans` item from the `sc3` slot:
 ```{r}
-treutlein_sceset@sc3$kmeans
+sceset@sc3$kmeans
 ```
 
 As mentioned before all the clustering results (cell-related information) are written to the `phenoData` slot of the `SCESet` object:
 ```{r}
-p_data <- pData(treutlein_sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
@@ -345,14 +342,14 @@ We can see that `SC3` calculated clusters for `k = 2, 3` and `4` and wrote them 
 
 `SC3` can also calculates DE genes, marker genes and cell outliers based on the calculated consensus clusterings. Similary to the clustering solutions, method `sc3_calc_biology` writes the results for the cell outliers (cell-related information) to the `phenoData` slot of the `SCESet` object. In contrast, DE and marker genes results (gene-related information) is are written to the `featureData` slot. In addition `biology` item of the `sc3` slot is set to `TRUE`.
 ```{r}
-treutlein_sceset <- sc3_calc_biology(treutlein_sceset)
+sceset <- sc3_calc_biology(sceset)
 ```
 
 ### Cell Outliers
 
 Now we can see that cell outlier scores have been calculated for each value of `k`:
 ```{r}
-p_data <- pData(treutlein_sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
@@ -362,7 +359,7 @@ For more information on how the cell outliers are calculated please see `?get_ou
 
 We can also see that DE and marker genes characteristics (adjusted p-values and area under the ROC curve) have been calculated for each value of `k`
 ```{r}
-f_data <- fData(treutlein_sceset)
+f_data <- fData(sceset)
 head(f_data[ , grep("sc3_", colnames(f_data))])
 ```
 
@@ -376,42 +373,42 @@ The hybrid approach can also be triggered by defining either the `svm_num_cells`
 
 Let us first save the `SC3` results for `k = 3` obtained without using the hybrid approach:
 ```{r}
-no_svm_labels <- pData(treutlein_sceset)$sc3_3_clusters
+no_svm_labels <- pData(sceset)$sc3_3_clusters
 ```
 
 Now let us trigger the hybrid approach by asking for 50 training cells:
 ```{r}
 # Note that n_cores = 1 is required for compilation of this vignette.
 # Please remove this parameter when running on your computer:
-# treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, svm.num.cells = 50)
-treutlein_sceset <- sc3(treutlein_sceset, ks = 2:4, biology = TRUE, svm_num_cells = 50, n_cores = 1)
+# sceset <- sc3(sceset, ks = 2:4, svm.num.cells = 50)
+sceset <- sc3(sceset, ks = 2:4, biology = TRUE, svm_num_cells = 50, n_cores = 1)
 ```
 
 Note that when `SVM` is used all results (including marker genes, DE genes and cell outliers) correspond to the training cells only (50 cells), and values of all other cells are set to `NA`:
 ```{r}
-p_data <- pData(treutlein_sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
 Now we can run the `SVM` and predict labels of all the other cells:
 ```{r, message=FALSE, warning=FALSE}
-treutlein_sceset <- sc3_run_svm(treutlein_sceset)
-p_data <- pData(treutlein_sceset)
+sceset <- sc3_run_svm(sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
 Note that the cell outlier scores (and also DE and marker genes values) were not updated and they still contain `NA` values for non-training cells. To recalculate biological characteristics using the labels predicted by `SVM` one need to clear the `svm_train_inds` item in the `sc3` slot and rerun the `sc3_calc_biology` method:
 ```{r}
-treutlein_sceset@sc3$svm_train_inds <- NULL
-treutlein_sceset <- sc3_calc_biology(treutlein_sceset)
-p_data <- pData(treutlein_sceset)
+sceset@sc3$svm_train_inds <- NULL
+sceset <- sc3_calc_biology(sceset)
+p_data <- pData(sceset)
 head(p_data[ , grep("sc3_", colnames(p_data))])
 ```
 
 Now the biological characteristics are calculated for all cells (including those predicted by the `SVM`)
 
 ```{r}
-svm_labels <- pData(treutlein_sceset)$sc3_3_clusters
+svm_labels <- pData(sceset)$sc3_3_clusters
 ```
 
 Now we can compare the labels using the adjusted rand index (`ARI`):

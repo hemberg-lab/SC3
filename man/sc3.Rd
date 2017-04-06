@@ -9,31 +9,24 @@
 \alias{sc3}
 \title{Run all steps of \code{SC3} in one go}
 \usage{
-sc3.SCESet(object, ks = NULL, exprs_values = "exprs", gene_filter = TRUE,
+sc3.SCESet(object, ks = NULL, gene_filter = TRUE, pct_dropout_min = 10,
+  pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07,
+  svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000,
+  n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09,
+  k_estimator = FALSE, biology = FALSE, rand_seed = 1)
+
+\S4method{sc3}{SCESet}(object, ks = NULL, gene_filter = TRUE,
   pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
   d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
   svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
   kmeans_iter_max = 1e+09, k_estimator = FALSE, biology = FALSE,
   rand_seed = 1)
-
-\S4method{sc3}{SCESet}(object, ks = NULL, exprs_values = "exprs",
-  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
-  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
-  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE,
-  biology = FALSE, rand_seed = 1)
 }
 \arguments{
 \item{object}{an object of \code{SCESet} class.}
 
 \item{ks}{a range of the number of clusters \code{k} used for \code{SC3} clustering.
 Can also be a single integer.}
-
-\item{exprs_values}{character string 
-indicating which values should be used
-as the expression values for \code{SC3} clustering. Valid value is any named element 
-of the \code{assayData} slot of the \code{SCESet}
-object. Default is \code{'exprs'}. See \code{\link[scater]{get_exprs}} function of the \code{scater} package for more details.}
 
 \item{gene_filter}{a boolen variable which defines whether to perform gene 
 filtering before SC3 clustering.}
@@ -84,4 +77,10 @@ an object of \code{SCESet} class
 }
 \description{
 This function is a wrapper that executes all steps of \code{SC3} analysis in one go.
+Please note that by default the "exprs" slot of the input \code{scater} object 
+is used for the SC3 analysis. If the scater object has been created in a standard
+way then the expression values in the "exprs" slot will be automatically log-transformed.
+If you have overwritten the "exprs" slot manually, please make sure that the values
+in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
+assumes that the data is log-transformed by default.
 }
