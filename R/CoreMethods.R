@@ -608,7 +608,7 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object, ks = NULL
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom cluster silhouette
+#' @import cluster
 #' @importFrom stats hclust dist as.dist
 #' @importFrom scater pData<-
 #' @importFrom methods new
