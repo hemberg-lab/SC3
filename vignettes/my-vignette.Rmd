@@ -33,7 +33,7 @@ The basic `scater` data container is an `SCESet` object. `SC3` implements severa
 
 If you already have an `SCESet` object created and QCed using `scater` then proceed to the next chapter.
 
-If you have a matrix containing expression data that was QCed and normalised by some other tool, then we first need to form an `SCESet` object containing the data. For illustrative purposes we will use an example expression matrix provided with `SC3`. This matrix (`treutein`) represents __FPKM__ gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://www.nature.com/nature/journal/v509/n7500/full/nature13173.htm)) had computationally identified 5 clusters in the data. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
+If you have a matrix containing expression data that was QCed and normalised by some other tool, then we first need to form an `SCESet` object containing the data. For illustrative purposes we will use an example expression matrix provided with `SC3`. This matrix (`treutein`) represents __FPKM__ gene expression of 80 cells derived from the distal lung epithelium of mice. The authors ([Treutlein et al.](http://dx.doi.org/10.1038/nature13173)) had computationally identified 5 clusters in the data. The rows in the `treutlein` dataset correspond to genes and columns correspond to cells. Column names correspond to clusters identified by the authors.
 
 ```{r, message=FALSE, warning=FALSE}
 library(scater)
