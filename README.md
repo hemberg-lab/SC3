@@ -1,4 +1,6 @@
 
+<img src=inst/SC3.png style="width: 200px;">
+
 __Q__: What is this?  
 __A__: __SC3__ is a tool for the unsupervised clustering of cells from single cell RNA-Seq experiments. __SC3__ main page is on [BioConductor](http://bioconductor.org/packages/SC3/).
 
