@@ -184,6 +184,8 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
     
     de_genes <- organise_de_genes(object, k, p.val)
     de_genes <- head(de_genes, 50)
+    # remove Inf when the p-value is actually 0 (less than the accuracy limit)
+    de_genes[de_genes < 1e-17] <- 1e-17
     row_ann <- data.frame(log10_padj = -log10(de_genes))
     rownames(row_ann) <- names(de_genes)
     
