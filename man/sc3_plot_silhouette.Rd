@@ -6,13 +6,13 @@
 \alias{sc3_plot_silhouette.SCESet}
 \alias{sc3_plot_silhouette,}
 \alias{sc3_plot_silhouette,SCESet-method}
-\alias{sc3_plot_silhouette,SCESet-method}
+\alias{sc3_plot_silhouette,SC3class-method}
 \alias{sc3_plot_silhouette}
 \title{Plot silhouette indexes of the cells}
 \usage{
 sc3_plot_silhouette.SCESet(object, k)
 
-\S4method{sc3_plot_silhouette}{SCESet}(object, k)
+\S4method{sc3_plot_silhouette}{SC3class}(object, k)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

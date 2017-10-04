@@ -24,7 +24,7 @@ the differences between the square root of the robust distance and the square
 root of the 99.99% quantile of the Chi-squared distribution.
 }
 \examples{
-d <- get_outl_cells(treutlein[1:10,], colnames(treutlein))
+d <- get_outl_cells(yan[1:10,], as.numeric(ann[,1]))
 head(d)
 
 }

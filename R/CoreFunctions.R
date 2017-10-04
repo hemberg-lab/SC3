@@ -1,12 +1,18 @@
-#' Single cell RNA-Seq data extracted from a publication by Treutlein et al.
+#' Single cell RNA-Seq data extracted from a publication by Yan et al.
 #'
-#' @source \url{http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE52583}
+#' @source \url{http://dx.doi.org/10.1038/nsmb.2660}
 #'
-#' Columns represent cells, rows represent genes expression values. Colnames
-#' respresent indexes of cell clusters (known information based on the
-#' experimental protocol). There are 80 cells and 5 clusters in this dataset.
+#' Columns represent cells, rows represent genes expression values.
 #'
-"treutlein"
+"yan"
+
+#' Cell type annotations for data extracted from a publication by Yan et al.
+#'
+#' @source \url{http://dx.doi.org/10.1038/nsmb.2660}
+#'
+#' Each row corresponds to a single cell from `yan` dataset
+#'
+"ann"
 
 #' Calculate a distance matrix
 #'
@@ -168,9 +174,9 @@ estkTW <- function(dataset) {
 }
 
 make_col_ann_for_heatmaps <- function(object, show_pdata) {
-    if (any(!show_pdata %in% colnames(object@phenoData@data))) {
-        show_pdata_excl <- show_pdata[!show_pdata %in% colnames(object@phenoData@data)]
-        show_pdata <- show_pdata[show_pdata %in% colnames(object@phenoData@data)]
+    if (any(!show_pdata %in% colnames(colData(object)))) {
+        show_pdata_excl <- show_pdata[!show_pdata %in% colnames(colData(object))]
+        show_pdata <- show_pdata[show_pdata %in% colnames(colData(object))]
         message(paste0("Provided columns '", paste(show_pdata_excl, collapse = "', '"), "' do not exist in the phenoData table!"))
         if (length(show_pdata) == 0) {
             return(NULL)
@@ -178,9 +184,9 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     }
     ann <- NULL
     if (is.null(object@sc3$svm_train_inds)) {
-        ann <- object@phenoData@data[, colnames(object@phenoData@data) %in% show_pdata]
+        ann <- colData(object)[, colnames(colData(object)) %in% show_pdata]
     } else {
-        ann <- object@phenoData@data[object@sc3$svm_train_inds, colnames(object@phenoData@data) %in% 
+        ann <- colData(object)[object@sc3$svm_train_inds, colnames(colData(object)) %in% 
             show_pdata]
     }
     # remove columns with 1 value only
@@ -230,13 +236,13 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' 
 #' @param object an object of 'SCESet' class
 #' 
-#' @importFrom scater get_exprs
+#' @importFrom SingleCellExperiment logcounts
 #'
 #' @export
 get_processed_dataset <- function(object) {
-    dataset <- scater::get_exprs(object, "exprs")
-    if (!is.null(object@featureData@data$sc3_gene_filter)) {
-        dataset <- dataset[object@featureData@data$sc3_gene_filter, ]
+    dataset <- logcounts(object)
+    if (!is.null(rowData(object)$sc3_gene_filter)) {
+        dataset <- dataset[rowData(object)$sc3_gene_filter, ]
     }
     return(dataset)
 }

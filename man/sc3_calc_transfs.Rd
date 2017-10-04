@@ -6,13 +6,13 @@
 \alias{sc3_calc_transfs.SCESet}
 \alias{sc3_calc_transfs,}
 \alias{sc3_calc_transfs,SCESet-method}
-\alias{sc3_calc_transfs,SCESet-method}
+\alias{sc3_calc_transfs,SC3class-method}
 \alias{sc3_calc_transfs}
 \title{Calculate transformations of the distance matrices.}
 \usage{
 sc3_calc_transfs.SCESet(object)
 
-\S4method{sc3_calc_transfs}{SCESet}(object)
+\S4method{sc3_calc_transfs}{SC3class}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

@@ -5,17 +5,15 @@
 \alias{sc3_prepare}
 \alias{sc3_prepare.SCESet}
 \alias{sc3_prepare,SCESet-method}
-\alias{sc3_prepare,SCESet-method}
+\alias{sc3_prepare,SC3class-method}
 \alias{sc3_prepare}
 \title{Prepare the \code{SCESet} object for \code{SC3} clustering.}
 \usage{
-sc3_prepare.SCESet(object, ks = NULL, gene_filter = TRUE,
-  pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
-  d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
-  svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
-  kmeans_iter_max = 1e+09, rand_seed = 1)
+sc3_prepare.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
+  d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores,
+  kmeans_nstart, kmeans_iter_max, rand_seed)
 
-\S4method{sc3_prepare}{SCESet}(object, ks = NULL, gene_filter = TRUE,
+\S4method{sc3_prepare}{SC3class}(object, ks = NULL, gene_filter = TRUE,
   pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
   d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
   svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
@@ -63,8 +61,6 @@ function. Default is \code{1e+09}.}
 \item{rand_seed}{sets the seed of the random number generator. \code{SC3} is a stochastic
 method, so setting the \code{rand_seed} to a fixed values can be used for reproducibility
 purposes.}
-
-\item{...}{further arguments passed to \code{\link{sc3_prepare.SCESet}}}
 }
 \value{
 an object of 'SCESet' class

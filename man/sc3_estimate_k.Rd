@@ -5,13 +5,13 @@
 \alias{sc3_estimate_k}
 \alias{sc3_estimate_k.SCESet}
 \alias{sc3_estimate_k,SCESet-method}
-\alias{sc3_estimate_k,SCESet-method}
+\alias{sc3_estimate_k,SC3class-method}
 \alias{sc3_estimate_k}
 \title{Estimate the optimal k for k-means clustering}
 \usage{
 sc3_estimate_k.SCESet(object)
 
-\S4method{sc3_estimate_k}{SCESet}(object)
+\S4method{sc3_estimate_k}{SC3class}(object)
 }
 \arguments{
 \item{object}{an object of \code{SCESet} class}

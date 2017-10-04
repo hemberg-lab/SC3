@@ -1,51 +1,56 @@
-23/11/2016
+SC3 News
 
-Version 1.3.7:
-* RSelenium functionality is removed due to no further support
-* All results (clustering and biology) are now written to phenoData and 
-featureData slots of the input 'SCESet' object
-* 'Labels' and 'Cell Outliers' tabs in the interactive shiny session are removed,
-because these data can now be visualized on the other heatmaps
+SC3 1.5.3 (Release date: 2017-10-04):
+    
+    * `scater` now works based on `SingleCellExperiment` class
+    * Create `SC3class` class which is inherited from `SingleCellExperiment` class,
+    but additionally contains an `sc3` slot
+    * `scater` class is completely deprecated from `SC3`
+    * All `scater` functionality can work on `SC3class` class
+    * Clustering logic hasn't been changed at all
 
-14/09/2016
+SC3 1.3.7 (Release date: 2016-11-23):
+    
+    * RSelenium functionality is removed due to no further support
+    * All results (clustering and biology) are now written to phenoData and 
+    featureData slots of the input 'SCESet' object
+    * 'Labels' and 'Cell Outliers' tabs in the interactive shiny session are removed,
+    because these data can now be visualized on the other heatmaps
 
-Version 1.1.7:
-* Added integration with scater package
-* Added full non-interactive support
+SC3 1.1.7 (Release date: 2016-09-14):
 
-04/08/2016
+    * Added integration with `scater` package
+    * Added full non-interactive support
 
-Version 1.1.6:
-* Optimised distance and consensus calculations using Rccp
-* Optimised some other bits and pieces
-* SC3 is now up to 2 times faster for 1000 cells datasets
+SC3 1.1.6 (Release date: 2016-08-04):
 
-28/06/2016
+    * Optimised distance and consensus calculations using Rccp
+    * Optimised some other bits and pieces
+    * `SC3` is now up to 2 times faster for 1000 cells datasets
 
-Version 1.1.5:
-* Added svm.train.inds parameter - it allows a user to train SVM on a 
-selected subset of cells
+SC3 1.1.5 (Release date: 2016-06-28):
 
-15/04/2016
+    * Added svm.train.inds parameter - it allows a user to train SVM on a 
+    selected subset of cells
 
-The latest version 0.99.37 contains the following updates
-* tSNE panel is added to the interactive session
-* additional table has been added to the output - it contains original and new
-cell labels in the order corresponding to the order of cells in the input
-expression matrix
-* three functions corresponding to biological interpretation are now exported
-and can be used manually: get_de_genes, get_marker_genes, get_outl_cells. See
-their documentation for more details
-* several bugs have been fixed
+SC3 0.99.37 (Release date: 2016-04-15):
 
-01/03/2016
+    * tSNE panel is added to the interactive session
+    * additional table has been added to the output - it contains original and new
+    cell labels in the order corresponding to the order of cells in the input
+    expression matrix
+    * three functions corresponding to biological interpretation are now exported
+    and can be used manually: get_de_genes, get_marker_genes, get_outl_cells. See
+    their documentation for more details
+    * several bugs have been fixed
 
-The latest version 0.99.23 contains the following major updates
-* Major redesign
-* Added description panels
-* Fixed a bug with RSelenium
-* Added a proper Excel export using WriteXLS library
+SC3 0.99.23 (Release date: 2016-03-01):
 
-10/12/2015
+    * Major redesign
+    * Added description panels
+    * Fixed a bug with RSelenium
+    * Added a proper Excel export using WriteXLS library
 
-The first version 0.99.0 is submitted to Bioconductor
+SC3 0.99.0 (Release date: 2015-12-10):
+
+    * The first version 0.99.0 is submitted to Bioconductor

@@ -41,15 +41,12 @@
 #' purposes.
 #' 
 #' @name sc3
-#' @aliases sc3 sc3,SCESet-method
+#' @aliases sc3
 #' 
 #' @return an object of \code{SCESet} class
-#' 
-#' @export
-sc3.SCESet <- function(object, ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, 
-    pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, 
-    svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, k_estimator = FALSE, 
-    biology = FALSE, rand_seed = 1) {
+sc3.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
+                       d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
+                       k_estimator, biology, rand_seed) {
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
@@ -71,18 +68,9 @@ sc3.SCESet <- function(object, ks = NULL, gene_filter = TRUE, pct_dropout_min = 
 }
 
 #' @rdname sc3
-#' @param ... further arguments passed to \code{\link{sc3.SCESet}}
 #' @aliases sc3
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL, 
-    gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, 
-    svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, 
-    kmeans_iter_max = 1e+09, k_estimator = FALSE, biology = FALSE, rand_seed = 1) {
-    sc3.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
-        d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
-        k_estimator, biology, rand_seed)
-})
+#' @include SC3class.R
+setMethod("sc3", signature(object = "SC3class"), sc3.SCESet)
 
 #' Prepare the \code{SCESet} object for \code{SC3} clustering.
 #' 
@@ -143,48 +131,36 @@ setMethod("sc3", signature(object = "SCESet"), function(object, ks = NULL,
 #' @return an object of 'SCESet' class
 #' 
 #' @importFrom parallel detectCores
-#' @importFrom scater fData<- pData<- get_exprs
+#' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
+#' @importFrom SingleCellExperiment logcounts
 #' @importFrom utils capture.output
 #' @importFrom methods new
-#' 
-#' @export
-sc3_prepare.SCESet <- function(object, ks = NULL, gene_filter = TRUE, 
-    pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL, 
-    svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL, kmeans_iter_max = 1e+09, 
-    rand_seed = 1) {
+sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+                               d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
+                               kmeans_iter_max, rand_seed) {
     
     message("Setting SC3 parameters...")
     
     # clean up after the previous SC3 run sc3 slot
     object@sc3 <- list()
-    # phenoData
-    p_data <- object@phenoData@data
-    p_data <- p_data[, !grepl("sc3_", colnames(p_data))]
-    pData(object) <- new("AnnotatedDataFrame", data = p_data)
-    # featureData
-    f_data <- object@featureData@data
-    f_data <- f_data[, !grepl("sc3_", colnames(f_data))]
-    fData(object) <- new("AnnotatedDataFrame", data = f_data)
+    colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object)))]
+    rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object)))]
     
-    dataset <- scater::get_exprs(object, "exprs")
+    dataset <- logcounts(object)
+    
+    dropouts <- rowSums(dataset == 0)/ncol(dataset)*100
     
     # gene filter
-    f_data <- object@featureData@data
+    f_data <- rowData(object)
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
-        if (!is.null(f_data$pct_dropout)) {
-            f_data$sc3_gene_filter <- f_data$pct_dropout < pct_dropout_max & f_data$pct_dropout > 
-                pct_dropout_min
+            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min
             if (all(!f_data$sc3_gene_filter)) {
-                message("All genes were removed after the gene filter! Stopping now...")
+                stop("All genes were removed after the gene filter! Stopping now...")
                 return(object)
             }
-        } else {
-            warning(paste0("Gene filter can not be calculated, please run calculateQCMetrics() first!"))
-            return(object)
-        }
     }
-    fData(object) <- new("AnnotatedDataFrame", data = f_data)
+    rowData(object) <- f_data
     
     object@sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
@@ -279,17 +255,8 @@ sc3_prepare.SCESet <- function(object, ks = NULL, gene_filter = TRUE,
 
 #' @rdname sc3_prepare
 #' @aliases sc3_prepare
-#' @param ... further arguments passed to \code{\link{sc3_prepare.SCESet}}
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_prepare", signature(object = "SCESet"), function(object,
-    ks = NULL, gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04, 
-    d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL, svm_max = 5000, n_cores = NULL, 
-    kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1) {
-    sc3_prepare.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
-        d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
-        kmeans_iter_max, rand_seed)
-})
+#' @include SC3class.R
+setMethod("sc3_prepare", signature(object = "SC3class"), sc3_prepare.SCESet)
 
 #' Estimate the optimal k for k-means clustering
 #' 
@@ -311,8 +278,6 @@ setMethod("sc3_prepare", signature(object = "SCESet"), function(object,
 #' 
 #' @param object an object of \code{SCESet} class
 #' @return an estimated value of k
-#' 
-#' @export
 sc3_estimate_k.SCESet <- function(object) {
     message("Estimating k...")
     dataset <- get_processed_dataset(object)
@@ -327,11 +292,8 @@ sc3_estimate_k.SCESet <- function(object) {
 
 #' @rdname sc3_estimate_k
 #' @aliases sc3_estimate_k
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
-    sc3_estimate_k.SCESet(object)
-})
+#' @include SC3class.R
+setMethod("sc3_estimate_k", signature(object = "SC3class"), sc3_estimate_k.SCESet)
 
 #' Calculate distances between the cells.
 #' 
@@ -360,8 +322,6 @@ setMethod("sc3_estimate_k", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach %dopar%
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' 
-#' @export
 sc3_calc_dists.SCESet <- function(object) {
     dataset <- get_processed_dataset(object)
     if (is.null(dataset)) {
@@ -408,11 +368,8 @@ sc3_calc_dists.SCESet <- function(object) {
 
 #' @rdname sc3_calc_dists
 #' @aliases sc3_calc_dists
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
-    sc3_calc_dists.SCESet(object)
-})
+#' @include SC3class.R
+setMethod("sc3_calc_dists", signature(object = "SC3class"), sc3_calc_dists.SCESet)
 
 #' Calculate transformations of the distance matrices.
 #' 
@@ -437,8 +394,6 @@ setMethod("sc3_calc_dists", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' 
-#' @export
 sc3_calc_transfs.SCESet <- function(object) {
     dists <- object@sc3$distances
     if (is.null(dists)) {
@@ -488,11 +443,8 @@ sc3_calc_transfs.SCESet <- function(object) {
 
 #' @rdname sc3_calc_transfs
 #' @aliases sc3_calc_transfs
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
-    sc3_calc_transfs.SCESet(object)
-})
+#' @include SC3class.R
+setMethod("sc3_calc_transfs", signature(object = "SC3class"), sc3_calc_transfs.SCESet)
 
 #' \code{kmeans} clustering of cells.
 #' 
@@ -520,9 +472,7 @@ setMethod("sc3_calc_transfs", signature(object = "SCESet"), function(object) {
 #' @importFrom doParallel registerDoParallel
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom stats kmeans
-#' 
-#' @export
-sc3_kmeans.SCESet <- function(object, ks = NULL) {
+sc3_kmeans.SCESet <- function(object, ks) {
     transfs <- object@sc3$transformations
     if (is.null(transfs)) {
         warning(paste0("Please run sc3_calc_transfs() first!"))
@@ -575,12 +525,8 @@ sc3_kmeans.SCESet <- function(object, ks = NULL) {
 
 #' @rdname sc3_kmeans
 #' @aliases sc3_kmeans
-#' @param ... further arguments passed to \code{\link{sc3_kmeans.SCESet}}
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_kmeans", signature(object = "SCESet"), function(object, ks = NULL) {
-    sc3_kmeans.SCESet(object, ks)
-})
+#' @include SC3class.R
+setMethod("sc3_kmeans", signature(object = "SC3class"), sc3_kmeans.SCESet)
 
 #' Calculate consensus matrix.
 #' 
@@ -610,13 +556,9 @@ setMethod("sc3_kmeans", signature(object = "SCESet"), function(object, ks = NULL
 #' @importFrom doParallel registerDoParallel
 #' @import cluster
 #' @importFrom stats hclust dist as.dist
-#' @importFrom scater pData<-
-#' @importFrom methods new
 #' 
 #' @useDynLib SC3
-#' @importFrom Rcpp sourceCpp
-#' 
-#' @export
+#' @import Rcpp
 sc3_calc_consens.SCESet <- function(object) {
     k.means <- object@sc3$kmeans
     if (is.null(k.means)) {
@@ -672,7 +614,7 @@ sc3_calc_consens.SCESet <- function(object) {
     # remove kmeans results after calculating consensus
     object@sc3$kmeans <- NULL
     
-    p_data <- object@phenoData@data
+    p_data <- colData(object)
     for (k in ks) {
         hc <- object@sc3$consensus[[as.character(k)]]$hc
         clusts <- reindex_clusters(hc, k)
@@ -684,18 +626,15 @@ sc3_calc_consens.SCESet <- function(object) {
         }
         p_data[, paste0("sc3_", k, "_clusters")] <- clusts
     }
-    pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    colData(object) <- p_data
     
     return(object)
 }
 
 #' @rdname sc3_calc_consens
 #' @aliases sc3_calc_consens
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
-    sc3_calc_consens.SCESet(object)
-})
+#' @include SC3class.R
+setMethod("sc3_calc_consens", signature(object = "SC3class"), sc3_calc_consens.SCESet)
 
 
 #' Calculate DE genes, marker genes and cell outliers.
@@ -745,10 +684,7 @@ setMethod("sc3_calc_consens", signature(object = "SCESet"), function(object) {
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
-#' @importFrom methods new
-#' 
-#' @export
-sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
+sc3_calc_biology.SCESet <- function(object, ks, regime) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -773,7 +709,7 @@ sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
     hash.table <- expand.grid(ks = ks, regime = regime, stringsAsFactors = FALSE)
     
     dataset <- get_processed_dataset(object)
-    p_data <- object@phenoData@data
+    p_data <- colData(object)
     clusts <- as.data.frame(p_data[, grep("sc3_.*_clusters", colnames(p_data))])
     colnames(clusts) <- colnames(p_data)[grep("sc3_.*_clusters", colnames(p_data))]
     rownames(clusts) <- rownames(p_data)
@@ -806,8 +742,8 @@ sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
     
     names(biol) <- paste(hash.table$ks, hash.table$regime, sep = "_")
     
-    f_data <- object@featureData@data
-    p_data <- object@phenoData@data
+    f_data <- rowData(object)
+    p_data <- colData(object)
     for (b in names(biol)) {
         k <- strsplit(b, "_")[[1]][1]
         regime <- strsplit(b, "_")[[1]][2]
@@ -840,8 +776,8 @@ sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
             p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
         }
     }
-    fData(object) <- new("AnnotatedDataFrame", data = f_data)
-    pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    rowData(object) <- f_data
+    colData(object) <- p_data
     
     object@sc3$biology <- TRUE
     
@@ -850,13 +786,8 @@ sc3_calc_biology.SCESet <- function(object, ks = NULL, regime = NULL) {
 
 #' @rdname sc3_calc_biology
 #' @aliases sc3_calc_biology
-#' @param ... further arguments passed to \code{\link{sc3_calc_biology.SCESet}}
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object, ks = NULL, regime = NULL) {
-    sc3_calc_biology.SCESet(object, ks, regime)
-})
-
+#' @include SC3class.R
+setMethod("sc3_calc_biology", signature(object = "SC3class"), sc3_calc_biology.SCESet)
 
 #' Run the hybrid \code{SVM} approach.
 #' 
@@ -875,11 +806,8 @@ setMethod("sc3_calc_biology", signature(object = "SCESet"), function(object, ks 
 #' 
 #' @param object an object of 'SCESet' class
 #' 
-#' @importFrom methods new
 #' 
 #' @return an object of 'SCESet' class
-#' 
-#' @export
 sc3_run_svm.SCESet <- function(object) {
     if (is.null(object@sc3$svm_train_inds)) {
         warning(paste0("Please rerun sc3_prepare() defining the training cells!"))
@@ -888,7 +816,7 @@ sc3_run_svm.SCESet <- function(object) {
     
     dataset <- get_processed_dataset(object)
     ks <- object@sc3$ks
-    p_data <- object@phenoData@data
+    p_data <- colData(object)
     svm_train_inds <- object@sc3$svm_train_inds
     svm_study_inds <- object@sc3$svm_study_inds
     
@@ -905,17 +833,14 @@ sc3_run_svm.SCESet <- function(object) {
         
         p_data[, paste0("sc3_", k, "_clusters")] <- svm.labs[ord]
     }
-    pData(object) <- new("AnnotatedDataFrame", data = p_data)
+    colData(object) <- p_data
     return(object)
 }
 
 #' @rdname sc3_run_svm
 #' @aliases sc3_run_svm
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_run_svm", signature(object = "SCESet"), function(object) {
-    sc3_run_svm.SCESet(object)
-})
+#' @include SC3class.R
+setMethod("sc3_run_svm", signature(object = "SC3class"), sc3_run_svm.SCESet)
 
 #' Write \code{SC3} results to Excel file
 #' 
@@ -925,19 +850,17 @@ setMethod("sc3_run_svm", signature(object = "SCESet"), function(object) {
 #' @param filename name of the excel file, to which the results will be written
 #' 
 #' @name sc3_export_results_xls
-#' @aliases sc3_export_results_xls, sc3_export_results_xls,SCESet-method
+#' @aliases sc3_export_results_xls
 #' 
 #' @importFrom WriteXLS WriteXLS
-#' 
-#' @export
-sc3_export_results_xls.SCESet <- function(object, filename = "sc3_results.xls") {
+sc3_export_results_xls.SCESet <- function(object, filename) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
     
-    p_data <- object@phenoData@data
-    f_data <- object@featureData@data
+    p_data <- colData(object)
+    f_data <- rowData(object)
     
     res <- list()
     
@@ -968,8 +891,5 @@ sc3_export_results_xls.SCESet <- function(object, filename = "sc3_results.xls") 
 
 #' @rdname sc3_export_results_xls
 #' @aliases sc3_export_results_xls
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_export_results_xls", signature(object = "SCESet"), function(object, filename = "sc3_results.xls") {
-    sc3_export_results_xls.SCESet(object, filename)
-})
+#' @include SC3class.R
+setMethod("sc3_export_results_xls", signature(object = "SC3class"), sc3_export_results_xls.SCESet)

@@ -24,7 +24,7 @@ distribution of \code{p-value}s, and thus we advise to use the \code{p-value}s
 for ranking the genes only.
 }
 \examples{
-d <- get_de_genes(treutlein[1:10, ], colnames(treutlein))
+d <- get_de_genes(yan[1:10,], as.numeric(ann[,1]))
 head(d)
 
 }

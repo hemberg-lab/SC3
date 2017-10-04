@@ -14,8 +14,6 @@
 #' @importFrom utils head
 #' @importFrom stats median
 #' @importFrom graphics plot
-#' @export
-#'
 sc3_interactive.SCESet <- function(object) {
     consensus <- object@sc3$consensus
     if (is.null(consensus)) {
@@ -47,7 +45,7 @@ sc3_interactive.SCESet <- function(object) {
     }
     
     pdata <- colnames(make_col_ann_for_heatmaps(object, 
-                                                colnames(object@phenoData@data)))
+                                                colnames(colData(object))))
     
     shinyApp(
         ui = fluidPage(
@@ -501,9 +499,5 @@ sc3_interactive.SCESet <- function(object) {
 
 #' @rdname sc3_interactive
 #' @aliases sc3_interactive
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_interactive", signature(object = "SCESet"),
-          function(object) {
-              sc3_interactive.SCESet(object)
-          })
+#' @include SC3class.R
+setMethod("sc3_interactive", signature(object = "SC3class"), sc3_interactive.SCESet)

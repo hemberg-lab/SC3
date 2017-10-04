@@ -21,9 +21,7 @@
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-#' 
-#' @export
-sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
+sc3_plot_consensus.SCESet <- function(object, k, show_pdata) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -47,11 +45,8 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata = NULL) {
 
 #' @rdname sc3_plot_consensus
 #' @aliases sc3_plot_consensus
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k, show_pdata = NULL) {
-    sc3_plot_consensus.SCESet(object, k, show_pdata)
-})
+#' @include SC3class.R
+setMethod("sc3_plot_consensus", signature(object = "SC3class"), sc3_plot_consensus.SCESet)
 
 #' Plot silhouette indexes of the cells
 #' 
@@ -67,8 +62,6 @@ setMethod("sc3_plot_consensus", signature(object = "SCESet"), function(object, k
 #' 
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
-#' 
-#' @export
 sc3_plot_silhouette.SCESet <- function(object, k) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
@@ -80,11 +73,8 @@ sc3_plot_silhouette.SCESet <- function(object, k) {
 
 #' @rdname sc3_plot_silhouette
 #' @aliases sc3_plot_silhouette
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, k) {
-    sc3_plot_silhouette.SCESet(object, k)
-})
+#' @include SC3class.R
+setMethod("sc3_plot_silhouette", signature(object = "SC3class"), sc3_plot_silhouette.SCESet)
 
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
@@ -103,9 +93,7 @@ setMethod("sc3_plot_silhouette", signature(object = "SCESet"), function(object, 
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-#' 
-#' @export
-sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
+sc3_plot_expression.SCESet <- function(object, k, show_pdata) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -138,11 +126,8 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata = NULL) {
 
 #' @rdname sc3_plot_expression
 #' @aliases sc3_plot_expression
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, k, show_pdata = NULL) {
-    sc3_plot_expression.SCESet(object, k, show_pdata)
-})
+#' @include SC3class.R
+setMethod("sc3_plot_expression", signature(object = "SC3class"), sc3_plot_expression.SCESet)
 
 #' Plot expression of DE genes of the clusters identified by \code{SC3} as a heatmap
 #' 
@@ -158,9 +143,7 @@ setMethod("sc3_plot_expression", signature(object = "SCESet"), function(object, 
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-#' 
-#' @export
-sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL) {
+sc3_plot_de_genes.SCESet <- function(object, k, p.val, show_pdata) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -196,13 +179,8 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val = 0.01, show_pdata = NULL)
 
 #' @rdname sc3_plot_de_genes
 #' @aliases sc3_plot_de_genes
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k, p.val = 0.01, 
-    show_pdata = NULL) {
-    sc3_plot_de_genes.SCESet(object, k, p.val, show_pdata)
-})
-
+#' @include SC3class.R
+setMethod("sc3_plot_de_genes", signature(object = "SC3class"), sc3_plot_de_genes.SCESet)
 
 #' Plot expression of marker genes identified by \code{SC3} as a heatmap.
 #' 
@@ -221,9 +199,7 @@ setMethod("sc3_plot_de_genes", signature(object = "SCESet"), function(object, k,
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-#' 
-#' @export
-sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_pdata = NULL) {
+sc3_plot_markers.SCESet <- function(object, k, auroc, p.val, show_pdata) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -251,21 +227,17 @@ sc3_plot_markers.SCESet <- function(object, k, auroc = 0.85, p.val = 0.01, show_
     markers <- markers_for_heatmap(markers)
     
     row.ann <- data.frame(Cluster = factor(markers[, 1], levels = unique(markers[, 1])))
-    rownames(row.ann) <- rownames(markers)
+    rownames(row.ann) <- markers$feature_symbol
     
-    do.call(pheatmap::pheatmap, c(list(dataset[rownames(markers), , drop = FALSE], show_colnames = FALSE, 
+    do.call(pheatmap::pheatmap, c(list(dataset[markers$feature_symbol, , drop = FALSE], show_colnames = FALSE, 
         cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row.ann, annotation_names_row = FALSE, 
         gaps_row = which(diff(markers[, 1]) != 0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
 }
 
 #' @rdname sc3_plot_markers
 #' @aliases sc3_plot_markers
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, auroc = 0.85, 
-    p.val = 0.01, show_pdata = NULL) {
-    sc3_plot_markers.SCESet(object, k, auroc, p.val, show_pdata)
-})
+#' @include SC3class.R
+setMethod("sc3_plot_markers", signature(object = "SC3class"), sc3_plot_markers.SCESet)
 
 #' Plot stability of the clusters
 #' 
@@ -280,8 +252,6 @@ setMethod("sc3_plot_markers", signature(object = "SCESet"), function(object, k, 
 #' @param k number of clusters
 #' 
 #' @importFrom ggplot2 ggplot aes geom_bar theme_bw labs ylim
-#' 
-#' @export
 sc3_plot_cluster_stability.SCESet <- function(object, k) {
     if (is.null(object@sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
@@ -298,8 +268,5 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
 
 #' @rdname sc3_plot_cluster_stability
 #' @aliases sc3_plot_cluster_stability
-#' @importClassesFrom scater SCESet
-#' @export
-setMethod("sc3_plot_cluster_stability", signature(object = "SCESet"), function(object, k) {
-    sc3_plot_cluster_stability.SCESet(object, k)
-})
+#' @include SC3class.R
+setMethod("sc3_plot_cluster_stability", signature(object = "SC3class"), sc3_plot_cluster_stability.SCESet)

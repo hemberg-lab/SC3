@@ -72,7 +72,7 @@ get_biolgy <- function(dataset, labels, regime) {
 #' @return a numeric vector containing the cell labels and 
 #' correspoding outlier scores ordered by the labels
 #' @examples
-#' d <- get_outl_cells(treutlein[1:10,], colnames(treutlein))
+#' d <- get_outl_cells(yan[1:10,], as.numeric(ann[,1]))
 #' head(d)
 #' 
 #' @importFrom robustbase covMcd
@@ -174,7 +174,7 @@ get_auroc <- function(gene, labels) {
 #' and adjusted \code{p-value}s
 #' @importFrom stats p.adjust
 #' @examples
-#' d <- get_marker_genes(treutlein[1:10,], colnames(treutlein))
+#' d <- get_marker_genes(yan[1:10,], as.numeric(ann[,1]))
 #' d
 #' 
 #' @export
@@ -199,8 +199,8 @@ get_marker_genes <- function(dataset, labels) {
 #' @param auroc area under the ROC curve threshold
 #'
 organise_marker_genes <- function(object, k, p_val, auroc) {
-    dat <- object@featureData@data[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
-        "_markers_auroc"), paste0("sc3_", k, "_markers_padj"))]
+    dat <- rowData(object)[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
+        "_markers_auroc"), paste0("sc3_", k, "_markers_padj"), "feature_symbol")]
     dat <- dat[dat[, paste0("sc3_", k, "_markers_padj")] < p_val & !is.na(dat[, paste0("sc3_", 
         k, "_markers_padj")]), ]
     dat <- dat[dat[, paste0("sc3_", k, "_markers_auroc")] > auroc, ]
@@ -252,7 +252,7 @@ markers_for_heatmap <- function(markers) {
 #' @return a numeric vector containing the differentially expressed genes and 
 #' correspoding p-values
 #' @examples
-#' d <- get_de_genes(treutlein[1:10, ], colnames(treutlein))
+#' d <- get_de_genes(yan[1:10,], as.numeric(ann[,1]))
 #' head(d)
 #' 
 #' @importFrom stats kruskal.test p.adjust
@@ -277,8 +277,8 @@ get_de_genes <- function(dataset, labels) {
 #' @param p_val p-value threshold
 #' 
 organise_de_genes <- function(object, k, p_val) {
-    de_genes <- object@featureData@data[, paste0("sc3_", k, "_de_padj")]
-    names(de_genes) <- rownames(object@featureData@data)
+    de_genes <- rowData(object)[, paste0("sc3_", k, "_de_padj")]
+    names(de_genes) <- rowData(object)$feature_symbol
     de_genes <- de_genes[!is.na(de_genes)]
     de_genes <- de_genes[de_genes < p_val]
     de_genes <- de_genes[order(de_genes)]

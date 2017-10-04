@@ -20,7 +20,7 @@ Find marker genes in the dataset. The \code{\link{get_auroc}} is used to calcula
 marker values for each gene.
 }
 \examples{
-d <- get_marker_genes(treutlein[1:10,], colnames(treutlein))
+d <- get_marker_genes(yan[1:10,], as.numeric(ann[,1]))
 d
 
 }

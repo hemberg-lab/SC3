@@ -6,13 +6,13 @@
 \alias{sc3_run_svm.SCESet}
 \alias{sc3_run_svm,}
 \alias{sc3_run_svm,SCESet-method}
-\alias{sc3_run_svm,SCESet-method}
+\alias{sc3_run_svm,SC3class-method}
 \alias{sc3_run_svm}
 \title{Run the hybrid \code{SVM} approach.}
 \usage{
 sc3_run_svm.SCESet(object)
 
-\S4method{sc3_run_svm}{SCESet}(object)
+\S4method{sc3_run_svm}{SC3class}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

@@ -4,15 +4,13 @@
 \name{sc3_export_results_xls}
 \alias{sc3_export_results_xls}
 \alias{sc3_export_results_xls.SCESet}
-\alias{sc3_export_results_xls,}
-\alias{sc3_export_results_xls,SCESet-method}
-\alias{sc3_export_results_xls,SCESet-method}
+\alias{sc3_export_results_xls,SC3class-method}
 \alias{sc3_export_results_xls}
 \title{Write \code{SC3} results to Excel file}
 \usage{
-sc3_export_results_xls.SCESet(object, filename = "sc3_results.xls")
+sc3_export_results_xls.SCESet(object, filename)
 
-\S4method{sc3_export_results_xls}{SCESet}(object,
+\S4method{sc3_export_results_xls}{SC3class}(object,
   filename = "sc3_results.xls")
 }
 \arguments{
