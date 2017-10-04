@@ -7,7 +7,7 @@
 #' 
 #' @param x A numeric matrix.
 ED1 <- function(x) {
-    .Call('SC3_ED1', PACKAGE = 'SC3', x)
+    .Call('_SC3_ED1', PACKAGE = 'SC3', x)
 }
 
 #' Compute Euclidean distance matrix by columns
@@ -17,7 +17,7 @@ ED1 <- function(x) {
 #' 
 #' @param x A numeric matrix.
 ED2 <- function(x) {
-    .Call('SC3_ED2', PACKAGE = 'SC3', x)
+    .Call('_SC3_ED2', PACKAGE = 'SC3', x)
 }
 
 #' Consensus matrix computation
@@ -26,7 +26,7 @@ ED2 <- function(x) {
 #' 
 #' @param dat a matrix containing clustering solutions in columns
 consmx <- function(dat) {
-    .Call('SC3_consmx', PACKAGE = 'SC3', dat)
+    .Call('_SC3_consmx', PACKAGE = 'SC3', dat)
 }
 
 #' Graph Laplacian calculation
@@ -36,7 +36,7 @@ consmx <- function(dat) {
 #' @param A symmetric matrix
 #' @export
 norm_laplacian <- function(A) {
-    .Call('SC3_norm_laplacian', PACKAGE = 'SC3', A)
+    .Call('_SC3_norm_laplacian', PACKAGE = 'SC3', A)
 }
 
 #' Matrix left-multiplied by its transpose
@@ -45,6 +45,6 @@ norm_laplacian <- function(A) {
 #' 
 #' @param x Numeric matrix.
 tmult <- function(x) {
-    .Call('SC3_tmult', PACKAGE = 'SC3', x)
+    .Call('_SC3_tmult', PACKAGE = 'SC3', x)
 }
 
