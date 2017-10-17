@@ -143,8 +143,8 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
     
     # clean up after the previous SC3 run sc3 slot
     object@sc3 <- list()
-    colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object)))]
-    rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object)))]
+    colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object))), drop = FALSE]
+    rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object))), drop = FALSE]
     
     dataset <- logcounts(object)
     
