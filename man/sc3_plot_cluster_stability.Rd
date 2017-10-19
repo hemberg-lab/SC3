@@ -6,13 +6,13 @@
 \alias{sc3_plot_cluster_stability.SCESet}
 \alias{sc3_plot_cluster_stability,}
 \alias{sc3_plot_cluster_stability,SCESet-method}
-\alias{sc3_plot_cluster_stability,SC3class-method}
+\alias{sc3_plot_cluster_stability,SingleCellExperiment-method}
 \alias{sc3_plot_cluster_stability}
 \title{Plot stability of the clusters}
 \usage{
 sc3_plot_cluster_stability.SCESet(object, k)
 
-\S4method{sc3_plot_cluster_stability}{SC3class}(object, k)
+\S4method{sc3_plot_cluster_stability}{SingleCellExperiment}(object, k)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

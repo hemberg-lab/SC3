@@ -6,13 +6,14 @@
 \alias{sc3_calc_biology.SCESet}
 \alias{sc3_calc_biology,}
 \alias{sc3_calc_biology,SCESet-method}
-\alias{sc3_calc_biology,SC3class-method}
+\alias{sc3_calc_biology,SingleCellExperiment-method}
 \alias{sc3_calc_biology}
 \title{Calculate DE genes, marker genes and cell outliers.}
 \usage{
 sc3_calc_biology.SCESet(object, ks, regime)
 
-\S4method{sc3_calc_biology}{SC3class}(object, ks = NULL, regime = NULL)
+\S4method{sc3_calc_biology}{SingleCellExperiment}(object, ks = NULL,
+  regime = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

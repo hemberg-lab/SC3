@@ -6,13 +6,13 @@
 \alias{sc3_calc_consens.SCESet}
 \alias{sc3_calc_consens,}
 \alias{sc3_calc_consens,SCESet-method}
-\alias{sc3_calc_consens,SC3class-method}
+\alias{sc3_calc_consens,SingleCellExperiment-method}
 \alias{sc3_calc_consens}
 \title{Calculate consensus matrix.}
 \usage{
 sc3_calc_consens.SCESet(object)
 
-\S4method{sc3_calc_consens}{SC3class}(object)
+\S4method{sc3_calc_consens}{SingleCellExperiment}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

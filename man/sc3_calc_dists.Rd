@@ -6,13 +6,13 @@
 \alias{sc3_calc_dists.SCESet}
 \alias{sc3_calc_dists,}
 \alias{sc3_calc_dists,SCESet-method}
-\alias{sc3_calc_dists,SC3class-method}
+\alias{sc3_calc_dists,SingleCellExperiment-method}
 \alias{sc3_calc_dists}
 \title{Calculate distances between the cells.}
 \usage{
 sc3_calc_dists.SCESet(object)
 
-\S4method{sc3_calc_dists}{SC3class}(object)
+\S4method{sc3_calc_dists}{SingleCellExperiment}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

@@ -11,7 +11,6 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-
 ```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
 library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
@@ -21,7 +20,7 @@ opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png')
 
 Single-Cell Consensus Clustering (`SC3`) is a tool for unsupervised clustering of scRNA-seq data. `SC3` achieves high accuracy and robustness by consistently integrating different clustering solutions through a consensus approach. An interactive graphical implementation makes `SC3` accessible to a wide audience of users. In addition, `SC3` also aids biological interpretation by identifying marker genes, differentially expressed genes and outlier cells. A manuscript describing `SC3` in details is published in [Nature Methods](http://dx.doi.org/10.1038/nmeth.4236).
 
-# SingleCellExperiment, QC and `scater`
+# `SingleCellExperiment`, QC and `scater`
 
 `SC3` is a purely clustering tool and it does not provide functions for the sequencing quality control (QC) or normalisation. On the contrary it is expected that these preprocessing steps are performed by a user in advance. To encourage the preprocessing, `SC3` is built on top of the Bioconductor’s [SingleCellExperiment](http://bioconductor.org/packages/SingleCellExperiment) class and uses functionality of [scater](http://bioconductor.org/packages/scater) package for QC.
 
@@ -36,6 +35,7 @@ If you have a matrix containing expression data that was QCed and normalised by 
 ```{r, message=FALSE, warning=FALSE}
 library(SingleCellExperiment)
 library(SC3)
+library(scater)
 
 head(ann)
 yan[1:3, 1:3]
@@ -53,14 +53,6 @@ rowData(sce)$feature_symbol <- rownames(sce)
 isSpike(sce, "ERCC") <- grepl("^ERCC-", rownames(sce))
 # remove features with duplicated names
 sce <- sce[!duplicated(rownames(sce)), ]
-
-sce <- newSC3(sce)
-```
-
-It is also essential for `SC3` that the QC metrics is computed for the created object:
-```{r}
-library(scater)
-sce <- calculateQCMetrics(sce)
 ```
 
 The `ann` dataframe contains just `cell_type1` column which correspond to the cell labels provided by authors of the original publication. Note that in general it can also contain more information about the cells, such as plate, run, well, date etc.
@@ -262,7 +254,7 @@ We start with `sc3_prepare`. This method prepares an object of `sce` class for `
 # Please remove this parameter when running on your computer:
 # sce <- sc3_prepare(sce, ks = 2:4)
 sce <- sc3_prepare(sce, ks = 2:4, n_cores = 1)
-str(sce@sc3)
+str(metadata(sce)$sc3)
 ```
 
 ## _(optional)_ `sc3_estimate_k`
@@ -272,7 +264,7 @@ When the `sce` object is prepared for clustering, `SC3` can also estimate the op
 * `k_estimation` - contains the estimated value of `k`.
 ```{r}
 sce <- sc3_estimate_k(sce)
-str(sce@sc3)
+str(metadata(sce)$sc3)
 ```
 
 ## `sc3_calc_dists`
@@ -282,7 +274,7 @@ Now we are ready to perform the clustering itself. First `SC3` calculates distan
 * `distances` - contains a list of distance matrices corresponding to Euclidean, Pearson and Spearman distances.
 ```{r}
 sce <- sc3_calc_dists(sce)
-names(sce@sc3$distances)
+names(metadata(sce)$sc3$distances)
 ```
 
 ## `sc3_calc_transfs`
@@ -293,12 +285,12 @@ the `distances` item of the `sc3` slot. It then creates and populates the follow
 * `transformations` - contains a list of transformations of the distance matrices corresponding to PCA and graph Laplacian transformations.
 ```{r}
 sce <- sc3_calc_transfs(sce)
-names(sce@sc3$transformations)
+names(metadata(sce)$sc3$transformations)
 ```
 
 It also removes the previously calculated `distances` item from the `sc3` slot:
 ```{r}
-sce@sc3$distances
+metadata(sce)$sc3$distances
 ```
 
 ## `sc3_kmeans`
@@ -310,7 +302,7 @@ kmeans should then be performed on the transformed distance matrices contained i
 By default the `nstart` parameter passed to `kmeans` defined in `sc3_prepare` method, is set 1000 and written to `kmeans_nstart` item of the `sc3` slot. If the number of cells in the dataset is more than 2,000, this parameter is set to 50. A user can also manually define this parameter by changing the value of the `kmeans_nstart` item of the `sc3` slot.
 ```{r}
 sce <- sc3_kmeans(sce)
-names(sce@sc3$kmeans)
+names(metadata(sce)$sc3$kmeans)
 ```
 
 ## `sc3_calc_consens`
@@ -326,13 +318,13 @@ When calculating consensus for each value of `k` `SC3` averages the clustering r
 * `consensus` - for each value of `k` it contains: a consensus matrix, an `hclust` object, corresponding to hierarchical clustering of the consensus matrix and the Silhouette indeces of the clusters.
 ```{r}
 sce <- sc3_calc_consens(sce)
-names(sce@sc3$consensus)
-names(sce@sc3$consensus$`3`)
+names(metadata(sce)$sc3$consensus)
+names(metadata(sce)$sc3$consensus$`3`)
 ```
 
 It also removes the previously calculated `kmeans` item from the `sc3` slot:
 ```{r}
-sce@sc3$kmeans
+metadata(sce)$sc3$kmeans
 ```
 
 As mentioned before all the clustering results (cell-related information) are written to the `colData` slot of the `sce` object:
@@ -404,7 +396,7 @@ head(p_data[ , grep("sc3_", colnames(p_data))])
 
 Note that the cell outlier scores (and also DE and marker genes values) were not updated and they still contain `NA` values for non-training cells. To recalculate biological characteristics using the labels predicted by `SVM` one need to clear the `svm_train_inds` item in the `sc3` slot and rerun the `sc3_calc_biology` method:
 ```{r}
-sce@sc3$svm_train_inds <- NULL
+metadata(sce)$sc3$svm_train_inds <- NULL
 sce <- sc3_calc_biology(sce)
 p_data <- colData(sce)
 head(p_data[ , grep("sc3_", colnames(p_data))])

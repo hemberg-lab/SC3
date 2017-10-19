@@ -1,12 +1,11 @@
 SC3 News
 
-SC3 1.5.3 (Release date: 2017-10-04):
+SC3 1.5.5 (Release date: 2017-10-19):
     
     * `scater` now works based on `SingleCellExperiment` class
-    * Create `SC3class` class which is inherited from `SingleCellExperiment` class,
-    but additionally contains an `sc3` slot
+    * `sc3` slot has moved to the `metadata` slot of `SingleCellExperiment` class
     * `scater` class is completely deprecated from `SC3`
-    * All `scater` functionality can work on `SC3class` class
+    * All `scater` functionality can work on `SingleCellExperiment` class
     * Clustering logic hasn't been changed at all
 
 SC3 1.3.7 (Release date: 2016-11-23):

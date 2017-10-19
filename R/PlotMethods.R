@@ -22,12 +22,12 @@
 #' 
 #' @importFrom pheatmap pheatmap
 sc3_plot_consensus.SCESet <- function(object, k, show_pdata) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    hc <- object@sc3$consensus[[as.character(k)]]$hc
-    consensus <- object@sc3$consensus[[as.character(k)]]$consensus
+    hc <- metadata(object)$sc3$consensus[[as.character(k)]]$hc
+    consensus <- metadata(object)$sc3$consensus[[as.character(k)]]$consensus
     
     add_ann_col <- FALSE
     ann <- NULL
@@ -45,8 +45,7 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata) {
 
 #' @rdname sc3_plot_consensus
 #' @aliases sc3_plot_consensus
-#' @include SC3class.R
-setMethod("sc3_plot_consensus", signature(object = "SC3class"), sc3_plot_consensus.SCESet)
+setMethod("sc3_plot_consensus", signature(object = "SingleCellExperiment"), sc3_plot_consensus.SCESet)
 
 #' Plot silhouette indexes of the cells
 #' 
@@ -63,18 +62,17 @@ setMethod("sc3_plot_consensus", signature(object = "SC3class"), sc3_plot_consens
 #' @param object an object of 'SCESet' class
 #' @param k number of clusters
 sc3_plot_silhouette.SCESet <- function(object, k) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    silh <- object@sc3$consensus[[as.character(k)]]$silhouette
+    silh <- metadata(object)$sc3$consensus[[as.character(k)]]$silhouette
     plot(silh, col = "black")
 }
 
 #' @rdname sc3_plot_silhouette
 #' @aliases sc3_plot_silhouette
-#' @include SC3class.R
-setMethod("sc3_plot_silhouette", signature(object = "SC3class"), sc3_plot_silhouette.SCESet)
+setMethod("sc3_plot_silhouette", signature(object = "SingleCellExperiment"), sc3_plot_silhouette.SCESet)
 
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
@@ -94,14 +92,14 @@ setMethod("sc3_plot_silhouette", signature(object = "SC3class"), sc3_plot_silhou
 #' 
 #' @importFrom pheatmap pheatmap
 sc3_plot_expression.SCESet <- function(object, k, show_pdata) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    hc <- object@sc3$consensus[[as.character(k)]]$hc
+    hc <- metadata(object)$sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
+        dataset <- dataset[, metadata(object)$sc3$svm_train_inds]
     }
     
     add_ann_col <- FALSE
@@ -126,8 +124,7 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata) {
 
 #' @rdname sc3_plot_expression
 #' @aliases sc3_plot_expression
-#' @include SC3class.R
-setMethod("sc3_plot_expression", signature(object = "SC3class"), sc3_plot_expression.SCESet)
+setMethod("sc3_plot_expression", signature(object = "SingleCellExperiment"), sc3_plot_expression.SCESet)
 
 #' Plot expression of DE genes of the clusters identified by \code{SC3} as a heatmap
 #' 
@@ -144,14 +141,14 @@ setMethod("sc3_plot_expression", signature(object = "SC3class"), sc3_plot_expres
 #' 
 #' @importFrom pheatmap pheatmap
 sc3_plot_de_genes.SCESet <- function(object, k, p.val, show_pdata) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    hc <- object@sc3$consensus[[as.character(k)]]$hc
+    hc <- metadata(object)$sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
+        dataset <- dataset[, metadata(object)$sc3$svm_train_inds]
     }
     
     add_ann_col <- FALSE
@@ -179,8 +176,7 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val, show_pdata) {
 
 #' @rdname sc3_plot_de_genes
 #' @aliases sc3_plot_de_genes
-#' @include SC3class.R
-setMethod("sc3_plot_de_genes", signature(object = "SC3class"), sc3_plot_de_genes.SCESet)
+setMethod("sc3_plot_de_genes", signature(object = "SingleCellExperiment"), sc3_plot_de_genes.SCESet)
 
 #' Plot expression of marker genes identified by \code{SC3} as a heatmap.
 #' 
@@ -200,14 +196,14 @@ setMethod("sc3_plot_de_genes", signature(object = "SC3class"), sc3_plot_de_genes
 #' 
 #' @importFrom pheatmap pheatmap
 sc3_plot_markers.SCESet <- function(object, k, auroc, p.val, show_pdata) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
-    hc <- object@sc3$consensus[[as.character(k)]]$hc
+    hc <- metadata(object)$sc3$consensus[[as.character(k)]]$hc
     dataset <- get_processed_dataset(object)
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
+        dataset <- dataset[, metadata(object)$sc3$svm_train_inds]
     }
     
     add_ann_col <- FALSE
@@ -236,8 +232,7 @@ sc3_plot_markers.SCESet <- function(object, k, auroc, p.val, show_pdata) {
 
 #' @rdname sc3_plot_markers
 #' @aliases sc3_plot_markers
-#' @include SC3class.R
-setMethod("sc3_plot_markers", signature(object = "SC3class"), sc3_plot_markers.SCESet)
+setMethod("sc3_plot_markers", signature(object = "SingleCellExperiment"), sc3_plot_markers.SCESet)
 
 #' Plot stability of the clusters
 #' 
@@ -253,13 +248,13 @@ setMethod("sc3_plot_markers", signature(object = "SC3class"), sc3_plot_markers.S
 #' 
 #' @importFrom ggplot2 ggplot aes geom_bar theme_bw labs ylim
 sc3_plot_cluster_stability.SCESet <- function(object, k) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
     # calculate stability of the clusters check if there are more than 1 k value in ks range
     stability <- NULL
-    stability <- calculate_stability(object@sc3$consensus, k)
+    stability <- calculate_stability(metadata(object)$sc3$consensus, k)
     
     d <- data.frame(Cluster = factor(1:length(stability)), Stability = stability)
     ggplot(d, aes(x = d$Cluster, y = d$Stability)) + geom_bar(stat = "identity") + ylim(0, 1) + 
@@ -268,5 +263,4 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
 
 #' @rdname sc3_plot_cluster_stability
 #' @aliases sc3_plot_cluster_stability
-#' @include SC3class.R
-setMethod("sc3_plot_cluster_stability", signature(object = "SC3class"), sc3_plot_cluster_stability.SCESet)
+setMethod("sc3_plot_cluster_stability", signature(object = "SingleCellExperiment"), sc3_plot_cluster_stability.SCESet)

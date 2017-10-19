@@ -183,10 +183,10 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
         }
     }
     ann <- NULL
-    if (is.null(object@sc3$svm_train_inds)) {
+    if (is.null(metadata(object)$sc3$svm_train_inds)) {
         ann <- colData(object)[, colnames(colData(object)) %in% show_pdata]
     } else {
-        ann <- colData(object)[object@sc3$svm_train_inds, colnames(colData(object)) %in% 
+        ann <- colData(object)[metadata(object)$sc3$svm_train_inds, colnames(colData(object)) %in% 
             show_pdata]
     }
     # remove columns with 1 value only

@@ -1,8 +1,7 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 1.5.4
-Date: 2017-10-04
+Version: 1.5.5
 Author: Vladimir Kiselev
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 Authors@R: c(person("Vladimir", "Kiselev",
@@ -32,12 +31,3 @@ biocViews: SingleCell, Software, Classification, Clustering, DimensionReduction,
 NeedsCompilation: no
 URL: https://github.com/hemberg-lab/SC3
 BugReports: https://support.bioconductor.org/t/sc3/
-Collate: 
-    'AllGenerics.R'
-    'CoreFunctions.R'
-    'SC3class.R'
-    'CoreMethods.R'
-    'PlotMethods.R'
-    'RcppExports.R'
-    'ShinyFunctions.R'
-    'ShinyMethods.R'

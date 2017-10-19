@@ -6,13 +6,13 @@
 \alias{sc3_plot_de_genes.SCESet}
 \alias{sc3_plot_de_genes,}
 \alias{sc3_plot_de_genes,SCESet-method}
-\alias{sc3_plot_de_genes,SC3class-method}
+\alias{sc3_plot_de_genes,SingleCellExperiment-method}
 \alias{sc3_plot_de_genes}
 \title{Plot expression of DE genes of the clusters identified by \code{SC3} as a heatmap}
 \usage{
 sc3_plot_de_genes.SCESet(object, k, p.val, show_pdata)
 
-\S4method{sc3_plot_de_genes}{SC3class}(object, k, p.val = 0.01,
+\S4method{sc3_plot_de_genes}{SingleCellExperiment}(object, k, p.val = 0.01,
   show_pdata = NULL)
 }
 \arguments{

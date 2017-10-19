@@ -69,8 +69,7 @@ sc3.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max
 
 #' @rdname sc3
 #' @aliases sc3
-#' @include SC3class.R
-setMethod("sc3", signature(object = "SC3class"), sc3.SCESet)
+setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SCESet)
 
 #' Prepare the \code{SCESet} object for \code{SC3} clustering.
 #' 
@@ -142,7 +141,7 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
     message("Setting SC3 parameters...")
     
     # clean up after the previous SC3 run sc3 slot
-    object@sc3 <- list()
+    metadata(object)$sc3 <- list()
     colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object))), drop = FALSE]
     rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object))), drop = FALSE]
     
@@ -162,16 +161,16 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
     }
     rowData(object) <- f_data
     
-    object@sc3$kmeans_iter_max <- kmeans_iter_max
+    metadata(object)$sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
         if (ncol(dataset) > 2000) {
-            object@sc3$kmeans_nstart <- 50
+            metadata(object)$sc3$kmeans_nstart <- 50
             message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
         } else {
-            object@sc3$kmeans_nstart <- 1000
+            metadata(object)$sc3$kmeans_nstart <- 1000
         }
     } else {
-        object@sc3$kmeans_nstart <- kmeans_nstart
+        metadata(object)$sc3$kmeans_nstart <- kmeans_nstart
     }
     
     # define number of cells and region of dimensions
@@ -205,16 +204,16 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
         # run SVM
         tmp <- prepare_for_svm(ncol(dataset), svm_num_cells, svm_train_inds, svm_max)
         
-        object@sc3$svm_train_inds <- tmp$svm_train_inds
-        object@sc3$svm_study_inds <- tmp$svm_study_inds
+        metadata(object)$sc3$svm_train_inds <- tmp$svm_train_inds
+        metadata(object)$sc3$svm_study_inds <- tmp$svm_study_inds
         
         # update kmeans_nstart after defining SVM training indeces
         if (is.null(kmeans_nstart)) {
             if (length(tmp$svm_train_inds) <= 2000) {
-                object@sc3$kmeans_nstart <- 1000
+                metadata(object)$sc3$kmeans_nstart <- 1000
             }
         } else {
-            object@sc3$kmeans_nstart <- kmeans_nstart
+            metadata(object)$sc3$kmeans_nstart <- kmeans_nstart
         }
         
         # update the region of dimensions
@@ -225,9 +224,9 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
         }
     }
     
-    object@sc3$n_dim <- n_dim
+    metadata(object)$sc3$n_dim <- n_dim
     
-    object@sc3$rand_seed <- rand_seed
+    metadata(object)$sc3$rand_seed <- rand_seed
     
     # register computing cluster (N-1 CPUs) on a local machine
     if (is.null(n_cores)) {
@@ -241,22 +240,21 @@ sc3_prepare.SCESet <- function(object, ks, gene_filter, pct_dropout_min, pct_dro
         }
     }
     
-    object@sc3$n_cores <- n_cores
+    metadata(object)$sc3$n_cores <- n_cores
     
     if (is.null(ks)) {
         warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
         return(object)
     }
     message("Setting a range of k...")
-    object@sc3$ks <- ks
+    metadata(object)$sc3$ks <- ks
     
     return(object)
 }
 
 #' @rdname sc3_prepare
 #' @aliases sc3_prepare
-#' @include SC3class.R
-setMethod("sc3_prepare", signature(object = "SC3class"), sc3_prepare.SCESet)
+setMethod("sc3_prepare", signature(object = "SingleCellExperiment"), sc3_prepare.SCESet)
 
 #' Estimate the optimal k for k-means clustering
 #' 
@@ -286,14 +284,13 @@ sc3_estimate_k.SCESet <- function(object) {
         return(object)
     }
     res <- estkTW(dataset = dataset)
-    object@sc3$k_estimation <- res
+    metadata(object)$sc3$k_estimation <- res
     return(object)
 }
 
 #' @rdname sc3_estimate_k
 #' @aliases sc3_estimate_k
-#' @include SC3class.R
-setMethod("sc3_estimate_k", signature(object = "SC3class"), sc3_estimate_k.SCESet)
+setMethod("sc3_estimate_k", signature(object = "SingleCellExperiment"), sc3_estimate_k.SCESet)
 
 #' Calculate distances between the cells.
 #' 
@@ -330,8 +327,8 @@ sc3_calc_dists.SCESet <- function(object) {
     }
     
     # check whether in the SVM regime
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
+        dataset <- dataset[, metadata(object)$sc3$svm_train_inds]
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
@@ -341,10 +338,10 @@ sc3_calc_dists.SCESet <- function(object) {
     
     message("Calculating distances between the cells...")
     
-    if (object@sc3$n_cores > length(distances)) {
+    if (metadata(object)$sc3$n_cores > length(distances)) {
         n_cores <- length(distances)
     } else {
-        n_cores <- object@sc3$n_cores
+        n_cores <- metadata(object)$sc3$n_cores
     }
     
     cl <- parallel::makeCluster(n_cores, outfile = "")
@@ -362,14 +359,13 @@ sc3_calc_dists.SCESet <- function(object) {
     
     names(dists) <- distances
     
-    object@sc3$distances <- dists
+    metadata(object)$sc3$distances <- dists
     return(object)
 }
 
 #' @rdname sc3_calc_dists
 #' @aliases sc3_calc_dists
-#' @include SC3class.R
-setMethod("sc3_calc_dists", signature(object = "SC3class"), sc3_calc_dists.SCESet)
+setMethod("sc3_calc_dists", signature(object = "SingleCellExperiment"), sc3_calc_dists.SCESet)
 
 #' Calculate transformations of the distance matrices.
 #' 
@@ -378,7 +374,7 @@ setMethod("sc3_calc_dists", signature(object = "SC3class"), sc3_calc_dists.SCESe
 #' or by calculating the eigenvectors of the associated graph Laplacian.
 #' The columns of the resulting matrices are then sorted in descending order 
 #' by their corresponding eigenvalues. The first \code{d} columns 
-#' (where \code{d = max(object@sc3$n_dim)}) of each transformation are then 
+#' (where \code{d = max(metadata(object)$sc3$n_dim)}) of each transformation are then 
 #' written to the \code{transformations} item of the \code{sc3} slot.
 #' Additionally, this function also removes the previously calculated \code{distances} from
 #' the \code{sc3} slot, as they are not needed for further analysis.
@@ -395,7 +391,7 @@ setMethod("sc3_calc_dists", signature(object = "SC3class"), sc3_calc_dists.SCESe
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 sc3_calc_transfs.SCESet <- function(object) {
-    dists <- object@sc3$distances
+    dists <- metadata(object)$sc3$distances
     if (is.null(dists)) {
         warning(paste0("Please run sc3_calc_dists() first!"))
         return(object)
@@ -407,16 +403,16 @@ sc3_calc_transfs.SCESet <- function(object) {
     distances <- names(dists)
     transformations <- c("pca", "laplacian")
     
-    n_dim <- object@sc3$n_dim
+    n_dim <- metadata(object)$sc3$n_dim
     
     hash.table <- expand.grid(dists = distances, transfs = transformations, stringsAsFactors = FALSE)
     
     message("Performing transformations and calculating eigenvectors...")
     
-    if (object@sc3$n_cores > nrow(hash.table)) {
+    if (metadata(object)$sc3$n_cores > nrow(hash.table)) {
         n_cores <- nrow(hash.table)
     } else {
-        n_cores <- object@sc3$n_cores
+        n_cores <- metadata(object)$sc3$n_cores
     }
     
     cl <- parallel::makeCluster(n_cores, outfile = "")
@@ -435,16 +431,15 @@ sc3_calc_transfs.SCESet <- function(object) {
     
     names(transfs) <- paste(hash.table[, 1], hash.table[, 2], sep = "_")
     
-    object@sc3$transformations <- transfs
+    metadata(object)$sc3$transformations <- transfs
     # remove distances after calculating transformations
-    object@sc3$distances <- NULL
+    metadata(object)$sc3$distances <- NULL
     return(object)
 }
 
 #' @rdname sc3_calc_transfs
 #' @aliases sc3_calc_transfs
-#' @include SC3class.R
-setMethod("sc3_calc_transfs", signature(object = "SC3class"), sc3_calc_transfs.SCESet)
+setMethod("sc3_calc_transfs", signature(object = "SingleCellExperiment"), sc3_calc_transfs.SCESet)
 
 #' \code{kmeans} clustering of cells.
 #' 
@@ -473,7 +468,7 @@ setMethod("sc3_calc_transfs", signature(object = "SC3class"), sc3_calc_transfs.S
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom stats kmeans
 sc3_kmeans.SCESet <- function(object, ks) {
-    transfs <- object@sc3$transformations
+    transfs <- metadata(object)$sc3$transformations
     if (is.null(transfs)) {
         warning(paste0("Please run sc3_calc_transfs() first!"))
         return(object)
@@ -482,20 +477,20 @@ sc3_kmeans.SCESet <- function(object, ks) {
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    n_dim <- object@sc3$n_dim
+    n_dim <- metadata(object)$sc3$n_dim
     
     if (is.null(ks)) {
-        ks <- object@sc3$ks
+        ks <- metadata(object)$sc3$ks
     }
     
     hash.table <- expand.grid(transf = names(transfs), ks = ks, n_dim = n_dim, stringsAsFactors = FALSE)
     
     message("Performing k-means clustering...")
     
-    n_cores <- object@sc3$n_cores
+    n_cores <- metadata(object)$sc3$n_cores
     
-    kmeans_iter_max <- object@sc3$kmeans_iter_max
-    kmeans_nstart <- object@sc3$kmeans_nstart
+    kmeans_iter_max <- metadata(object)$sc3$kmeans_iter_max
+    kmeans_nstart <- metadata(object)$sc3$kmeans_nstart
     
     cl <- parallel::makeCluster(n_cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n_cores)
@@ -519,14 +514,13 @@ sc3_kmeans.SCESet <- function(object, ks) {
     
     names(labs) <- paste(hash.table$transf, hash.table$ks, hash.table$n_dim, sep = "_")
     
-    object@sc3$kmeans <- labs
+    metadata(object)$sc3$kmeans <- labs
     return(object)
 }
 
 #' @rdname sc3_kmeans
 #' @aliases sc3_kmeans
-#' @include SC3class.R
-setMethod("sc3_kmeans", signature(object = "SC3class"), sc3_kmeans.SCESet)
+setMethod("sc3_kmeans", signature(object = "SingleCellExperiment"), sc3_kmeans.SCESet)
 
 #' Calculate consensus matrix.
 #' 
@@ -560,7 +554,7 @@ setMethod("sc3_kmeans", signature(object = "SC3class"), sc3_kmeans.SCESet)
 #' @useDynLib SC3
 #' @import Rcpp
 sc3_calc_consens.SCESet <- function(object) {
-    k.means <- object@sc3$kmeans
+    k.means <- metadata(object)$sc3$kmeans
     if (is.null(k.means)) {
         warning(paste0("Please run sc3_kmeans() first!"))
         return(object)
@@ -571,10 +565,10 @@ sc3_calc_consens.SCESet <- function(object) {
     
     ks <- as.numeric(unique(unlist(lapply(strsplit(names(k.means), "_"), "[[", 3))))
     
-    if (object@sc3$n_cores > length(ks)) {
+    if (metadata(object)$sc3$n_cores > length(ks)) {
         n_cores <- length(ks)
     } else {
-        n_cores <- object@sc3$n_cores
+        n_cores <- metadata(object)$sc3$n_cores
     }
     
     message("Calculating consensus matrix...")
@@ -604,24 +598,24 @@ sc3_calc_consens.SCESet <- function(object) {
     parallel::stopCluster(cl)
     
     names(cons) <- ks
-    if(is.null(object@sc3$consensus)) {
-        object@sc3$consensus <- list()
+    if(is.null(metadata(object)$sc3$consensus)) {
+        metadata(object)$sc3$consensus <- list()
     }
     for (n in names(cons)) {
-        object@sc3$consensus[[n]] <- cons[[n]]
+        metadata(object)$sc3$consensus[[n]] <- cons[[n]]
     }
     
     # remove kmeans results after calculating consensus
-    object@sc3$kmeans <- NULL
+    metadata(object)$sc3$kmeans <- NULL
     
     p_data <- colData(object)
     for (k in ks) {
-        hc <- object@sc3$consensus[[as.character(k)]]$hc
+        hc <- metadata(object)$sc3$consensus[[as.character(k)]]$hc
         clusts <- reindex_clusters(hc, k)
         # in case of hybrid SVM approach
-        if (!is.null(object@sc3$svm_train_inds)) {
+        if (!is.null(metadata(object)$sc3$svm_train_inds)) {
             tmp <- rep(NA, nrow(p_data))
-            tmp[object@sc3$svm_train_inds] <- clusts
+            tmp[metadata(object)$sc3$svm_train_inds] <- clusts
             clusts <- tmp
         }
         p_data[, paste0("sc3_", k, "_clusters")] <- clusts
@@ -633,8 +627,7 @@ sc3_calc_consens.SCESet <- function(object) {
 
 #' @rdname sc3_calc_consens
 #' @aliases sc3_calc_consens
-#' @include SC3class.R
-setMethod("sc3_calc_consens", signature(object = "SC3class"), sc3_calc_consens.SCESet)
+setMethod("sc3_calc_consens", signature(object = "SingleCellExperiment"), sc3_calc_consens.SCESet)
 
 
 #' Calculate DE genes, marker genes and cell outliers.
@@ -685,14 +678,14 @@ setMethod("sc3_calc_consens", signature(object = "SC3class"), sc3_calc_consens.S
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
 sc3_calc_biology.SCESet <- function(object, ks, regime) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
     if (is.null(ks)) {
-        ks <- object@sc3$ks
+        ks <- metadata(object)$sc3$ks
     }
-    if (!all(ks %in% as.numeric(names(object@sc3$consensus)))) {
+    if (!all(ks %in% as.numeric(names(metadata(object)$sc3$consensus)))) {
         warning(paste0("Range of the number of clusters ks is not consistent with the consensus results! Please redefine the ks!"))
         return(object)
     }
@@ -714,18 +707,18 @@ sc3_calc_biology.SCESet <- function(object, ks, regime) {
     colnames(clusts) <- colnames(p_data)[grep("sc3_.*_clusters", colnames(p_data))]
     rownames(clusts) <- rownames(p_data)
     # check whether in the SVM regime
-    if (!is.null(object@sc3$svm_train_inds)) {
-        dataset <- dataset[, object@sc3$svm_train_inds]
-        clusts <- clusts[object@sc3$svm_train_inds, ]
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
+        dataset <- dataset[, metadata(object)$sc3$svm_train_inds]
+        clusts <- clusts[metadata(object)$sc3$svm_train_inds, ]
     }
     
     # NULLing the variables to avoid notes in R CMD CHECK
     i <- NULL
     
-    if (object@sc3$n_cores > nrow(hash.table)) {
+    if (metadata(object)$sc3$n_cores > nrow(hash.table)) {
         n_cores <- nrow(hash.table)
     } else {
-        n_cores <- object@sc3$n_cores
+        n_cores <- metadata(object)$sc3$n_cores
     }
     
     cl <- parallel::makeCluster(n_cores, outfile = "")
@@ -768,9 +761,9 @@ sc3_calc_biology.SCESet <- function(object, ks, regime) {
         if(regime == "outl") {
             outl <- biol[[b]]
             # in case of hybrid SVM approach
-            if (!is.null(object@sc3$svm_train_inds)) {
+            if (!is.null(metadata(object)$sc3$svm_train_inds)) {
                 tmp <- rep(NA, nrow(p_data))
-                tmp[object@sc3$svm_train_inds] <- outl
+                tmp[metadata(object)$sc3$svm_train_inds] <- outl
                 outl <- tmp
             }
             p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
@@ -779,15 +772,14 @@ sc3_calc_biology.SCESet <- function(object, ks, regime) {
     rowData(object) <- f_data
     colData(object) <- p_data
     
-    object@sc3$biology <- TRUE
+    metadata(object)$sc3$biology <- TRUE
     
     return(object)
 }
 
 #' @rdname sc3_calc_biology
 #' @aliases sc3_calc_biology
-#' @include SC3class.R
-setMethod("sc3_calc_biology", signature(object = "SC3class"), sc3_calc_biology.SCESet)
+setMethod("sc3_calc_biology", signature(object = "SingleCellExperiment"), sc3_calc_biology.SCESet)
 
 #' Run the hybrid \code{SVM} approach.
 #' 
@@ -809,16 +801,16 @@ setMethod("sc3_calc_biology", signature(object = "SC3class"), sc3_calc_biology.S
 #' 
 #' @return an object of 'SCESet' class
 sc3_run_svm.SCESet <- function(object) {
-    if (is.null(object@sc3$svm_train_inds)) {
+    if (is.null(metadata(object)$sc3$svm_train_inds)) {
         warning(paste0("Please rerun sc3_prepare() defining the training cells!"))
         return(object)
     }
     
     dataset <- get_processed_dataset(object)
-    ks <- object@sc3$ks
+    ks <- metadata(object)$sc3$ks
     p_data <- colData(object)
-    svm_train_inds <- object@sc3$svm_train_inds
-    svm_study_inds <- object@sc3$svm_study_inds
+    svm_train_inds <- metadata(object)$sc3$svm_train_inds
+    svm_study_inds <- metadata(object)$sc3$svm_study_inds
     
     for (k in ks) {
         clusts <- p_data[, paste0("sc3_", k, "_clusters")]
@@ -839,8 +831,7 @@ sc3_run_svm.SCESet <- function(object) {
 
 #' @rdname sc3_run_svm
 #' @aliases sc3_run_svm
-#' @include SC3class.R
-setMethod("sc3_run_svm", signature(object = "SC3class"), sc3_run_svm.SCESet)
+setMethod("sc3_run_svm", signature(object = "SingleCellExperiment"), sc3_run_svm.SCESet)
 
 #' Write \code{SC3} results to Excel file
 #' 
@@ -854,7 +845,7 @@ setMethod("sc3_run_svm", signature(object = "SC3class"), sc3_run_svm.SCESet)
 #' 
 #' @importFrom WriteXLS WriteXLS
 sc3_export_results_xls.SCESet <- function(object, filename) {
-    if (is.null(object@sc3$consensus)) {
+    if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
@@ -891,5 +882,4 @@ sc3_export_results_xls.SCESet <- function(object, filename) {
 
 #' @rdname sc3_export_results_xls
 #' @aliases sc3_export_results_xls
-#' @include SC3class.R
-setMethod("sc3_export_results_xls", signature(object = "SC3class"), sc3_export_results_xls.SCESet)
+setMethod("sc3_export_results_xls", signature(object = "SingleCellExperiment"), sc3_export_results_xls.SCESet)

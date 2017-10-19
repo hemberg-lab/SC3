@@ -15,7 +15,7 @@
 #' @importFrom stats median
 #' @importFrom graphics plot
 sc3_interactive.SCESet <- function(object) {
-    consensus <- object@sc3$consensus
+    consensus <- metadata(object)$sc3$consensus
     if (is.null(consensus)) {
         warning(paste0("Please run sc3_calc_consens() first!"))
         return()
@@ -32,14 +32,14 @@ sc3_interactive.SCESet <- function(object) {
     values <- reactiveValues()
     
     svm <- FALSE
-    if (!is.null(object@sc3$svm_train_inds)) {
+    if (!is.null(metadata(object)$sc3$svm_train_inds)) {
         svm <- TRUE
-        dataset <- dataset[,object@sc3$svm_train_inds]
+        dataset <- dataset[,metadata(object)$sc3$svm_train_inds]
     }
     
     biology <- FALSE
-    if (!is.null(object@sc3$biology)) {
-        if(object@sc3$biology) {
+    if (!is.null(metadata(object)$sc3$biology)) {
+        if(metadata(object)$sc3$biology) {
             biology <- TRUE
         }
     }
@@ -89,7 +89,7 @@ sc3_interactive.SCESet <- function(object) {
                                          p(HTML(
                                              paste0(
                                                  "<font color = 'red'>Your data was clustered based on ",
-                                                 length(object@sc3$svm_train_inds),
+                                                 length(metadata(object)$sc3$svm_train_inds),
                                                  " selected cells.</font>"
                                              )
                                          )))
@@ -368,7 +368,7 @@ sc3_interactive.SCESet <- function(object) {
                     paste0("\nPlease choose k from: ", paste(ks, collapse = " "))
                 ))
                 validate(need(
-                    length(object@sc3$consensus) > 1,
+                    length(metadata(object)$sc3$consensus) > 1,
                     "\nStability cannot be calculated for a single k value!"
                 ))
                 sc3_plot_cluster_stability(object, input$clusters)
@@ -499,5 +499,4 @@ sc3_interactive.SCESet <- function(object) {
 
 #' @rdname sc3_interactive
 #' @aliases sc3_interactive
-#' @include SC3class.R
-setMethod("sc3_interactive", signature(object = "SC3class"), sc3_interactive.SCESet)
+setMethod("sc3_interactive", signature(object = "SingleCellExperiment"), sc3_interactive.SCESet)

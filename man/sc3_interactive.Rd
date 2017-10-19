@@ -6,13 +6,13 @@
 \alias{sc3_interactive.SCESet}
 \alias{sc3_interactive,}
 \alias{sc3_interactive,SCESet-method}
-\alias{sc3_interactive,SC3class-method}
+\alias{sc3_interactive,SingleCellExperiment-method}
 \alias{sc3_interactive}
 \title{Opens \code{SC3} results in an interactive session in a web browser.}
 \usage{
 sc3_interactive.SCESet(object)
 
-\S4method{sc3_interactive}{SC3class}(object)
+\S4method{sc3_interactive}{SingleCellExperiment}(object)
 }
 \arguments{
 \item{object}{an object of \code{SCESet} class}

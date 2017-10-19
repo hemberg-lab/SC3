@@ -6,13 +6,13 @@
 \alias{sc3_kmeans.SCESet}
 \alias{sc3_kmeans,}
 \alias{sc3_kmeans,SCESet-method}
-\alias{sc3_kmeans,SC3class-method}
+\alias{sc3_kmeans,SingleCellExperiment-method}
 \alias{sc3_kmeans}
 \title{\code{kmeans} clustering of cells.}
 \usage{
 sc3_kmeans.SCESet(object, ks)
 
-\S4method{sc3_kmeans}{SC3class}(object, ks = NULL)
+\S4method{sc3_kmeans}{SingleCellExperiment}(object, ks = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

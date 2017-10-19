@@ -4,7 +4,7 @@
 \name{sc3}
 \alias{sc3}
 \alias{sc3.SCESet}
-\alias{sc3,SC3class-method}
+\alias{sc3,SingleCellExperiment-method}
 \alias{sc3}
 \title{Run all steps of \code{SC3} in one go}
 \usage{
@@ -12,7 +12,7 @@ sc3.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
   d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores,
   kmeans_nstart, kmeans_iter_max, k_estimator, biology, rand_seed)
 
-\S4method{sc3}{SC3class}(object, ks = NULL, gene_filter = TRUE,
+\S4method{sc3}{SingleCellExperiment}(object, ks = NULL, gene_filter = TRUE,
   pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
   d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
   svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,

@@ -6,13 +6,13 @@
 \alias{sc3_calc_transfs.SCESet}
 \alias{sc3_calc_transfs,}
 \alias{sc3_calc_transfs,SCESet-method}
-\alias{sc3_calc_transfs,SC3class-method}
+\alias{sc3_calc_transfs,SingleCellExperiment-method}
 \alias{sc3_calc_transfs}
 \title{Calculate transformations of the distance matrices.}
 \usage{
 sc3_calc_transfs.SCESet(object)
 
-\S4method{sc3_calc_transfs}{SC3class}(object)
+\S4method{sc3_calc_transfs}{SingleCellExperiment}(object)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}
@@ -26,7 +26,7 @@ of the \code{SCESet} object using either principal component analysis (PCA)
 or by calculating the eigenvectors of the associated graph Laplacian.
 The columns of the resulting matrices are then sorted in descending order 
 by their corresponding eigenvalues. The first \code{d} columns 
-(where \code{d = max(object@sc3$n_dim)}) of each transformation are then 
+(where \code{d = max(metadata(object)$sc3$n_dim)}) of each transformation are then 
 written to the \code{transformations} item of the \code{sc3} slot.
 Additionally, this function also removes the previously calculated \code{distances} from
 the \code{sc3} slot, as they are not needed for further analysis.

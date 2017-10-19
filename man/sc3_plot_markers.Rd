@@ -6,14 +6,14 @@
 \alias{sc3_plot_markers.SCESet}
 \alias{sc3_plot_markers,}
 \alias{sc3_plot_markers,SCESet-method}
-\alias{sc3_plot_markers,SC3class-method}
+\alias{sc3_plot_markers,SingleCellExperiment-method}
 \alias{sc3_plot_markers}
 \title{Plot expression of marker genes identified by \code{SC3} as a heatmap.}
 \usage{
 sc3_plot_markers.SCESet(object, k, auroc, p.val, show_pdata)
 
-\S4method{sc3_plot_markers}{SC3class}(object, k, auroc = 0.85, p.val = 0.01,
-  show_pdata = NULL)
+\S4method{sc3_plot_markers}{SingleCellExperiment}(object, k, auroc = 0.85,
+  p.val = 0.01, show_pdata = NULL)
 }
 \arguments{
 \item{object}{an object of 'SCESet' class}

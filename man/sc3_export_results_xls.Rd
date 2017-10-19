@@ -4,13 +4,13 @@
 \name{sc3_export_results_xls}
 \alias{sc3_export_results_xls}
 \alias{sc3_export_results_xls.SCESet}
-\alias{sc3_export_results_xls,SC3class-method}
+\alias{sc3_export_results_xls,SingleCellExperiment-method}
 \alias{sc3_export_results_xls}
 \title{Write \code{SC3} results to Excel file}
 \usage{
 sc3_export_results_xls.SCESet(object, filename)
 
-\S4method{sc3_export_results_xls}{SC3class}(object,
+\S4method{sc3_export_results_xls}{SingleCellExperiment}(object,
   filename = "sc3_results.xls")
 }
 \arguments{
