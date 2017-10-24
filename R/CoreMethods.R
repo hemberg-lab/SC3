@@ -618,7 +618,7 @@ sc3_calc_consens.SCESet <- function(object) {
             tmp[metadata(object)$sc3$svm_train_inds] <- clusts
             clusts <- tmp
         }
-        p_data[, paste0("sc3_", k, "_clusters")] <- clusts
+        p_data[, paste0("sc3_", k, "_clusters")] <- factor(clusts, levels = sort(unique(clusts)))
     }
     colData(object) <- p_data
     
