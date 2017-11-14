@@ -3,29 +3,29 @@
 \docType{methods}
 \name{sc3_run_svm}
 \alias{sc3_run_svm}
-\alias{sc3_run_svm.SCESet}
+\alias{sc3_run_svm.SingleCellExperiment}
 \alias{sc3_run_svm,}
-\alias{sc3_run_svm,SCESet-method}
+\alias{sc3_run_svm,SingleCellExperiment-method}
 \alias{sc3_run_svm,SingleCellExperiment-method}
 \alias{sc3_run_svm}
 \title{Run the hybrid \code{SVM} approach.}
 \usage{
-sc3_run_svm.SCESet(object)
+sc3_run_svm.SingleCellExperiment(object)
 
 \S4method{sc3_run_svm}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
 This method parallelize \code{SVM} prediction for each \code{k} (the number
 of clusters). Namely, for each \code{k}, \code{\link{support_vector_machines}} 
 function is utilized to predict the labels of study cells. Training cells are
 selected using \code{svm_train_inds} item of the \code{sc3} slot of the input
-\code{SCESet} object.
+\code{SingleCellExperiment} object.
 }
 \details{
 Results are written to the \code{sc3_k_clusters} columns to the 

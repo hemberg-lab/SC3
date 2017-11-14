@@ -2,12 +2,12 @@
 % Please edit documentation in R/ShinyFunctions.R
 \name{organise_de_genes}
 \alias{organise_de_genes}
-\title{Get differentiall expressed genes from an object of \code{SCESet} class}
+\title{Get differentiall expressed genes from an object of \code{SingleCellExperiment} class}
 \usage{
 organise_de_genes(object, k, p_val)
 }
 \arguments{
-\item{object}{an objec of \code{SCESet} class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 
 \item{k}{number of cluster}
 

@@ -3,14 +3,15 @@
 \docType{methods}
 \name{sc3}
 \alias{sc3}
-\alias{sc3.SCESet}
+\alias{sc3.SingleCellExperiment}
 \alias{sc3,SingleCellExperiment-method}
 \alias{sc3}
 \title{Run all steps of \code{SC3} in one go}
 \usage{
-sc3.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
-  d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores,
-  kmeans_nstart, kmeans_iter_max, k_estimator, biology, rand_seed)
+sc3.SingleCellExperiment(object, ks, gene_filter, pct_dropout_min,
+  pct_dropout_max, d_region_min, d_region_max, svm_num_cells, svm_train_inds,
+  svm_max, n_cores, kmeans_nstart, kmeans_iter_max, k_estimator, biology,
+  rand_seed)
 
 \S4method{sc3}{SingleCellExperiment}(object, ks = NULL, gene_filter = TRUE,
   pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
@@ -20,7 +21,7 @@ sc3.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
   rand_seed = 1)
 }
 \arguments{
-\item{object}{an object of \code{SCESet} class.}
+\item{object}{an object of \code{SingleCellExperiment} class.}
 
 \item{ks}{a range of the number of clusters \code{k} used for \code{SC3} clustering.
 Can also be a single integer.}
@@ -68,7 +69,7 @@ method, so setting the \code{rand_seed} to a fixed values can be used for reprod
 purposes.}
 }
 \value{
-an object of \code{SCESet} class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This function is a wrapper that executes all steps of \code{SC3} analysis in one go.

@@ -3,19 +3,19 @@
 \docType{methods}
 \name{sc3_interactive}
 \alias{sc3_interactive}
-\alias{sc3_interactive.SCESet}
+\alias{sc3_interactive.SingleCellExperiment}
 \alias{sc3_interactive,}
-\alias{sc3_interactive,SCESet-method}
+\alias{sc3_interactive,SingleCellExperiment-method}
 \alias{sc3_interactive,SingleCellExperiment-method}
 \alias{sc3_interactive}
 \title{Opens \code{SC3} results in an interactive session in a web browser.}
 \usage{
-sc3_interactive.SCESet(object)
+sc3_interactive.SingleCellExperiment(object)
 
 \S4method{sc3_interactive}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of \code{SCESet} class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \value{
 Opens a browser window with an interactive \code{shiny} app and visualize

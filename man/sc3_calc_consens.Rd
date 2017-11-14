@@ -3,26 +3,26 @@
 \docType{methods}
 \name{sc3_calc_consens}
 \alias{sc3_calc_consens}
-\alias{sc3_calc_consens.SCESet}
+\alias{sc3_calc_consens.SingleCellExperiment}
 \alias{sc3_calc_consens,}
-\alias{sc3_calc_consens,SCESet-method}
+\alias{sc3_calc_consens,SingleCellExperiment-method}
 \alias{sc3_calc_consens,SingleCellExperiment-method}
 \alias{sc3_calc_consens}
 \title{Calculate consensus matrix.}
 \usage{
-sc3_calc_consens.SCESet(object)
+sc3_calc_consens.SingleCellExperiment(object)
 
 \S4method{sc3_calc_consens}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
 This function calculates consensus matrices based on the clustering solutions
-contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SCESet} object. It then
+contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
 creates and populates the \code{consensus} item of the \code{sc3} slot with 
 consensus matrices, their hierarchical clusterings in \code{hclust} objects,
 and Silhouette indeces of the clusters. It also removes the previously 
