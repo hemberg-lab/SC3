@@ -2,19 +2,19 @@
 #'
 #' Runs interactive \code{shiny} session of \code{SC3} based on precomputed clusterings.
 #'
-#' @param object an object of \code{SCESet} class
+#' @param object an object of \code{SingleCellExperiment} class
 #'
 #' @return Opens a browser window with an interactive \code{shiny} app and visualize
 #' all precomputed clusterings.
 #' 
 #' @name sc3_interactive
-#' @aliases sc3_interactive, sc3_interactive,SCESet-method
+#' @aliases sc3_interactive, sc3_interactive,SingleCellExperiment-method
 #'
 #' @importFrom shiny HTML actionButton animationOptions checkboxGroupInput column div downloadHandler downloadLink eventReactive fluidPage fluidRow h4 headerPanel htmlOutput need observe observeEvent p plotOutput reactiveValues renderPlot renderUI selectInput shinyApp sliderInput stopApp tabPanel tabsetPanel uiOutput updateSelectInput validate wellPanel withProgress conditionalPanel reactive outputOptions tags radioButtons downloadButton
 #' @importFrom utils head
 #' @importFrom stats median
 #' @importFrom graphics plot
-sc3_interactive.SCESet <- function(object) {
+sc3_interactive.SingleCellExperiment <- function(object) {
     consensus <- metadata(object)$sc3$consensus
     if (is.null(consensus)) {
         warning(paste0("Please run sc3_calc_consens() first!"))
@@ -499,4 +499,4 @@ sc3_interactive.SCESet <- function(object) {
 
 #' @rdname sc3_interactive
 #' @aliases sc3_interactive
-setMethod("sc3_interactive", signature(object = "SingleCellExperiment"), sc3_interactive.SCESet)
+setMethod("sc3_interactive", signature(object = "SingleCellExperiment"), sc3_interactive.SingleCellExperiment)

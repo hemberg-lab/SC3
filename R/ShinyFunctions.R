@@ -186,14 +186,14 @@ get_marker_genes <- function(dataset, labels) {
     return(res)
 }
 
-#' Get marker genes from an object of \code{SCESet} class
+#' Get marker genes from an object of \code{SingleCellExperiment} class
 #' 
 #' This functions returns all marker gene columns from the \code{phenoData} slot 
 #' of the input object corresponding to the number of clusters \code{k}. Additionally,
 #' it rearranges genes by the cluster index and order them by the area under the 
 #' ROC curve value inside of each cluster.
 #'
-#' @param object an objec of \code{SCESet} class
+#' @param object an object of \code{SingleCellExperiment} class
 #' @param k number of cluster
 #' @param p_val p-value threshold
 #' @param auroc area under the ROC curve threshold
@@ -265,14 +265,14 @@ get_de_genes <- function(dataset, labels) {
     return(ps)
 }
 
-#' Get differentiall expressed genes from an object of \code{SCESet} class
+#' Get differentiall expressed genes from an object of \code{SingleCellExperiment} class
 #' 
 #' This functions returns all marker gene columns from the \code{phenoData} slot 
 #' of the input object corresponding to the number of clusters \code{k}. Additionally,
 #' it rearranges genes by the cluster index and order them by the area under the 
 #' ROC curve value inside of each cluster.
 #'
-#' @param object an objec of \code{SCESet} class
+#' @param object an object of \code{SingleCellExperiment} class
 #' @param k number of cluster
 #' @param p_val p-value threshold
 #' 
@@ -295,7 +295,7 @@ organise_de_genes <- function(object, k, p_val) {
 #' in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
 #' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
 #'
-#' @param consensus consensus item of the sc3 slot of an object of 'SCESet' class
+#' @param consensus consensus item of the sc3 slot of an object of 'SingleCellExperiment' class
 #' @param k number of clusters k
 #' @return a numeric vector containing a stability index of each cluster
 calculate_stability <- function(consensus, k) {

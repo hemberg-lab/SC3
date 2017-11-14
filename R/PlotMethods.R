@@ -13,15 +13,15 @@
 #' and all off-diagonal elements are completely blue.
 #' 
 #' @name sc3_plot_consensus
-#' @aliases sc3_plot_consensus, sc3_plot_consensus,SCESet-method
+#' @aliases sc3_plot_consensus, sc3_plot_consensus,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
 #' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-sc3_plot_consensus.SCESet <- function(object, k, show_pdata) {
+sc3_plot_consensus.SingleCellExperiment <- function(object, k, show_pdata) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -45,7 +45,7 @@ sc3_plot_consensus.SCESet <- function(object, k, show_pdata) {
 
 #' @rdname sc3_plot_consensus
 #' @aliases sc3_plot_consensus
-setMethod("sc3_plot_consensus", signature(object = "SingleCellExperiment"), sc3_plot_consensus.SCESet)
+setMethod("sc3_plot_consensus", signature(object = "SingleCellExperiment"), sc3_plot_consensus.SingleCellExperiment)
 
 #' Plot silhouette indexes of the cells
 #' 
@@ -57,11 +57,11 @@ setMethod("sc3_plot_consensus", signature(object = "SingleCellExperiment"), sc3_
 #' silhouette width is close to 1.
 #' 
 #' @name sc3_plot_silhouette
-#' @aliases sc3_plot_silhouette, sc3_plot_silhouette,SCESet-method
+#' @aliases sc3_plot_silhouette, sc3_plot_silhouette,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
-sc3_plot_silhouette.SCESet <- function(object, k) {
+sc3_plot_silhouette.SingleCellExperiment <- function(object, k) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -72,7 +72,7 @@ sc3_plot_silhouette.SCESet <- function(object, k) {
 
 #' @rdname sc3_plot_silhouette
 #' @aliases sc3_plot_silhouette
-setMethod("sc3_plot_silhouette", signature(object = "SingleCellExperiment"), sc3_plot_silhouette.SCESet)
+setMethod("sc3_plot_silhouette", signature(object = "SingleCellExperiment"), sc3_plot_silhouette.SingleCellExperiment)
 
 #' Plot expression matrix used for SC3 clustering as a heatmap
 #' 
@@ -83,15 +83,15 @@ setMethod("sc3_plot_silhouette", signature(object = "SingleCellExperiment"), sc3
 #' after log2-scaling.
 #' 
 #' @name sc3_plot_expression
-#' @aliases sc3_plot_expression, sc3_plot_expression,SCESet-method
+#' @aliases sc3_plot_expression, sc3_plot_expression,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
 #' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-sc3_plot_expression.SCESet <- function(object, k, show_pdata) {
+sc3_plot_expression.SingleCellExperiment <- function(object, k, show_pdata) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -124,23 +124,23 @@ sc3_plot_expression.SCESet <- function(object, k, show_pdata) {
 
 #' @rdname sc3_plot_expression
 #' @aliases sc3_plot_expression
-setMethod("sc3_plot_expression", signature(object = "SingleCellExperiment"), sc3_plot_expression.SCESet)
+setMethod("sc3_plot_expression", signature(object = "SingleCellExperiment"), sc3_plot_expression.SingleCellExperiment)
 
 #' Plot expression of DE genes of the clusters identified by \code{SC3} as a heatmap
 #' 
 #' \code{SC3} plots gene expression profiles of the 50 genes with the lowest p-values. 
 #' 
 #' @name sc3_plot_de_genes
-#' @aliases sc3_plot_de_genes, sc3_plot_de_genes,SCESet-method
+#' @aliases sc3_plot_de_genes, sc3_plot_de_genes,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
 #' @param p.val significance threshold used for the DE genes
 #' @param show_pdata a vector of colnames of the pData(object) table. Default is NULL.
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-sc3_plot_de_genes.SCESet <- function(object, k, p.val, show_pdata) {
+sc3_plot_de_genes.SingleCellExperiment <- function(object, k, p.val, show_pdata) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -176,7 +176,7 @@ sc3_plot_de_genes.SCESet <- function(object, k, p.val, show_pdata) {
 
 #' @rdname sc3_plot_de_genes
 #' @aliases sc3_plot_de_genes
-setMethod("sc3_plot_de_genes", signature(object = "SingleCellExperiment"), sc3_plot_de_genes.SCESet)
+setMethod("sc3_plot_de_genes", signature(object = "SingleCellExperiment"), sc3_plot_de_genes.SingleCellExperiment)
 
 #' Plot expression of marker genes identified by \code{SC3} as a heatmap.
 #' 
@@ -185,9 +185,9 @@ setMethod("sc3_plot_de_genes", signature(object = "SingleCellExperiment"), sc3_p
 #' genes of each cluster are visualized in this heatmap.
 #' 
 #' @name sc3_plot_markers
-#' @aliases sc3_plot_markers, sc3_plot_markers,SCESet-method
+#' @aliases sc3_plot_markers, sc3_plot_markers,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
 #' @param auroc area under the ROC curve
 #' @param p.val significance threshold used for the DE genes
@@ -195,7 +195,7 @@ setMethod("sc3_plot_de_genes", signature(object = "SingleCellExperiment"), sc3_p
 #' If not NULL will add pData annotations to the columns of the output matrix
 #' 
 #' @importFrom pheatmap pheatmap
-sc3_plot_markers.SCESet <- function(object, k, auroc, p.val, show_pdata) {
+sc3_plot_markers.SingleCellExperiment <- function(object, k, auroc, p.val, show_pdata) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -232,7 +232,7 @@ sc3_plot_markers.SCESet <- function(object, k, auroc, p.val, show_pdata) {
 
 #' @rdname sc3_plot_markers
 #' @aliases sc3_plot_markers
-setMethod("sc3_plot_markers", signature(object = "SingleCellExperiment"), sc3_plot_markers.SCESet)
+setMethod("sc3_plot_markers", signature(object = "SingleCellExperiment"), sc3_plot_markers.SingleCellExperiment)
 
 #' Plot stability of the clusters
 #' 
@@ -241,13 +241,13 @@ setMethod("sc3_plot_markers", signature(object = "SingleCellExperiment"), sc3_pl
 #' the same cluster appears in every solution for different k.
 #' 
 #' @name sc3_plot_cluster_stability
-#' @aliases sc3_plot_cluster_stability, sc3_plot_cluster_stability,SCESet-method
+#' @aliases sc3_plot_cluster_stability, sc3_plot_cluster_stability,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' @param k number of clusters
 #' 
 #' @importFrom ggplot2 ggplot aes geom_bar theme_bw labs ylim
-sc3_plot_cluster_stability.SCESet <- function(object, k) {
+sc3_plot_cluster_stability.SingleCellExperiment <- function(object, k) {
     if (is.null(metadata(object)$sc3$consensus)) {
         warning(paste0("Please run sc3_consensus() first!"))
         return(object)
@@ -263,4 +263,4 @@ sc3_plot_cluster_stability.SCESet <- function(object, k) {
 
 #' @rdname sc3_plot_cluster_stability
 #' @aliases sc3_plot_cluster_stability
-setMethod("sc3_plot_cluster_stability", signature(object = "SingleCellExperiment"), sc3_plot_cluster_stability.SCESet)
+setMethod("sc3_plot_cluster_stability", signature(object = "SingleCellExperiment"), sc3_plot_cluster_stability.SingleCellExperiment)
