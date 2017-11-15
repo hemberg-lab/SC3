@@ -3,20 +3,20 @@
 \docType{methods}
 \name{sc3_calc_biology}
 \alias{sc3_calc_biology}
-\alias{sc3_calc_biology.SCESet}
+\alias{sc3_calc_biology.SingleCellExperiment}
 \alias{sc3_calc_biology,}
-\alias{sc3_calc_biology,SCESet-method}
+\alias{sc3_calc_biology,SingleCellExperiment-method}
 \alias{sc3_calc_biology,SingleCellExperiment-method}
 \alias{sc3_calc_biology}
 \title{Calculate DE genes, marker genes and cell outliers.}
 \usage{
-sc3_calc_biology.SCESet(object, ks, regime)
+sc3_calc_biology.SingleCellExperiment(object, ks, regime)
 
 \S4method{sc3_calc_biology}{SingleCellExperiment}(object, ks = NULL,
   regime = NULL)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 
 \item{ks}{number of clusters k (should be used in the case when a user
 would like to run k-means on a manually chosen k)}
@@ -26,7 +26,7 @@ marker genes, "de" for differentiall expressed genes and "outl" for outlier
 cells}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
 This function calculates differentially expressed (DE) genes, marker genes 

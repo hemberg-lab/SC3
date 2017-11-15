@@ -3,18 +3,18 @@
 \docType{methods}
 \name{sc3_export_results_xls}
 \alias{sc3_export_results_xls}
-\alias{sc3_export_results_xls.SCESet}
+\alias{sc3_export_results_xls.SingleCellExperiment}
 \alias{sc3_export_results_xls,SingleCellExperiment-method}
 \alias{sc3_export_results_xls}
 \title{Write \code{SC3} results to Excel file}
 \usage{
-sc3_export_results_xls.SCESet(object, filename)
+sc3_export_results_xls.SingleCellExperiment(object, filename)
 
 \S4method{sc3_export_results_xls}{SingleCellExperiment}(object,
   filename = "sc3_results.xls")
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 
 \item{filename}{name of the excel file, to which the results will be written}
 }

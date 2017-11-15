@@ -234,7 +234,7 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
 #' 
 #' Takes data from the 'exprs' slot and applies the gene filter
 #' 
-#' @param object an object of 'SCESet' class
+#' @param object an object of 'SingleCellExperiment' class
 #' 
 #' @importFrom SingleCellExperiment logcounts
 #'

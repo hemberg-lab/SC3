@@ -3,26 +3,26 @@
 \docType{methods}
 \name{sc3_calc_dists}
 \alias{sc3_calc_dists}
-\alias{sc3_calc_dists.SCESet}
+\alias{sc3_calc_dists.SingleCellExperiment}
 \alias{sc3_calc_dists,}
-\alias{sc3_calc_dists,SCESet-method}
+\alias{sc3_calc_dists,SingleCellExperiment-method}
 \alias{sc3_calc_dists,SingleCellExperiment-method}
 \alias{sc3_calc_dists}
 \title{Calculate distances between the cells.}
 \usage{
-sc3_calc_dists.SCESet(object)
+sc3_calc_dists.SingleCellExperiment(object)
 
 \S4method{sc3_calc_dists}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
 This function calculates distances between the cells contained in 
-the processed_dataset item of the \code{sc3} slot of the \code{SCESet} object. It then
+the processed_dataset item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
 creates and populates the following items of the \code{sc3} slot:
 \itemize{
   \item \code{distances} - contains a list of distance matrices corresponding to

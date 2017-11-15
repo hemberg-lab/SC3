@@ -3,19 +3,19 @@
 \docType{methods}
 \name{sc3_plot_silhouette}
 \alias{sc3_plot_silhouette}
-\alias{sc3_plot_silhouette.SCESet}
+\alias{sc3_plot_silhouette.SingleCellExperiment}
 \alias{sc3_plot_silhouette,}
-\alias{sc3_plot_silhouette,SCESet-method}
+\alias{sc3_plot_silhouette,SingleCellExperiment-method}
 \alias{sc3_plot_silhouette,SingleCellExperiment-method}
 \alias{sc3_plot_silhouette}
 \title{Plot silhouette indexes of the cells}
 \usage{
-sc3_plot_silhouette.SCESet(object, k)
+sc3_plot_silhouette.SingleCellExperiment(object, k)
 
 \S4method{sc3_plot_silhouette}{SingleCellExperiment}(object, k)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 
 \item{k}{number of clusters}
 }

@@ -3,20 +3,20 @@
 \docType{methods}
 \name{sc3_plot_consensus}
 \alias{sc3_plot_consensus}
-\alias{sc3_plot_consensus.SCESet}
+\alias{sc3_plot_consensus.SingleCellExperiment}
 \alias{sc3_plot_consensus,}
-\alias{sc3_plot_consensus,SCESet-method}
+\alias{sc3_plot_consensus,SingleCellExperiment-method}
 \alias{sc3_plot_consensus,SingleCellExperiment-method}
 \alias{sc3_plot_consensus}
 \title{Plot consensus matrix as a heatmap}
 \usage{
-sc3_plot_consensus.SCESet(object, k, show_pdata)
+sc3_plot_consensus.SingleCellExperiment(object, k, show_pdata)
 
 \S4method{sc3_plot_consensus}{SingleCellExperiment}(object, k,
   show_pdata = NULL)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 
 \item{k}{number of clusters}
 

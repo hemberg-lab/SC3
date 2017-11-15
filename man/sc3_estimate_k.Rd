@@ -3,18 +3,18 @@
 \docType{methods}
 \name{sc3_estimate_k}
 \alias{sc3_estimate_k}
-\alias{sc3_estimate_k.SCESet}
-\alias{sc3_estimate_k,SCESet-method}
+\alias{sc3_estimate_k.SingleCellExperiment}
+\alias{sc3_estimate_k,SingleCellExperiment-method}
 \alias{sc3_estimate_k,SingleCellExperiment-method}
 \alias{sc3_estimate_k}
 \title{Estimate the optimal k for k-means clustering}
 \usage{
-sc3_estimate_k.SCESet(object)
+sc3_estimate_k.SingleCellExperiment(object)
 
 \S4method{sc3_estimate_k}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of \code{SCESet} class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \value{
 an estimated value of k

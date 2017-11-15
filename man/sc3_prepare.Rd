@@ -3,15 +3,15 @@
 \docType{methods}
 \name{sc3_prepare}
 \alias{sc3_prepare}
-\alias{sc3_prepare.SCESet}
-\alias{sc3_prepare,SCESet-method}
+\alias{sc3_prepare.SingleCellExperiment}
+\alias{sc3_prepare,SingleCellExperiment-method}
 \alias{sc3_prepare,SingleCellExperiment-method}
 \alias{sc3_prepare}
-\title{Prepare the \code{SCESet} object for \code{SC3} clustering.}
+\title{Prepare the \code{SingleCellExperiment} object for \code{SC3} clustering.}
 \usage{
-sc3_prepare.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
-  d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores,
-  kmeans_nstart, kmeans_iter_max, rand_seed)
+sc3_prepare.SingleCellExperiment(object, ks, gene_filter, pct_dropout_min,
+  pct_dropout_max, d_region_min, d_region_max, svm_num_cells, svm_train_inds,
+  svm_max, n_cores, kmeans_nstart, kmeans_iter_max, rand_seed)
 
 \S4method{sc3_prepare}{SingleCellExperiment}(object, ks = NULL,
   gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
@@ -20,7 +20,7 @@ sc3_prepare.SCESet(object, ks, gene_filter, pct_dropout_min, pct_dropout_max,
   kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1)
 }
 \arguments{
-\item{object}{an object of \code{SCESet} class.}
+\item{object}{an object of \code{SingleCellExperiment} class.}
 
 \item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
 Can also be a single integer.}
@@ -63,11 +63,11 @@ method, so setting the \code{rand_seed} to a fixed values can be used for reprod
 purposes.}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
-This function prepares an object of \code{SCESet} class for \code{SC3} clustering. It
-creates and populates the following items of the \code{sc3} slot of the \code{SCESet} object:
+This function prepares an object of \code{SingleCellExperiment} class for \code{SC3} clustering. It
+creates and populates the following items of the \code{sc3} slot of the \code{SingleCellExperiment} object:
 \itemize{
   \item \code{kmeans_iter_max} - the same as the \code{kmeans_iter_max} argument.
   \item \code{kmeans_nstart} - the same as the \code{kmeans_nstart} argument.

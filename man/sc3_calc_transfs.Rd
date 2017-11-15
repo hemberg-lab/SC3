@@ -3,26 +3,26 @@
 \docType{methods}
 \name{sc3_calc_transfs}
 \alias{sc3_calc_transfs}
-\alias{sc3_calc_transfs.SCESet}
+\alias{sc3_calc_transfs.SingleCellExperiment}
 \alias{sc3_calc_transfs,}
-\alias{sc3_calc_transfs,SCESet-method}
+\alias{sc3_calc_transfs,SingleCellExperiment-method}
 \alias{sc3_calc_transfs,SingleCellExperiment-method}
 \alias{sc3_calc_transfs}
 \title{Calculate transformations of the distance matrices.}
 \usage{
-sc3_calc_transfs.SCESet(object)
+sc3_calc_transfs.SingleCellExperiment(object)
 
 \S4method{sc3_calc_transfs}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 }
 \value{
-an object of 'SCESet' class
+an object of 'SingleCellExperiment' class
 }
 \description{
 This function transforms all \code{distances} items of the \code{sc3} slot 
-of the \code{SCESet} object using either principal component analysis (PCA) 
+of the \code{SingleCellExperiment} object using either principal component analysis (PCA) 
 or by calculating the eigenvectors of the associated graph Laplacian.
 The columns of the resulting matrices are then sorted in descending order 
 by their corresponding eigenvalues. The first \code{d} columns 

@@ -3,20 +3,20 @@
 \docType{methods}
 \name{sc3_plot_expression}
 \alias{sc3_plot_expression}
-\alias{sc3_plot_expression.SCESet}
+\alias{sc3_plot_expression.SingleCellExperiment}
 \alias{sc3_plot_expression,}
-\alias{sc3_plot_expression,SCESet-method}
+\alias{sc3_plot_expression,SingleCellExperiment-method}
 \alias{sc3_plot_expression,SingleCellExperiment-method}
 \alias{sc3_plot_expression}
 \title{Plot expression matrix used for SC3 clustering as a heatmap}
 \usage{
-sc3_plot_expression.SCESet(object, k, show_pdata)
+sc3_plot_expression.SingleCellExperiment(object, k, show_pdata)
 
 \S4method{sc3_plot_expression}{SingleCellExperiment}(object, k,
   show_pdata = NULL)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 
 \item{k}{number of clusters}
 

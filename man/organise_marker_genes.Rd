@@ -2,12 +2,12 @@
 % Please edit documentation in R/ShinyFunctions.R
 \name{organise_marker_genes}
 \alias{organise_marker_genes}
-\title{Get marker genes from an object of \code{SCESet} class}
+\title{Get marker genes from an object of \code{SingleCellExperiment} class}
 \usage{
 organise_marker_genes(object, k, p_val, auroc)
 }
 \arguments{
-\item{object}{an objec of \code{SCESet} class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 
 \item{k}{number of cluster}
 

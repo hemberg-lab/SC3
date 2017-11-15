@@ -7,7 +7,7 @@
 get_processed_dataset(object)
 }
 \arguments{
-\item{object}{an object of 'SCESet' class}
+\item{object}{an object of 'SingleCellExperiment' class}
 }
 \description{
 Takes data from the 'exprs' slot and applies the gene filter
