@@ -15,22 +15,19 @@ sc3_kmeans.SingleCellExperiment(object, ks)
 \S4method{sc3_kmeans}{SingleCellExperiment}(object, ks = NULL)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 
-\item{ks}{number of clusters k (should be used in the case when a user
-would like to run k-means on a manually chosen k)}
+\item{ks}{a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+Can also be a single integer.}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This function performs \code{\link[stats]{kmeans}} clustering of the matrices 
-contained in the \code{transformations} item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
+contained in the \code{transformations} item of the \code{sc3} slot of the \code{metadata(object)}. It then
 creates and populates the following items of the \code{sc3} slot:
 \itemize{
   \item \code{kmeans} - contains a list of kmeans clusterings.
 }
-}
-\details{
-See \code{\link{sc3_prepare}} for the default clustering parameters.
 }

@@ -41,23 +41,35 @@ head(ann)
 yan[1:3, 1:3]
 ```
 
-It is easy to create an `SingleCellExperiment` object from `yan` expression matrix:
-```{r}
-sce <- SingleCellExperiment(assays = list(normcounts = as.matrix(yan)), colData = ann)
-# this is needed to calculate dropout rate for feature selection
-# important: normcounts have the same zeros as raw counts (fpkm)
-counts(sce) <- normcounts(sce)
-logcounts(sce) <- log2(normcounts(sce) + 1)
-# use gene names as feature symbols
-rowData(sce)$feature_symbol <- rownames(sce)
-isSpike(sce, "ERCC") <- grepl("^ERCC-", rownames(sce))
-# remove features with duplicated names
-sce <- sce[!duplicated(rownames(sce)), ]
-```
-
 The `ann` dataframe contains just `cell_type1` column which correspond to the cell labels provided by authors of the original publication. Note that in general it can also contain more information about the cells, such as plate, run, well, date etc.
 
-After the `sce` object is created and QC is run, `scater` allows a user to quickly visualize and assess the data, for example using a PCA plot:
+Now we can create a `SingleCellExperiment` object from `yan` expression matrix.
+
+Note that `SC3` requires both `counts` and `logcounts` slots to exist in the input `SingleCellExperiment` object. The `counts` slot is used for gene filtering, which is based on gene dropout rates. `logcounts` slot, which is supposed to contain both normalised and log-transformed expression matrix, is used in the main clustering algorithm. In the case of the `yan` dataset even though the `counts` are not available (we only have __FPKM__ values) we can use the __FPKM__ values for gene dropout rate calculations since __FPKM__ normalisation does not change the dropout rate.
+
+`SC3` also requires the `feature_symbol` column of the `rowData` slot of the input `SingleCellExperiment` object to contain preferable feature names (genes/transcript) which will be used in the futher visualisations.
+
+Additionally, if spike-ins are defined via `isSpike` function, `SC3` will automatically remove them before doing clustering:
+```{r}
+# create a SingleCellExperiment object
+sce <- SingleCellExperiment(
+    assays = list(
+        counts = as.matrix(yan),
+        logcounts = log2(as.matrix(yan) + 1)
+    ), 
+    colData = ann
+)
+
+# define feature names in feature_symbol column
+rowData(sce)$feature_symbol <- rownames(sce)
+# remove features with duplicated names
+sce <- sce[!duplicated(rowData(sce)$feature_symbol), ]
+
+# define spike-ins
+isSpike(sce, "ERCC") <- grepl("ERCC", rowData(sce)$feature_symbol)
+```
+
+`scater` allows a user to quickly visualize and assess any `SingleCellExperiment` object, for example using a PCA plot:
 ```{r}
 plotPCA(sce, colour_by = "cell_type1")
 ```
@@ -89,8 +101,8 @@ This will write all results to `sc3_results.xls` file. The name of the file can 
 `SC3` writes all its results obtained for cells to the `colData` slot of the `sce` object by adding additional columns to it. This slot also contains all other cell features calculated by the `scater` package either automatically during the `sce` object creation or during the `calculateQCMetrics` call. One can identify the `SC3` results using the `"sc3_"` prefix:
 
 ```{r}
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 Additionally, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
@@ -107,8 +119,8 @@ plotPCA(
 `SC3` writes all its results obtained for features (genes/transcripts) to the `rowData` slot of the `sce` object by adding additional columns to it. This slot also contains all other feature values calculated by the `scater` package either automatically during the `sce` object creation or during the `calculateQCMetrics` call. One can identify the `SC3` results using the `"sc3_"` prefix:
 
 ```{r}
-f_data <- rowData(sce)
-head(f_data[ , grep("sc3_", colnames(f_data))])
+row_data <- rowData(sce)
+head(row_data[ , grep("sc3_", colnames(row_data))])
 ```
 
 Because the biological features were also calculated for each `k`, one can find ajusted p-values for both differential expression and marker genes, as well as the area under the ROC curve values (see `?sc3_calc_biology` for more information).
@@ -252,8 +264,8 @@ We start with `sc3_prepare`. This method prepares an object of `sce` class for `
 ```{r}
 # Note that n_cores = 1 is required for compilation of this vignette.
 # Please remove this parameter when running on your computer:
-# sce <- sc3_prepare(sce, ks = 2:4)
-sce <- sc3_prepare(sce, ks = 2:4, n_cores = 1)
+# sce <- sc3_prepare(sce)
+sce <- sc3_prepare(sce, n_cores = 1)
 str(metadata(sce)$sc3)
 ```
 
@@ -301,7 +313,7 @@ kmeans should then be performed on the transformed distance matrices contained i
 
 By default the `nstart` parameter passed to `kmeans` defined in `sc3_prepare` method, is set 1000 and written to `kmeans_nstart` item of the `sc3` slot. If the number of cells in the dataset is more than 2,000, this parameter is set to 50. A user can also manually define this parameter by changing the value of the `kmeans_nstart` item of the `sc3` slot.
 ```{r}
-sce <- sc3_kmeans(sce)
+sce <- sc3_kmeans(sce, ks = 2:4)
 names(metadata(sce)$sc3$kmeans)
 ```
 
@@ -309,8 +321,8 @@ names(metadata(sce)$sc3$kmeans)
 
 In this step `SC3` will provide you with a clustering solution. Let's first check that there are no `SC3` related columns in the `colData` slot:
 ```{r}
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 When calculating consensus for each value of `k` `SC3` averages the clustering results of `kmeans` using a consensus approach. Method `sc3_calc_consens` calculates consensus matrices based on the clustering solutions contained in the `kmeans` item of the `sc3` slot. It then creates and populates the following items of the `sc3` slot:
@@ -329,8 +341,8 @@ metadata(sce)$sc3$kmeans
 
 As mentioned before all the clustering results (cell-related information) are written to the `colData` slot of the `sce` object:
 ```{r}
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 We can see that `SC3` calculated clusters for `k = 2, 3` and `4` and wrote them to the `colData` slot of the `sce` object.
@@ -339,15 +351,15 @@ We can see that `SC3` calculated clusters for `k = 2, 3` and `4` and wrote them 
 
 `SC3` can also calculates DE genes, marker genes and cell outliers based on the calculated consensus clusterings. Similary to the clustering solutions, method `sc3_calc_biology` writes the results for the cell outliers (cell-related information) to the `colData` slot of the `sce` object. In contrast, DE and marker genes results (gene-related information) is are written to the `rowData` slot. In addition `biology` item of the `sc3` slot is set to `TRUE`.
 ```{r}
-sce <- sc3_calc_biology(sce)
+sce <- sc3_calc_biology(sce, ks = 2:4)
 ```
 
 ### Cell Outliers
 
 Now we can see that cell outlier scores have been calculated for each value of `k`:
 ```{r}
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 For more information on how the cell outliers are calculated please see `?get_outl_cells`.
@@ -356,8 +368,8 @@ For more information on how the cell outliers are calculated please see `?get_ou
 
 We can also see that DE and marker genes characteristics (adjusted p-values and area under the ROC curve) have been calculated for each value of `k`
 ```{r}
-f_data <- rowData(sce)
-head(f_data[ , grep("sc3_", colnames(f_data))])
+row_data <- rowData(sce)
+head(row_data[ , grep("sc3_", colnames(row_data))])
 ```
 
 For more information on how the DE and marker genes are calculated please see `?get_de_genes` and `?get_marker_genes`.
@@ -383,23 +395,23 @@ sce <- sc3(sce, ks = 2:4, biology = TRUE, svm_num_cells = 50, n_cores = 1)
 
 Note that when `SVM` is used all results (including marker genes, DE genes and cell outliers) correspond to the training cells only (50 cells), and values of all other cells are set to `NA`:
 ```{r}
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 Now we can run the `SVM` and predict labels of all the other cells:
 ```{r, message=FALSE, warning=FALSE}
-sce <- sc3_run_svm(sce)
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+sce <- sc3_run_svm(sce, ks = 2:4)
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 Note that the cell outlier scores (and also DE and marker genes values) were not updated and they still contain `NA` values for non-training cells. To recalculate biological characteristics using the labels predicted by `SVM` one need to clear the `svm_train_inds` item in the `sc3` slot and rerun the `sc3_calc_biology` method:
 ```{r}
 metadata(sce)$sc3$svm_train_inds <- NULL
-sce <- sc3_calc_biology(sce)
-p_data <- colData(sce)
-head(p_data[ , grep("sc3_", colnames(p_data))])
+sce <- sc3_calc_biology(sce, ks = 2:4)
+col_data <- colData(sce)
+head(col_data[ , grep("sc3_", colnames(col_data))])
 ```
 
 Now the biological characteristics are calculated for all cells (including those predicted by the `SVM`)

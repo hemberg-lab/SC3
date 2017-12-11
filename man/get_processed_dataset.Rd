@@ -2,13 +2,13 @@
 % Please edit documentation in R/CoreFunctions.R
 \name{get_processed_dataset}
 \alias{get_processed_dataset}
-\title{Get processed dataset used by SC3 from the default scater slots}
+\title{Get processed dataset used by \code{SC3} clustering}
 \usage{
 get_processed_dataset(object)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \description{
-Takes data from the 'exprs' slot and applies the gene filter
+Takes data from the \code{logcounts} slot, removes spike-ins and applies the gene filter.
 }

@@ -1,12 +1,6 @@
 #' Run all steps of \code{SC3} in one go
 #' 
 #' This function is a wrapper that executes all steps of \code{SC3} analysis in one go.
-#' Please note that by default the "exprs" slot of the input \code{scater} object 
-#' is used for the SC3 analysis. If the scater object has been created in a standard
-#' way then the expression values in the "exprs" slot will be automatically log-transformed.
-#' If you have overwritten the "exprs" slot manually, please make sure that the values
-#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-#' assumes that the data is log-transformed by default.
 #' 
 #' @param object an object of \code{SingleCellExperiment} class.
 #' @param ks a range of the number of clusters \code{k} used for \code{SC3} clustering.
@@ -47,11 +41,7 @@
 sc3.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
                        d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
                        k_estimator, biology, rand_seed) {
-    if (is.null(ks)) {
-        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
-        return(object)
-    }
-    object <- sc3_prepare(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+    object <- sc3_prepare(object, gene_filter, pct_dropout_min, pct_dropout_max, 
         d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
         kmeans_iter_max, rand_seed)
     if (k_estimator) {
@@ -59,10 +49,10 @@ sc3.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropout_min, p
     }
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
-    object <- sc3_kmeans(object)
+    object <- sc3_kmeans(object, ks)
     object <- sc3_calc_consens(object)
     if (biology) {
-        object <- sc3_calc_biology(object)
+        object <- sc3_calc_biology(object, ks)
     }
     return(object)
 }
@@ -74,7 +64,7 @@ setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SingleCellExper
 #' Prepare the \code{SingleCellExperiment} object for \code{SC3} clustering.
 #' 
 #' This function prepares an object of \code{SingleCellExperiment} class for \code{SC3} clustering. It
-#' creates and populates the following items of the \code{sc3} slot of the \code{SingleCellExperiment} object:
+#' creates and populates the following items of the \code{sc3} slot of the \code{metadata(object)}:
 #' \itemize{
 #'   \item \code{kmeans_iter_max} - the same as the \code{kmeans_iter_max} argument.
 #'   \item \code{kmeans_nstart} - the same as the \code{kmeans_nstart} argument.
@@ -86,18 +76,9 @@ setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SingleCellExper
 #'   \item \code{svm_study_inds} - if SVM is used this item contains indexes of the
 #'    cells to be predicted by SVM.
 #'   \item \code{n_cores} - the same as the \code{n_cores} argument.
-#'   \item \code{ks} - the same as the \code{ks} argument.
 #' }
-#' Please note that by default the "exprs" slot of the input \code{scater} object 
-#' is used for the SC3 analysis. If the scater object has been created in a standard
-#' way then the expression values in the "exprs" slot will be automatically log-transformed.
-#' If you have overwritten the "exprs" slot manually, please make sure that the values
-#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-#' assumes that the data is log-transformed by default.
 #' 
 #' @param object an object of \code{SingleCellExperiment} class.
-#' @param ks a continuous range of integers - the number of clusters k used for SC3 clustering.
-#' Can also be a single integer.
 #' @param gene_filter a boolen variable which defines whether to perform gene 
 #' filtering before SC3 clustering.
 #' @param pct_dropout_min if \code{gene_filter = TRUE}, then genes with percent of dropouts smaller than 
@@ -127,16 +108,30 @@ setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SingleCellExper
 #' @name sc3_prepare
 #' @aliases sc3_prepare sc3_prepare,SingleCellExperiment-method
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom parallel detectCores
-#' @importFrom SummarizedExperiment colData colData<- rowData rowData<-
-#' @importFrom SingleCellExperiment logcounts
+#' @importFrom SummarizedExperiment colData colData<- rowData rowData<- assayNames
+#' @importFrom S4Vectors metadata metadata<-
 #' @importFrom utils capture.output
 #' @importFrom methods new
-sc3_prepare.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, 
+#' @importFrom BiocGenerics counts
+#' @importFrom SingleCellExperiment isSpike
+sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_min, pct_dropout_max, 
                                d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
                                kmeans_iter_max, rand_seed) {
+    if (is.null(rowData(object)$feature_symbol)) {
+        stop("There is no `feature_symbol` column in the `rowData` slot of your dataset! Please write your gene/transcript names to `rowData(object)$feature_symbol`!")
+        return(object)
+    }
+    if (gene_filter == TRUE & !"counts" %in% assayNames(object)) {
+        stop("There is no `counts` slot in your input SingleCellExperiment object! SC3 requires the `counts` slot for gene filtering! Please write these values the slot by setting `counts(object) <- count_values`! Alternatively, you can set `gene_filter = FALSE` to switch off gene filtering.")
+        return(object)
+    }
+    if (!"logcounts" %in% assayNames(object)) {
+        stop("There is no `logcounts` slot in your input SingleCellExperiment object! SC3 operates on `logcounts` slot, which is supposed to contain both normalised and log-transformed expression values! Please write these values the slot by setting `logcounts(object) <- log_norm_counts`!")
+        return(object)
+    }
     
     message("Setting SC3 parameters...")
     
@@ -145,7 +140,7 @@ sc3_prepare.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropou
     colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object))), drop = FALSE]
     rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object))), drop = FALSE]
     
-    dataset <- logcounts(object)
+    dataset <- counts(object)
     
     dropouts <- rowSums(dataset == 0)/ncol(dataset)*100
     
@@ -153,9 +148,9 @@ sc3_prepare.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropou
     f_data <- rowData(object)
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
-            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min
+            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min & !isSpike(object)
             if (all(!f_data$sc3_gene_filter)) {
-                stop("All genes were removed after the gene filter! Stopping now...")
+                stop("All genes were removed after the gene filter! Please check the `counts` slot of the `SingleCellExperiment` object. It has to contain zeros, where no gene expression was detected. Alternatively, you can set `gene_filter = FALSE` to switch off gene filtering.")
                 return(object)
             }
     }
@@ -242,13 +237,6 @@ sc3_prepare.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropou
     
     metadata(object)$sc3$n_cores <- n_cores
     
-    if (is.null(ks)) {
-        warning(paste0("Please provide a range of the number of clusters ks to be used by SC3!"))
-        return(object)
-    }
-    message("Setting a range of k...")
-    metadata(object)$sc3$ks <- ks
-    
     return(object)
 }
 
@@ -256,20 +244,11 @@ sc3_prepare.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropou
 #' @aliases sc3_prepare
 setMethod("sc3_prepare", signature(object = "SingleCellExperiment"), sc3_prepare.SingleCellExperiment)
 
-#' Estimate the optimal k for k-means clustering
+#' Estimate the optimal number of cluster \code{k} for a scRNA-Seq expression matrix
 #' 
 #' Uses Tracy-Widom theory on random matrices to estimate the optimal number of
-#' clusters k. Using the function \code{\link{estkTW}} to perform the estimation. 
-#' It creates and populates the following items of the `sc3` slot:
-#' \itemize{
-#'   \item k_estimation - contains the estimated value of `k`.
-#' }
-#' Please note that by default the "exprs" slot of the input \code{scater} object 
-#' is used for the SC3 analysis. If the scater object has been created in a standard
-#' way then the expression values in the "exprs" slot will be automatically log-transformed.
-#' If you have overwritten the "exprs" slot manually, please make sure that the values
-#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-#' assumes that the data is log-transformed by default.
+#' clusters \code{k}. It creates and populates the \code{k_estimation} item of the
+#' \code{sc3} slot of the \code{metadata(object)}.
 #' 
 #' @name sc3_estimate_k
 #' @aliases sc3_estimate_k sc3_estimate_k,SingleCellExperiment-method
@@ -279,10 +258,6 @@ setMethod("sc3_prepare", signature(object = "SingleCellExperiment"), sc3_prepare
 sc3_estimate_k.SingleCellExperiment <- function(object) {
     message("Estimating k...")
     dataset <- get_processed_dataset(object)
-    if (is.null(dataset)) {
-        warning(paste0("Please run sc3_prepare() first!"))
-        return(object)
-    }
     res <- estkTW(dataset = dataset)
     metadata(object)$sc3$k_estimation <- res
     return(object)
@@ -294,26 +269,19 @@ setMethod("sc3_estimate_k", signature(object = "SingleCellExperiment"), sc3_esti
 
 #' Calculate distances between the cells.
 #' 
-#' This function calculates distances between the cells contained in 
-#' the processed_dataset item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
-#' creates and populates the following items of the \code{sc3} slot:
+#' This function calculates distances between the cells. It
+#' creates and populates the following items of the \code{sc3} slot of the \code{metadata(object)}:
 #' \itemize{
 #'   \item \code{distances} - contains a list of distance matrices corresponding to
 #'   Euclidean, Pearson and Spearman distances.
 #' }
-#' Please note that by default the "exprs" slot of the input \code{scater} object 
-#' is used for the SC3 analysis. If the scater object has been created in a standard
-#' way then the expression values in the "exprs" slot will be automatically log-transformed.
-#' If you have overwritten the "exprs" slot manually, please make sure that the values
-#' in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-#' assumes that the data is log-transformed by default.
 #' 
 #' @name sc3_calc_dists
 #' @aliases sc3_calc_dists, sc3_calc_dists,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach %dopar%
@@ -321,10 +289,6 @@ setMethod("sc3_estimate_k", signature(object = "SingleCellExperiment"), sc3_esti
 #' @importFrom doParallel registerDoParallel
 sc3_calc_dists.SingleCellExperiment <- function(object) {
     dataset <- get_processed_dataset(object)
-    if (is.null(dataset)) {
-        warning(paste0("Please run sc3_prepare() first!"))
-        return(object)
-    }
     
     # check whether in the SVM regime
     if (!is.null(metadata(object)$sc3$svm_train_inds)) {
@@ -369,8 +333,8 @@ setMethod("sc3_calc_dists", signature(object = "SingleCellExperiment"), sc3_calc
 
 #' Calculate transformations of the distance matrices.
 #' 
-#' This function transforms all \code{distances} items of the \code{sc3} slot 
-#' of the \code{SingleCellExperiment} object using either principal component analysis (PCA) 
+#' This function transforms all \code{distances} items of the \code{sc3} slot of 
+#' the \code{metadata(object)} using either principal component analysis (PCA) 
 #' or by calculating the eigenvectors of the associated graph Laplacian.
 #' The columns of the resulting matrices are then sorted in descending order 
 #' by their corresponding eigenvalues. The first \code{d} columns 
@@ -382,9 +346,9 @@ setMethod("sc3_calc_dists", signature(object = "SingleCellExperiment"), sc3_calc
 #' @name sc3_calc_transfs
 #' @aliases sc3_calc_transfs, sc3_calc_transfs,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach
@@ -393,7 +357,7 @@ setMethod("sc3_calc_dists", signature(object = "SingleCellExperiment"), sc3_calc
 sc3_calc_transfs.SingleCellExperiment <- function(object) {
     dists <- metadata(object)$sc3$distances
     if (is.null(dists)) {
-        warning(paste0("Please run sc3_calc_dists() first!"))
+        stop(paste0("Please run sc3_calc_dists() first!"))
         return(object)
     }
     
@@ -444,22 +408,20 @@ setMethod("sc3_calc_transfs", signature(object = "SingleCellExperiment"), sc3_ca
 #' \code{kmeans} clustering of cells.
 #' 
 #' This function performs \code{\link[stats]{kmeans}} clustering of the matrices 
-#' contained in the \code{transformations} item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
+#' contained in the \code{transformations} item of the \code{sc3} slot of the \code{metadata(object)}. It then
 #' creates and populates the following items of the \code{sc3} slot:
 #' \itemize{
 #'   \item \code{kmeans} - contains a list of kmeans clusterings.
 #' }
 #' 
-#' See \code{\link{sc3_prepare}} for the default clustering parameters.
-#' 
 #' @name sc3_kmeans
 #' @aliases sc3_kmeans, sc3_kmeans,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
-#' @param ks number of clusters k (should be used in the case when a user
-#' would like to run k-means on a manually chosen k)
+#' @param object an object of \code{SingleCellExperiment} class
+#' @param ks a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+#' Can also be a single integer.
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach
@@ -468,9 +430,14 @@ setMethod("sc3_calc_transfs", signature(object = "SingleCellExperiment"), sc3_ca
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom stats kmeans
 sc3_kmeans.SingleCellExperiment <- function(object, ks) {
+    if (is.null(ks)) {
+        stop(paste0("Please provide a range of the number of clusters `ks` to be used by SC3!"))
+        return(object)
+    }
+    
     transfs <- metadata(object)$sc3$transformations
     if (is.null(transfs)) {
-        warning(paste0("Please run sc3_calc_transfs() first!"))
+        stop(paste0("Please run sc3_calc_transfs() first!"))
         return(object)
     }
     
@@ -478,10 +445,6 @@ sc3_kmeans.SingleCellExperiment <- function(object, ks) {
     i <- NULL
     
     n_dim <- metadata(object)$sc3$n_dim
-    
-    if (is.null(ks)) {
-        ks <- metadata(object)$sc3$ks
-    }
     
     hash.table <- expand.grid(transf = names(transfs), ks = ks, n_dim = n_dim, stringsAsFactors = FALSE)
     
@@ -525,14 +488,14 @@ setMethod("sc3_kmeans", signature(object = "SingleCellExperiment"), sc3_kmeans.S
 #' Calculate consensus matrix.
 #' 
 #' This function calculates consensus matrices based on the clustering solutions
-#' contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
+#' contained in the \code{kmeans} item of the \code{sc3} slot of the \code{metadata(object)}. It then
 #' creates and populates the \code{consensus} item of the \code{sc3} slot with 
 #' consensus matrices, their hierarchical clusterings in \code{hclust} objects,
 #' and Silhouette indeces of the clusters. It also removes the previously 
 #' calculated \code{kmeans} clusterings from
 #' the \code{sc3} slot, as they are not needed for further analysis.
 #' 
-#' Additionally, it also adds new columns to the \code{phenoData} slot of the
+#' Additionally, it also adds new columns to the \code{colData} slot of the
 #' input \code{object}. The column names correspond to the consensus cell labels
 #' and have the following format: \code{sc3_k_clusters}, where \code{k} is the 
 #' number of clusters.
@@ -540,9 +503,9 @@ setMethod("sc3_kmeans", signature(object = "SingleCellExperiment"), sc3_kmeans.S
 #' @name sc3_calc_consens
 #' @aliases sc3_calc_consens, sc3_calc_consens,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach
@@ -556,7 +519,7 @@ setMethod("sc3_kmeans", signature(object = "SingleCellExperiment"), sc3_kmeans.S
 sc3_calc_consens.SingleCellExperiment <- function(object) {
     k.means <- metadata(object)$sc3$kmeans
     if (is.null(k.means)) {
-        warning(paste0("Please run sc3_kmeans() first!"))
+        stop(paste0("Please run sc3_kmeans() first!"))
         return(object)
     }
     
@@ -664,14 +627,14 @@ setMethod("sc3_calc_consens", signature(object = "SingleCellExperiment"), sc3_ca
 #' @name sc3_calc_biology
 #' @aliases sc3_calc_biology, sc3_calc_biology,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
-#' @param ks number of clusters k (should be used in the case when a user
-#' would like to run k-means on a manually chosen k)
+#' @param object an object of \code{SingleCellExperiment} class
+#' @param ks a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+#' Can also be a single integer.
 #' @param regime defines what biological analysis to perform. "marker" for
 #' marker genes, "de" for differentiall expressed genes and "outl" for outlier
 #' cells
 #' 
-#' @return an object of 'SingleCellExperiment' class
+#' @return an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom doRNG %dorng%
 #' @importFrom foreach foreach
@@ -679,21 +642,22 @@ setMethod("sc3_calc_consens", signature(object = "SingleCellExperiment"), sc3_ca
 #' @importFrom doParallel registerDoParallel
 sc3_calc_biology.SingleCellExperiment <- function(object, ks, regime) {
     if (is.null(metadata(object)$sc3$consensus)) {
-        warning(paste0("Please run sc3_consensus() first!"))
+        stop(paste0("Please run sc3_consensus() first!"))
         return(object)
     }
     if (is.null(ks)) {
-        ks <- metadata(object)$sc3$ks
+        stop(paste0("Please provide a range of the number of clusters `ks` to be used by SC3!"))
+        return(object)
     }
     if (!all(ks %in% as.numeric(names(metadata(object)$sc3$consensus)))) {
-        warning(paste0("Range of the number of clusters ks is not consistent with the consensus results! Please redefine the ks!"))
+        stop(paste0("Range of the number of clusters ks is not consistent with the consensus results! Please redefine the ks!"))
         return(object)
     }
     if (is.null(regime)) {
         regime <- c("marker", "de", "outl")
     }
     if (!all(regime %in% c("marker", "de", "outl"))) {
-        warning(paste0("Regime value must be either 'marker', 'de' or 'outl', or any combination of these three!"))
+        stop(paste0("Regime value must be either 'marker', 'de' or 'outl', or any combination of these three!"))
         return(object)
     }
     
@@ -786,28 +750,32 @@ setMethod("sc3_calc_biology", signature(object = "SingleCellExperiment"), sc3_ca
 #' This method parallelize \code{SVM} prediction for each \code{k} (the number
 #' of clusters). Namely, for each \code{k}, \code{\link{support_vector_machines}} 
 #' function is utilized to predict the labels of study cells. Training cells are
-#' selected using \code{svm_train_inds} item of the \code{sc3} slot of the input
-#' \code{SingleCellExperiment} object.
+#' selected using \code{svm_train_inds} item of the \code{sc3} slot of the
+#' \code{metadata(object)}.
 #' 
 #' Results are written to the \code{sc3_k_clusters} columns to the 
-#' \code{phenoData} slot of the input \code{object}, where \code{k} is the 
+#' \code{colData} slot of the input \code{object}, where \code{k} is the 
 #' number of clusters.
 #' 
 #' @name sc3_run_svm
 #' @aliases sc3_run_svm, sc3_run_svm,SingleCellExperiment-method
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
+#' @param ks a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+#' Can also be a single integer.
 #' 
-#' 
-#' @return an object of 'SingleCellExperiment' class
-sc3_run_svm.SingleCellExperiment <- function(object) {
+#' @return an object of \code{SingleCellExperiment} class
+sc3_run_svm.SingleCellExperiment <- function(object, ks) {
     if (is.null(metadata(object)$sc3$svm_train_inds)) {
-        warning(paste0("Please rerun sc3_prepare() defining the training cells!"))
+        stop(paste0("Please rerun sc3_prepare() defining the training cells!"))
+        return(object)
+    }
+    if (is.null(ks)) {
+        stop(paste0("Please provide a range of the number of clusters `ks` to be used by SC3!"))
         return(object)
     }
     
     dataset <- get_processed_dataset(object)
-    ks <- metadata(object)$sc3$ks
     p_data <- colData(object)
     svm_train_inds <- metadata(object)$sc3$svm_train_inds
     svm_study_inds <- metadata(object)$sc3$svm_study_inds
@@ -837,7 +805,7 @@ setMethod("sc3_run_svm", signature(object = "SingleCellExperiment"), sc3_run_svm
 #' 
 #' This function writes all \code{SC3} results to an excel file.
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
 #' @param filename name of the excel file, to which the results will be written
 #' 
 #' @name sc3_export_results_xls
@@ -846,8 +814,7 @@ setMethod("sc3_run_svm", signature(object = "SingleCellExperiment"), sc3_run_svm
 #' @importFrom WriteXLS WriteXLS
 sc3_export_results_xls.SingleCellExperiment <- function(object, filename) {
     if (is.null(metadata(object)$sc3$consensus)) {
-        warning(paste0("Please run sc3_consensus() first!"))
-        return(object)
+        stop(paste0("Please run sc3_consensus() first!"))
     }
     
     p_data <- colData(object)

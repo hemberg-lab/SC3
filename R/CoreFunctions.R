@@ -230,11 +230,11 @@ make_col_ann_for_heatmaps <- function(object, show_pdata) {
     return(ann)
 }
 
-#' Get processed dataset used by SC3 from the default scater slots
+#' Get processed dataset used by \code{SC3} clustering
 #' 
-#' Takes data from the 'exprs' slot and applies the gene filter
+#' Takes data from the \code{logcounts} slot, removes spike-ins and applies the gene filter.
 #' 
-#' @param object an object of 'SingleCellExperiment' class
+#' @param object an object of \code{SingleCellExperiment} class
 #' 
 #' @importFrom SingleCellExperiment logcounts
 #'

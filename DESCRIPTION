@@ -1,7 +1,7 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 1.7.1
+Version: 1.7.2
 Author: Vladimir Kiselev
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 Authors@R: c(person("Vladimir", "Kiselev",
@@ -18,8 +18,9 @@ License: GPL-3
 Imports: graphics, stats, utils, methods, e1071, parallel, foreach,
           doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8),
           ROCR, robustbase, rrcov, cluster, WriteXLS,
-          Rcpp (>= 0.11.1), SummarizedExperiment
-Depends: R(>= 3.3), SingleCellExperiment
+          Rcpp (>= 0.11.1), SummarizedExperiment, SingleCellExperiment,
+          BiocGenerics, S4Vectors
+Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE
 RoxygenNote: 6.0.1

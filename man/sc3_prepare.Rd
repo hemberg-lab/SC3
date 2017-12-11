@@ -9,21 +9,18 @@
 \alias{sc3_prepare}
 \title{Prepare the \code{SingleCellExperiment} object for \code{SC3} clustering.}
 \usage{
-sc3_prepare.SingleCellExperiment(object, ks, gene_filter, pct_dropout_min,
+sc3_prepare.SingleCellExperiment(object, gene_filter, pct_dropout_min,
   pct_dropout_max, d_region_min, d_region_max, svm_num_cells, svm_train_inds,
   svm_max, n_cores, kmeans_nstart, kmeans_iter_max, rand_seed)
 
-\S4method{sc3_prepare}{SingleCellExperiment}(object, ks = NULL,
-  gene_filter = TRUE, pct_dropout_min = 10, pct_dropout_max = 90,
-  d_region_min = 0.04, d_region_max = 0.07, svm_num_cells = NULL,
-  svm_train_inds = NULL, svm_max = 5000, n_cores = NULL,
-  kmeans_nstart = NULL, kmeans_iter_max = 1e+09, rand_seed = 1)
+\S4method{sc3_prepare}{SingleCellExperiment}(object, gene_filter = TRUE,
+  pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,
+  d_region_max = 0.07, svm_num_cells = NULL, svm_train_inds = NULL,
+  svm_max = 5000, n_cores = NULL, kmeans_nstart = NULL,
+  kmeans_iter_max = 1e+09, rand_seed = 1)
 }
 \arguments{
 \item{object}{an object of \code{SingleCellExperiment} class.}
-
-\item{ks}{a continuous range of integers - the number of clusters k used for SC3 clustering.
-Can also be a single integer.}
 
 \item{gene_filter}{a boolen variable which defines whether to perform gene 
 filtering before SC3 clustering.}
@@ -63,11 +60,11 @@ method, so setting the \code{rand_seed} to a fixed values can be used for reprod
 purposes.}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This function prepares an object of \code{SingleCellExperiment} class for \code{SC3} clustering. It
-creates and populates the following items of the \code{sc3} slot of the \code{SingleCellExperiment} object:
+creates and populates the following items of the \code{sc3} slot of the \code{metadata(object)}:
 \itemize{
   \item \code{kmeans_iter_max} - the same as the \code{kmeans_iter_max} argument.
   \item \code{kmeans_nstart} - the same as the \code{kmeans_nstart} argument.
@@ -79,12 +76,5 @@ creates and populates the following items of the \code{sc3} slot of the \code{Si
   \item \code{svm_study_inds} - if SVM is used this item contains indexes of the
    cells to be predicted by SVM.
   \item \code{n_cores} - the same as the \code{n_cores} argument.
-  \item \code{ks} - the same as the \code{ks} argument.
 }
-Please note that by default the "exprs" slot of the input \code{scater} object 
-is used for the SC3 analysis. If the scater object has been created in a standard
-way then the expression values in the "exprs" slot will be automatically log-transformed.
-If you have overwritten the "exprs" slot manually, please make sure that the values
-in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-assumes that the data is log-transformed by default.
 }

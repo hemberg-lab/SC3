@@ -16,17 +16,17 @@ sc3_calc_biology.SingleCellExperiment(object, ks, regime)
   regime = NULL)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 
-\item{ks}{number of clusters k (should be used in the case when a user
-would like to run k-means on a manually chosen k)}
+\item{ks}{a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+Can also be a single integer.}
 
 \item{regime}{defines what biological analysis to perform. "marker" for
 marker genes, "de" for differentiall expressed genes and "outl" for outlier
 cells}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This function calculates differentially expressed (DE) genes, marker genes 

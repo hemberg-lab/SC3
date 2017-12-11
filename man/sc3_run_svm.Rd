@@ -10,25 +10,28 @@
 \alias{sc3_run_svm}
 \title{Run the hybrid \code{SVM} approach.}
 \usage{
-sc3_run_svm.SingleCellExperiment(object)
+sc3_run_svm.SingleCellExperiment(object, ks)
 
-\S4method{sc3_run_svm}{SingleCellExperiment}(object)
+\S4method{sc3_run_svm}{SingleCellExperiment}(object, ks = NULL)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
+
+\item{ks}{a continuous range of integers - the number of clusters \code{k} to be used for SC3 clustering.
+Can also be a single integer.}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This method parallelize \code{SVM} prediction for each \code{k} (the number
 of clusters). Namely, for each \code{k}, \code{\link{support_vector_machines}} 
 function is utilized to predict the labels of study cells. Training cells are
-selected using \code{svm_train_inds} item of the \code{sc3} slot of the input
-\code{SingleCellExperiment} object.
+selected using \code{svm_train_inds} item of the \code{sc3} slot of the
+\code{metadata(object)}.
 }
 \details{
 Results are written to the \code{sc3_k_clusters} columns to the 
-\code{phenoData} slot of the input \code{object}, where \code{k} is the 
+\code{colData} slot of the input \code{object}, where \code{k} is the 
 number of clusters.
 }

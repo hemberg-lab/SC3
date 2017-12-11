@@ -15,23 +15,16 @@ sc3_calc_dists.SingleCellExperiment(object)
 \S4method{sc3_calc_dists}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
-This function calculates distances between the cells contained in 
-the processed_dataset item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
-creates and populates the following items of the \code{sc3} slot:
+This function calculates distances between the cells. It
+creates and populates the following items of the \code{sc3} slot of the \code{metadata(object)}:
 \itemize{
   \item \code{distances} - contains a list of distance matrices corresponding to
   Euclidean, Pearson and Spearman distances.
 }
-Please note that by default the "exprs" slot of the input \code{scater} object 
-is used for the SC3 analysis. If the scater object has been created in a standard
-way then the expression values in the "exprs" slot will be automatically log-transformed.
-If you have overwritten the "exprs" slot manually, please make sure that the values
-in the "exprs" slot are log-transformed before running the SC3 analysis. SC3
-assumes that the data is log-transformed by default.
 }

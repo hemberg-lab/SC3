@@ -15,14 +15,14 @@ sc3_calc_transfs.SingleCellExperiment(object)
 \S4method{sc3_calc_transfs}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
-This function transforms all \code{distances} items of the \code{sc3} slot 
-of the \code{SingleCellExperiment} object using either principal component analysis (PCA) 
+This function transforms all \code{distances} items of the \code{sc3} slot of 
+the \code{metadata(object)} using either principal component analysis (PCA) 
 or by calculating the eigenvectors of the associated graph Laplacian.
 The columns of the resulting matrices are then sorted in descending order 
 by their corresponding eigenvalues. The first \code{d} columns 

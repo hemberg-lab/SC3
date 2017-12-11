@@ -15,14 +15,14 @@ sc3_calc_consens.SingleCellExperiment(object)
 \S4method{sc3_calc_consens}{SingleCellExperiment}(object)
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 }
 \value{
-an object of 'SingleCellExperiment' class
+an object of \code{SingleCellExperiment} class
 }
 \description{
 This function calculates consensus matrices based on the clustering solutions
-contained in the \code{kmeans} item of the \code{sc3} slot of the \code{SingleCellExperiment} object. It then
+contained in the \code{kmeans} item of the \code{sc3} slot of the \code{metadata(object)}. It then
 creates and populates the \code{consensus} item of the \code{sc3} slot with 
 consensus matrices, their hierarchical clusterings in \code{hclust} objects,
 and Silhouette indeces of the clusters. It also removes the previously 
@@ -30,7 +30,7 @@ calculated \code{kmeans} clusterings from
 the \code{sc3} slot, as they are not needed for further analysis.
 }
 \details{
-Additionally, it also adds new columns to the \code{phenoData} slot of the
+Additionally, it also adds new columns to the \code{colData} slot of the
 input \code{object}. The column names correspond to the consensus cell labels
 and have the following format: \code{sc3_k_clusters}, where \code{k} is the 
 number of clusters.

@@ -14,7 +14,7 @@ sc3_export_results_xls.SingleCellExperiment(object, filename)
   filename = "sc3_results.xls")
 }
 \arguments{
-\item{object}{an object of 'SingleCellExperiment' class}
+\item{object}{an object of \code{SingleCellExperiment} class}
 
 \item{filename}{name of the excel file, to which the results will be written}
 }
