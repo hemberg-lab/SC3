@@ -140,25 +140,26 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
     colData(object) <- colData(object)[, !grepl("sc3_", colnames(colData(object))), drop = FALSE]
     rowData(object) <- rowData(object)[, !grepl("sc3_", colnames(rowData(object))), drop = FALSE]
     
-    dataset <- counts(object)
-    
-    dropouts <- rowSums(dataset == 0)/ncol(dataset)*100
-    
     # gene filter
     f_data <- rowData(object)
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
+        dropouts <- rowSums(counts(object) == 0)/ncol(object)*100
+        if(!is.null(isSpike(object))) {
             f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min & !isSpike(object)
-            if (all(!f_data$sc3_gene_filter)) {
-                stop("All genes were removed after the gene filter! Please check the `counts` slot of the `SingleCellExperiment` object. It has to contain zeros, where no gene expression was detected. Alternatively, you can set `gene_filter = FALSE` to switch off gene filtering.")
-                return(object)
-            }
+        } else {
+            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min
+        }
+        if (all(!f_data$sc3_gene_filter)) {
+            stop("All genes were removed after the gene filter! Please check the `counts` slot of the `SingleCellExperiment` object. It has to contain zeros, where no gene expression was detected. Alternatively, you can set `gene_filter = FALSE` to switch off gene filtering.")
+            return(object)
+        }
     }
     rowData(object) <- f_data
     
     metadata(object)$sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
-        if (ncol(dataset) > 2000) {
+        if (ncol(object) > 2000) {
             metadata(object)$sc3$kmeans_nstart <- 50
             message("Your dataset contains more than 2000 cells. Adjusting the nstart parameter of kmeans to 50 for faster performance...")
         } else {
@@ -169,20 +170,20 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
     }
     
     # define number of cells and region of dimensions
-    n_dim <- floor(d_region_min * ncol(dataset)):ceiling(d_region_max * ncol(dataset))
+    n_dim <- floor(d_region_min * ncol(object)):ceiling(d_region_max * ncol(object))
     # for large datasets restrict the region of dimensions to 15
     if (length(n_dim) > 15) {
         n_dim <- sample(n_dim, 15)
     }
     
     # prepare for SVM
-    if (!is.null(svm_num_cells) | !is.null(svm_train_inds) | ncol(dataset) > svm_max) {
+    if (!is.null(svm_num_cells) | !is.null(svm_train_inds) | ncol(object) > svm_max) {
         # handle all possible errors
         if (!is.null(svm_num_cells)) {
             if (!is.null(svm_train_inds)) {
                 return(message("You have set both svm_num_cells and svm_train_inds parameters for SVM training. Please set only one of them and rerun sc3_prepare()."))
             }
-            if (svm_num_cells >= ncol(dataset) - 1) 
+            if (svm_num_cells >= ncol(object) - 1) 
                 return(message("Number of cells used for SVM training is larger (or equal) than the total number of cells in your dataset. Please make svm_num_cells parameter smaller and rerun sc3_prepare()."))
             if (svm_num_cells < 10) {
                 return(message("Number of cells used for SVM training is less than 10. Please make sure the number of clusters k is smaller than 10 or increase the number of training cells."))
@@ -192,12 +193,12 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
             if (length(svm_train_inds) < 10) {
                 return(message("Number of cells used for SVM training is less than 10. Please make sure the number of clusters k is smaller than 10 or increase the number of training cells."))
             }
-            if (max(svm_train_inds) > ncol(dataset) - 1) {
+            if (max(svm_train_inds) > ncol(object) - 1) {
                 return(message("Number of cells used for SVM training is larger than the total number of cells in your dataset. Please adjust svm_train_inds parameter and rerun sc3_prepare()."))
             }
         }
         # run SVM
-        tmp <- prepare_for_svm(ncol(dataset), svm_num_cells, svm_train_inds, svm_max)
+        tmp <- prepare_for_svm(ncol(object), svm_num_cells, svm_train_inds, svm_max)
         
         metadata(object)$sc3$svm_train_inds <- tmp$svm_train_inds
         metadata(object)$sc3$svm_study_inds <- tmp$svm_study_inds
@@ -699,8 +700,8 @@ sc3_calc_biology.SingleCellExperiment <- function(object, ks, regime) {
     
     names(biol) <- paste(hash.table$ks, hash.table$regime, sep = "_")
     
-    f_data <- rowData(object)
-    p_data <- colData(object)
+    f_data <- as.data.frame(rowData(object))
+    p_data <- as.data.frame(colData(object))
     for (b in names(biol)) {
         k <- strsplit(b, "_")[[1]][1]
         regime <- strsplit(b, "_")[[1]][2]
