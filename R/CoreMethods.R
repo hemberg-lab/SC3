@@ -155,7 +155,7 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
             return(object)
         }
     }
-    rowData(object) <- f_data
+    rowData(object) <- as(f_data, "DataFrame")
     
     metadata(object)$sc3$kmeans_iter_max <- kmeans_iter_max
     if (is.null(kmeans_nstart)) {
@@ -584,7 +584,7 @@ sc3_calc_consens.SingleCellExperiment <- function(object) {
         }
         p_data[, paste0("sc3_", k, "_clusters")] <- factor(clusts, levels = sort(unique(clusts)))
     }
-    colData(object) <- p_data
+    colData(object) <- as(p_data, "DataFrame")
     
     return(object)
 }
@@ -641,6 +641,7 @@ setMethod("sc3_calc_consens", signature(object = "SingleCellExperiment"), sc3_ca
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
+#' @importFrom methods as
 sc3_calc_biology.SingleCellExperiment <- function(object, ks, regime) {
     if (is.null(metadata(object)$sc3$consensus)) {
         stop(paste0("Please run sc3_consensus() first!"))
@@ -734,8 +735,8 @@ sc3_calc_biology.SingleCellExperiment <- function(object, ks, regime) {
             p_data[, paste0("sc3_", k, "_log2_outlier_score")] <- log2(outl + 1)
         }
     }
-    rowData(object) <- f_data
-    colData(object) <- p_data
+    rowData(object) <- as(f_data, "DataFrame")
+    colData(object) <- as(p_data, "DataFrame")
     
     metadata(object)$sc3$biology <- TRUE
     
@@ -794,7 +795,7 @@ sc3_run_svm.SingleCellExperiment <- function(object, ks) {
         
         p_data[, paste0("sc3_", k, "_clusters")] <- svm.labs[ord]
     }
-    colData(object) <- p_data
+    colData(object) <- as(p_data, "DataFrame")
     return(object)
 }
 

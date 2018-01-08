@@ -79,9 +79,11 @@ plotPCA(sce, colour_by = "cell_type1")
 If you would like to explore clustering of your data in the range of `k`s (the number of clusters) from 2 to 4, you just need to run the main `sc3` method and define the range of `k`s using the `ks` parameter (here we also ask `SC3` to calculate biological features based on the identified cell clusters):
 ```{r}
 # Note that n_cores = 1 is required for compilation of this vignette.
-# Please remove this parameter when running on your computer:
+# To use all cores of your machine please just do not use this parameter:
 # sce <- sc3(sce, ks = 2:4, biology = TRUE)
-sce <- sc3(sce, ks = 2:4, biology = TRUE, n_cores = 1)
+n_cores <- 7
+
+sce <- sc3(sce, ks = 2:4, biology = TRUE, n_cores = n_cores)
 ```
 
 To quickly and easily explore the `SC3` solutions using an interactive Shiny application use the following method:
@@ -262,10 +264,7 @@ Let us go through each of them independently.
 We start with `sc3_prepare`. This method prepares an object of `sce` class for `SC3` clustering. This method also defines all parameters needed for clustering and stores them in the `sc3` slot. The parameters have their own defaults but can be manually changed. For more information on the parameters please use `?sc3_prepare`. 
 
 ```{r}
-# Note that n_cores = 1 is required for compilation of this vignette.
-# Please remove this parameter when running on your computer:
-# sce <- sc3_prepare(sce)
-sce <- sc3_prepare(sce, n_cores = 1)
+sce <- sc3_prepare(sce, n_cores = n_cores)
 str(metadata(sce)$sc3)
 ```
 
@@ -387,10 +386,7 @@ no_svm_labels <- colData(sce)$sc3_3_clusters
 
 Now let us trigger the hybrid approach by asking for 50 training cells:
 ```{r}
-# Note that n_cores = 1 is required for compilation of this vignette.
-# Please remove this parameter when running on your computer:
-# sce <- sc3(sce, ks = 2:4, svm_num_cells = 50)
-sce <- sc3(sce, ks = 2:4, biology = TRUE, svm_num_cells = 50, n_cores = 1)
+sce <- sc3(sce, ks = 2:4, biology = TRUE, svm_num_cells = 50, n_cores = n_cores)
 ```
 
 Note that when `SVM` is used all results (including marker genes, DE genes and cell outliers) correspond to the training cells only (50 cells), and values of all other cells are set to `NA`:
