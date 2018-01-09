@@ -81,7 +81,7 @@ If you would like to explore clustering of your data in the range of `k`s (the n
 # Note that n_cores = 1 is required for compilation of this vignette.
 # To use all cores of your machine please just do not use this parameter:
 # sce <- sc3(sce, ks = 2:4, biology = TRUE)
-n_cores <- 7
+n_cores <- 1
 
 sce <- sc3(sce, ks = 2:4, biology = TRUE, n_cores = n_cores)
 ```
