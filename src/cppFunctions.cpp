@@ -57,7 +57,7 @@ Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
 //' Computes consensus matrix given cluster labels
 //' 
 //' @param dat a matrix containing clustering solutions in columns
-//' @param k number of clusters
+//' @param K number of clusters
 // [[Rcpp::export]]
 arma::mat consmx(const arma::mat dat, int K) 
 {

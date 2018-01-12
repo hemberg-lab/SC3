@@ -79,13 +79,14 @@ transformation <- function(dists, method, n_dim) {
 #' similarity matrices.
 #'
 #' @param clusts a matrix containing clustering solutions in columns
+#' @param clust_k the k parameter of k-means
 #' @return consensus matrix
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
 #' @export
-consensus_matrix <- function(clusts) {
-    res <- consmx(clusts)
+consensus_matrix <- function(clusts, clust_k) {
+    res <- consmx(clusts, clust_k)
     colnames(res) <- as.character(c(1:nrow(clusts)))
     rownames(res) <- as.character(c(1:nrow(clusts)))
     return(res)
