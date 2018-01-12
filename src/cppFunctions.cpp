@@ -109,7 +109,7 @@ arma::mat consmx(const arma::mat dat, int K)
   }
 
   // Set diagonal back to one.. (Why? Nobody knows..)
-  for ( auto i = 0; i < dat.n_rows(); i++)
+  for ( auto i = 0; i < dat.n_rows; i++)
   {
     // is this legit??
     res(i,i) = 1;
