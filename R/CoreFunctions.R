@@ -50,19 +50,22 @@ calculate_distance <- function(data, method) {
 #' @param dists distance matrix
 #' @param method transformation method: either 'pca' or
 #' 'laplacian'
+#' @param n_dim get the top dimensions
 #' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
 #'
-transformation <- function(dists, method) {
+transformation <- function(dists, method, n_dim) {
     if (method == "pca") {
-        t <- prcomp(dists, center = TRUE, scale. = TRUE)
-        return(t$rotation)
+        # Perform pca on the fly 
+        t <- trlan.svd(cov(scale(h)), neig = n_dim)
+        ## t <- prcomp(dists, center = TRUE, scale. = TRUE, rank. = n_dim)
+        return(-t$u)
     } else if (method == "laplacian") {
         L <- norm_laplacian(dists)
-        l <- eigen(L)
-        # sort eigenvectors by their eigenvalues
-        return(l$vectors[, order(l$values)])
+        # Get the top eigen values
+        l <- trlan.eigen(L, neig = n_dim)
+        return(l$u)
     }
 }
 
