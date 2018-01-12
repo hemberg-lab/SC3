@@ -25,8 +25,9 @@ ED2 <- function(x) {
 #' Computes consensus matrix given cluster labels
 #' 
 #' @param dat a matrix containing clustering solutions in columns
-consmx <- function(dat) {
-    .Call('_SC3_consmx', PACKAGE = 'SC3', dat)
+#' @param k number of clusters
+consmx <- function(dat, K) {
+    .Call('_SC3_consmx', PACKAGE = 'SC3', dat, K)
 }
 
 #' Graph Laplacian calculation

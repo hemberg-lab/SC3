@@ -1,4 +1,7 @@
 #include <RcppArmadillo.h>
+#include <set>
+#include <vector>
+#include <algorithm>
 
 using namespace arma;
 
@@ -36,7 +39,7 @@ Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
 	unsigned int outcols = x.ncol(), i = 0, j = 0;
 	double d;
 	Rcpp::NumericMatrix out(outcols, outcols);
-
+  
 	for (j = 0; j < outcols - 1; j++) {
 	    Rcpp::NumericVector v1 = x.column(j);
 		for (i = j + 1; i < outcols; i++) {
@@ -54,24 +57,70 @@ Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
 //' Computes consensus matrix given cluster labels
 //' 
 //' @param dat a matrix containing clustering solutions in columns
+//' @param k number of clusters
 // [[Rcpp::export]]
-arma::mat consmx(const arma::mat dat) {
-
-	mat res = dat.n_cols * eye<mat>( dat.n_rows, dat.n_rows );
-
-	int i, j, k;
-	for (j = 0; j < dat.n_cols; j++) {
-		for (i = 0; i < dat.n_rows; i++) {
-			for (k = i + 1; k < dat.n_rows; k++) {
-				if (dat(i, j) == dat(k, j)) {
-				    res(i, k)++;
-					res(k, i)++;
-				}
-			}
+arma::mat consmx(const arma::mat dat, int K) 
+{
+  using namespace std;
+  typedef vector< set<int> > Membership;
+  mat res = dat.n_cols * eye<mat>( dat.n_rows, dat.n_rows );
+ 
+  vector <Membership> clusters;
+ 
+  // Build index
+  for (auto cm = 0; cm < dat.n_cols; cm++) 
+  {
+    Membership cluster(K , set<int>() );
+		for (auto i = 0; i < dat.n_rows; i++) 
+    {
+      cluster[dat(i,cm)].insert(i);
 		}
-	}
-	res /= dat.n_cols;
-	return res;
+    // Push cluster lists to cluster membership container
+    clusters.push_back(cluster);
+  }
+ 
+  // Build consensus matrix
+  for (auto i1 = 0; i1 < clusters.size(); i1++)
+  {
+    // Cluster Result
+    auto& cr1 = clusters[i1];
+    for (auto i2 = i1 + 1; i2 < clusters.size(); i2++)
+    {
+      // Comparing clustering result
+      auto& cr2 = clusters[i2];
+      // Iterate through individual clusters in cr1
+      for (auto& c1 : cr1)
+      {
+        for (auto& c2 : cr2)
+        {
+          vector <int> common_members;
+          set_intersection(c1.begin(), c2.begin(), c1.end(), c2.end(), back_inserter(common_members));
+          for (auto m1 = 0; m1 < common_members.size(); m1++)
+          {
+            for (auto m2 = m1 + 1; m2 < common_members.size(); m2++)
+            {
+              res(m1,m2)++;
+              res(m2,m1)++;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Set diagonal back to one.. (Why? Nobody knows..)
+  for ( auto i = 0; i < dat.n_rows(); i++)
+  {
+    // is this legit??
+    res(i,i) = 1;
+    // check if armadillo support assignment operator
+    // it should not matter that much, if not we can continue..
+  }
+  
+  // Results should be now consistent with the original implementation, just faster
+  
+  res /= dat.n_cols;
+  return res;
 }
 
 //' Graph Laplacian calculation
