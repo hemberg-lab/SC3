@@ -385,8 +385,7 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     # calculate the 6 distinct transformations in parallel
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
-            tmp <- transformation(get(hash.table[i, 1], dists), hash.table[i, 2])
-            tmp[, 1:max(n_dim)]
+            tmp <- transformation(get(hash.table[i, 1], dists), hash.table[i, 2], n_dim)
         })
     }
     

@@ -50,7 +50,7 @@ calculate_distance <- function(data, method) {
 #' @param dists distance matrix
 #' @param method transformation method: either 'pca' or
 #' 'laplacian'
-#' @param n_dim get the top dimensions
+#' @param n_dim number, calculate only the first n_dim top dimensions
 #' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
