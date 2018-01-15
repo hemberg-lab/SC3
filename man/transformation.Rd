@@ -4,13 +4,15 @@
 \alias{transformation}
 \title{Distance matrix transformation}
 \usage{
-transformation(dists, method)
+transformation(dists, method, n_dim)
 }
 \arguments{
 \item{dists}{distance matrix}
 
 \item{method}{transformation method: either 'pca' or
 'laplacian'}
+
+\item{n_dim}{number, calculate only the first n_dim top dimensions}
 }
 \value{
 transformed distance matrix

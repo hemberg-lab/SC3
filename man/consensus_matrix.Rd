@@ -4,10 +4,12 @@
 \alias{consensus_matrix}
 \title{Calculate consensus matrix}
 \usage{
-consensus_matrix(clusts)
+consensus_matrix(clusts, clust_k)
 }
 \arguments{
 \item{clusts}{a matrix containing clustering solutions in columns}
+
+\item{clust_k}{the k parameter of k-means}
 }
 \value{
 consensus matrix

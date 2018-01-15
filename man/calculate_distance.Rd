@@ -2,7 +2,24 @@
 % Please edit documentation in R/CoreFunctions.R
 \name{calculate_distance}
 \alias{calculate_distance}
-\title{Calculate a distance matrix}
+\title{Single cell RNA-Seq data extracted from a publication by Yan et al.}
+\source{
+\url{http://dx.doi.org/10.1038/nsmb.2660}
+
+Columns represent cells, rows represent genes expression values.
+
+Cell type annotations for data extracted from a publication by Yan et al.
+
+\url{http://dx.doi.org/10.1038/nsmb.2660}
+
+Each row corresponds to a single cell from `yan` dataset
+
+Calculate a distance matrix
+
+Distance between the cells, i.e. columns, in the input expression matrix are
+calculated using the Euclidean, Pearson and Spearman metrics to construct
+distance matrices.
+}
 \usage{
 calculate_distance(data, method)
 }
@@ -15,7 +32,5 @@ calculate_distance(data, method)
 distance matrix
 }
 \description{
-Distance between the cells, i.e. columns, in the input expression matrix are
-calculated using the Euclidean, Pearson and Spearman metrics to construct
-distance matrices.
+Single cell RNA-Seq data extracted from a publication by Yan et al.
 }
