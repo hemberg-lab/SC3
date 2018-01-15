@@ -12,14 +12,17 @@ Authors@R: c(person("Vladimir", "Kiselev",
              person("Tallulah", "Andrews",
              role=c("ctb")),
              person("Martin", "Hemberg",
-             role=c("aut")))
+             role=c("aut")),
+             person("Nikolaos", "Patikas", 
+             email = "nik.patik@gmail.com",
+             role=c("ctb"))
 Description: A tool for unsupervised clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
 Imports: graphics, stats, utils, methods, e1071, parallel, foreach,
           doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8),
           ROCR, robustbase, rrcov, cluster, WriteXLS,
           Rcpp (>= 0.11.1), SummarizedExperiment, SingleCellExperiment,
-          BiocGenerics, S4Vectors, svd
+          BiocGenerics, S4Vectors, svd, coop
 Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE

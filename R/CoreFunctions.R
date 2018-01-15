@@ -4,7 +4,6 @@
 #'
 #' Columns represent cells, rows represent genes expression values.
 #'
-"yan"
 
 #' Cell type annotations for data extracted from a publication by Yan et al.
 #'
@@ -12,7 +11,6 @@
 #'
 #' Each row corresponds to a single cell from `yan` dataset
 #'
-"ann"
 
 #' Calculate a distance matrix
 #'
@@ -54,13 +52,14 @@ calculate_distance <- function(data, method) {
 #' @return transformed distance matrix
 #'
 #' @importFrom stats prcomp cmdscale
+#' @importFrom svd trlan.eigen trlan.svd
+#' @importFrom coop scaler covar
 #'
 transformation <- function(dists, method, n_dim) {
     if (method == "pca") {
         # Perform pca on the fly 
-        t <- trlan.svd(cov(scale(h)), neig = n_dim)
-        ## t <- prcomp(dists, center = TRUE, scale. = TRUE, rank. = n_dim)
-        return(-t$u)
+        t <- trlan.svd(covar(scaler(dists)), neig = n_dim)
+        return(t$u)
     } else if (method == "laplacian") {
         L <- norm_laplacian(dists)
         # Get the top eigen values
