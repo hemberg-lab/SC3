@@ -15,7 +15,7 @@ Authors@R: c(person("Vladimir", "Kiselev",
              role=c("aut")),
              person("Nikolaos", "Patikas", 
              email = "nik.patik@gmail.com",
-             role=c("ctb"))
+             role=c("ctb")))
 Description: A tool for unsupervised clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
 Imports: graphics, stats, utils, methods, e1071, parallel, foreach,
