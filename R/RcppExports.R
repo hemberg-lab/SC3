@@ -6,6 +6,7 @@
 #' Used in consmx function
 #' 
 #' @param x A numeric matrix.
+#' @export
 ED1 <- function(x) {
     .Call('_SC3_ED1', PACKAGE = 'SC3', x)
 }
@@ -16,6 +17,7 @@ ED1 <- function(x) {
 #' and within the consensus clustering.
 #' 
 #' @param x A numeric matrix.
+#' @export
 ED2 <- function(x) {
     .Call('_SC3_ED2', PACKAGE = 'SC3', x)
 }
@@ -25,7 +27,7 @@ ED2 <- function(x) {
 #' Computes consensus matrix given cluster labels
 #' 
 #' @param dat a matrix containing clustering solutions in columns
-#' @param k number of clusters
+#' @param K number of clusters
 consmx <- function(dat, K) {
     .Call('_SC3_consmx', PACKAGE = 'SC3', dat, K)
 }

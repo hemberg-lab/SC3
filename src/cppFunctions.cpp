@@ -10,6 +10,7 @@ using namespace arma;
 //' Used in consmx function
 //' 
 //' @param x A numeric matrix.
+//' @export
 // [[Rcpp::export]]
 arma::mat ED1(const arma::mat & x) {
 	unsigned int outrows = x.n_rows, i = 0, j = 0;
@@ -34,6 +35,7 @@ arma::mat ED1(const arma::mat & x) {
 //' and within the consensus clustering.
 //' 
 //' @param x A numeric matrix.
+//' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
 	unsigned int outcols = x.ncol(), i = 0, j = 0;

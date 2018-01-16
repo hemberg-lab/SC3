@@ -54,8 +54,10 @@ calculate_distance <- function(data, method) {
 #' @importFrom stats prcomp cmdscale
 #' @importFrom svd trlan.eigen trlan.svd
 #' @importFrom coop scaler covar
+#' @export
 #'
 transformation <- function(dists, method, n_dim) {
+    message(paste0("transformation:", method," Eigen vectors:", n_dim))
     if (method == "pca") {
         # Perform pca on the fly 
         t <- trlan.svd(covar(scaler(dists)), neig = n_dim)
