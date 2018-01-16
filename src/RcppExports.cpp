@@ -6,28 +6,6 @@
 
 using namespace Rcpp;
 
-// ED1
-arma::mat ED1(const arma::mat& x);
-RcppExport SEXP _SC3_ED1(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(ED1(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ED2
-Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix& x);
-RcppExport SEXP _SC3_ED2(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(ED2(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // consmx
 arma::mat consmx(const arma::mat dat, int K);
 RcppExport SEXP _SC3_consmx(SEXP datSEXP, SEXP KSEXP) {
@@ -64,8 +42,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SC3_ED1", (DL_FUNC) &_SC3_ED1, 1},
-    {"_SC3_ED2", (DL_FUNC) &_SC3_ED2, 1},
     {"_SC3_consmx", (DL_FUNC) &_SC3_consmx, 2},
     {"_SC3_norm_laplacian", (DL_FUNC) &_SC3_norm_laplacian, 1},
     {"_SC3_tmult", (DL_FUNC) &_SC3_tmult, 1},

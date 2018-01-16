@@ -9,7 +9,7 @@ consmx(dat, K)
 \arguments{
 \item{dat}{a matrix containing clustering solutions in columns}
 
-\item{k}{number of clusters}
+\item{K}{number of clusters}
 }
 \description{
 Computes consensus matrix given cluster labels

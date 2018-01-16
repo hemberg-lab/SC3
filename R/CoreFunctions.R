@@ -23,18 +23,24 @@
 #' @return distance matrix
 #'
 #' @importFrom stats cor dist
+#' @importFrom distances distances
+#' @importFrom coop pcor covar
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
-    return(if (method == "spearman") {
-        as.matrix(1 - cor(data, method = "spearman"))
-    } else if (method == "pearson") {
-        as.matrix(1 - cor(data, method = "pearson"))
-    } else {
-        ED2(data)
-    })
+    message(paste0("Data contains:", nrow(data), " ", ncol(data)))
+    message(paste0("Calculating ", method), " metric")
+    return(
+        if (method == "spearman") {
+            as.matrix(1 - pcor(apply(data, 2, rank)))
+        } else if (method == "pearson") {
+            as.matrix(1 - pcor(data))
+        } else {
+            as.matrix(distances(t(data)))
+        })
+    message(paste0("Done calculating ", method), " metric")
 }
 
 #' Distance matrix transformation
@@ -68,6 +74,8 @@ transformation <- function(dists, method, n_dim) {
         l <- trlan.eigen(L, neig = n_dim)
         return(l$u)
     }
+
+    message(paste0("Done transformation:", method," Eigen vectors:", n_dim))
 }
 
 #' Calculate consensus matrix
