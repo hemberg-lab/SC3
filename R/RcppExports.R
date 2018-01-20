@@ -11,16 +11,6 @@ consmx <- function(dat, K) {
     .Call('_SC3_consmx', PACKAGE = 'SC3', dat, K)
 }
 
-#' Graph Laplacian calculation
-#' 
-#' Calculate graph Laplacian of a symmetrix matrix
-#' 
-#' @param A symmetric matrix
-#' @export
-norm_laplacian <- function(A) {
-    .Call('_SC3_norm_laplacian', PACKAGE = 'SC3', A)
-}
-
 #' Matrix left-multiplied by its transpose
 #' 
 #' Given matrix A, the procedure returns A'A.
@@ -28,5 +18,14 @@ norm_laplacian <- function(A) {
 #' @param x Numeric matrix.
 tmult <- function(x) {
     .Call('_SC3_tmult', PACKAGE = 'SC3', x)
+}
+
+#' Converts the distance matrix to adjacency matrix
+#' 
+#' Given matrix A, the procedure returns a transformed matrix A'.
+#' 
+#' @param x Numeric matrix.
+distance_to_adjacency_mat <- function(A) {
+    .Call('_SC3_distance_to_adjacency_mat', PACKAGE = 'SC3', A)
 }
 

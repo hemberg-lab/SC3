@@ -22,7 +22,7 @@ Imports: graphics, stats, utils, methods, e1071, parallel, foreach,
           doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8),
           ROCR, robustbase, rrcov, cluster, WriteXLS,
           Rcpp (>= 0.11.1), SummarizedExperiment, SingleCellExperiment,
-          BiocGenerics, S4Vectors, svd, coop, distances
+          BiocGenerics, S4Vectors, svd, coop, distances, igraph
 Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE

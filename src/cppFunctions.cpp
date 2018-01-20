@@ -17,44 +17,47 @@ arma::mat consmx(const arma::mat dat, int K)
 {
   using namespace std;
   typedef vector< set<int> > Membership;
-  mat res = dat.n_cols * eye<mat>( dat.n_rows, dat.n_rows );
+  mat res = zeros(dat.n_rows, dat.n_rows);
  
   vector <Membership> clusters;
  
   // Build index
-  for (auto cm = 0; cm < dat.n_cols; cm++) 
+  for (size_t cm = 0; cm < dat.n_cols; cm++) 
   {
     Membership cluster(K , set<int>() );
-		for (auto i = 0; i < dat.n_rows; i++) 
+    for (size_t i = 0; i < dat.n_rows; i++) 
     {
-      cluster[dat(i,cm)].insert(i);
-		}
+      cluster[dat(i,cm) - 1].insert(i);
+    }
+    
     // Push cluster lists to cluster membership container
     clusters.push_back(cluster);
   }
  
   // Build consensus matrix
-  for (auto i1 = 0; i1 < clusters.size(); i1++)
+  for (size_t i1 = 0; i1 < clusters.size(); i1++)
   {
+    
     // Cluster Result
-    auto& cr1 = clusters[i1];
-    for (auto i2 = i1 + 1; i2 < clusters.size(); i2++)
+    Membership& cr1 = clusters[i1];
+    for (size_t i2 = i1 + 1; i2 < clusters.size(); i2++)
     {
       // Comparing clustering result
-      auto& cr2 = clusters[i2];
+      Membership& cr2 = clusters[i2];
       // Iterate through individual clusters in cr1
-      for (auto& c1 : cr1)
+      for (Membership::const_iterator c1 = cr1.begin();  c1 != cr1.end(); ++c1)
       {
-        for (auto& c2 : cr2)
+        
+        for (Membership::const_iterator c2 = cr2.begin();  c2 != cr2.end(); ++c2)
         {
           vector <int> common_members;
-          set_intersection(c1.begin(), c2.begin(), c1.end(), c2.end(), back_inserter(common_members));
-          for (auto m1 = 0; m1 < common_members.size(); m1++)
+          set_intersection(c1->begin(), c1->end(), c2->begin(), c2->end(), back_inserter(common_members));
+          for (size_t m1 = 0; m1 < common_members.size(); m1++)
           {
-            for (auto m2 = m1 + 1; m2 < common_members.size(); m2++)
+            for (size_t m2 = m1 + 1; m2 < common_members.size(); m2++)
             {
-              res(m1,m2)++;
-              res(m2,m1)++;
+              res(common_members[m1], common_members[m2])++;
+              res(common_members[m2], common_members[m1])++;
             }
           }
         }
@@ -63,7 +66,7 @@ arma::mat consmx(const arma::mat dat, int K)
   }
 
   // Set diagonal back to one.. (Why? Nobody knows..)
-  for ( auto i = 0; i < dat.n_rows; i++)
+  for ( size_t i = 0; i < dat.n_rows; i++)
   {
     // is this legit??
     res(i,i) = 1;
@@ -77,23 +80,6 @@ arma::mat consmx(const arma::mat dat, int K)
   return res;
 }
 
-//' Graph Laplacian calculation
-//' 
-//' Calculate graph Laplacian of a symmetrix matrix
-//' 
-//' @param A symmetric matrix
-//' @export
-// [[Rcpp::export]]
-arma::mat norm_laplacian(arma::mat A) {
-    A = exp(-A/A.max());
-    arma::rowvec D_row = pow(sum(A), -0.5);
-    A.each_row() %= D_row;
-    arma::colvec D_col = conv_to< colvec >::from(D_row);
-    A.each_col() %= D_col;
-    arma::mat res = eye(A.n_cols, A.n_cols) - A;
-    return(res);
-}
-
 //' Matrix left-multiplied by its transpose
 //' 
 //' Given matrix A, the procedure returns A'A.
@@ -103,4 +89,15 @@ arma::mat norm_laplacian(arma::mat A) {
 arma::mat tmult(arma::mat x) {
     return(x.t()*x);
 }
+
+//' Converts the distance matrix to adjacency matrix
+//' 
+//' Given matrix A, the procedure returns a transformed matrix A'.
+//' 
+//' @param x Numeric matrix.
+// [[Rcpp::export]]
+arma::mat distance_to_adjacency_mat(arma::mat A) {
+    return exp(A*A.max());
+}
+
 

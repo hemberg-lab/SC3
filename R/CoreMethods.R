@@ -41,6 +41,7 @@
 sc3.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropout_min, pct_dropout_max, d_region_min, 
                        d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max, 
                        k_estimator, biology, rand_seed) {
+    
     object <- sc3_prepare(object, gene_filter, pct_dropout_min, pct_dropout_max, 
         d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
         kmeans_iter_max, rand_seed)
@@ -373,7 +374,6 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     hash.table <- expand.grid(dists = distances, transfs = transformations, stringsAsFactors = FALSE)
     
     message("Performing transformations and calculating eigenvectors...")
-    
     if (metadata(object)$sc3$n_cores > nrow(hash.table)) {
         n_cores <- nrow(hash.table)
     } else {
@@ -383,14 +383,14 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     cl <- parallel::makeCluster(n_cores, outfile = "")
     doParallel::registerDoParallel(cl, cores = n_cores)
     
-    # calculate the 6 distinct transformations in parallel
+    ## calculate the 6 distinct transformations in parallel
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
-            tmp <- transformation(get(hash.table[i, 1], dists), hash.table[i, 2], n_dim)
+            transformation(get(hash.table[i, 1], dists), hash.table[i, 2], max(n_dim))
         })
     }
     
-    # stop local cluster
+    ## stop local cluster
     parallel::stopCluster(cl)
     
     names(transfs) <- paste(hash.table[, 1], hash.table[, 2], sep = "_")
@@ -511,6 +511,7 @@ setMethod("sc3_kmeans", signature(object = "SingleCellExperiment"), sc3_kmeans.S
 #' @importFrom foreach foreach
 #' @importFrom parallel makeCluster stopCluster
 #' @importFrom doParallel registerDoParallel
+#' @importFrom distances distances
 #' @import cluster
 #' @importFrom stats hclust dist as.dist
 #' 
@@ -543,8 +544,8 @@ sc3_calc_consens.SingleCellExperiment <- function(object) {
         try({
             d <- k.means[grep(paste0("_", i, "_"), names(k.means))]
             d <- matrix(unlist(d), nrow = length(d[[1]]))
-            dat <- consensus_matrix(d)
-            tmp <- ED2(dat)
+            dat <- consensus_matrix(d, i)
+            tmp <- distances(t(dat))
             colnames(tmp) <- as.character(colnames(dat))
             rownames(tmp) <- as.character(colnames(dat))
             diss <- stats::as.dist(as.matrix(stats::as.dist(tmp)))
