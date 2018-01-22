@@ -30,8 +30,12 @@
 #' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
-    message(paste0("Calculating ", method), " metric")
-    
+
+    ## This helps when in farm environments. It prevents oversubscribing threads
+    ## as openmp runtime expects that has all the cores in its disposal.
+    ## Removing this line may heavily impact performance impact
+    ## This environment variable is only set through the function execution
+    ## as we unset its value when we are done with the transformation
     Sys.setenv("OMP_NUM_THREADS" = "1")
     
     if (method == "spearman") {
@@ -43,7 +47,9 @@ calculate_distance <- function(data, method) {
         mat <- as.matrix(distances(t(data)))
     }
     
+    ## Unset the environment variable
     Sys.unsetenv("OMP_NUM_THREADS")
+    
     return (mat)
 }
 
@@ -61,7 +67,6 @@ calculate_distance <- function(data, method) {
 #' @param n_dim number, calculate only the first n_dim top dimensions
 #' @return transformed distance matrix
 #'
-#' @importFrom stats prcomp cmdscale
 #' @importFrom svd trlan.eigen trlan.svd
 #' @importFrom coop scaler covar
 #' @importFrom igraph graph_from_adjacency_matrix laplacian_matrix
@@ -69,30 +74,25 @@ calculate_distance <- function(data, method) {
 #'
 transformation <- function(dists, method, n_dim) {
 
+    ## Set omp number of available threads
+    ## see calculate_distance for more 
     Sys.setenv("OMP_NUM_THREADS" = "1")
-    ## message(paste0("Starting transformation:", method, " with ", n_dim, " elements \n"))
+    
     if (method == "pca") {
         # Perform pca on the fly
         t <- trlan.svd(covar(scaler(dists)), neig = n_dim)
     } else if (method == "laplacian") {
-        ## message("Started calculating the laplacian")
         # Create a graph and calculate laplacian matrix
         adj_mat <- exp(-(dists/max(dists)))
         G <- graph_from_adjacency_matrix(adj_mat, weighted = TRUE)
         lm <- laplacian_matrix(G, normalized = TRUE, sparse = FALSE)
-
-        ## message(paste0("Calculated the laplacian, type ", typeof(L), " ", typeof(dists)))
-        ## rid <- sample(1000,1)
-        ## saveRDS(L, paste0(method, rid, "-", n_dim, ".rds"))
-        ## saveRDS(dists, paste0(method, rid, "-dists-", n_dim, ".rds"))
-        ## message("Saved RDS file")
-
         # Decompose matrix
         t <- trlan.eigen(lm, neig = n_dim)
     } else {
         stop(paste0("Unimplemented transformation method ", method))
     }
-    
+
+    ## Unset the environment variable
     Sys.unsetenv("OMP_NUM_THREADS")
     message(paste0("Done transformation:", method, "\n"))
     return(t$u)
