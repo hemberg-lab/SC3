@@ -1,94 +1,83 @@
 #include <RcppArmadillo.h>
+#include <set>
+#include <vector>
+#include <algorithm>
 
 using namespace arma;
 
-//' Compute Euclidean distance matrix by rows
-//' 
-//' Used in consmx function
-//' 
-//' @param x A numeric matrix.
-// [[Rcpp::export]]
-arma::mat ED1(const arma::mat & x) {
-	unsigned int outrows = x.n_rows, i = 0, j = 0;
-	double d;
-	mat out = zeros<mat>(outrows, outrows);
-
-	for (i = 0; i < outrows - 1; i++) {
-		arma::rowvec v1 = x.row(i);
-		for (j = i + 1; j < outrows; j++) {
-			d = sqrt(sum(pow(v1 - x.row(j), 2.0)));
-			out(j, i) = d;
-			out(i, j) = d;
-		}
-	}
-
-	return out;
-}
-
-//' Compute Euclidean distance matrix by columns
-//' 
-//' Used in sc3-funcs.R distance matrix calculation
-//' and within the consensus clustering.
-//' 
-//' @param x A numeric matrix.
-// [[Rcpp::export]]
-Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix & x) {
-	unsigned int outcols = x.ncol(), i = 0, j = 0;
-	double d;
-	Rcpp::NumericMatrix out(outcols, outcols);
-
-	for (j = 0; j < outcols - 1; j++) {
-	    Rcpp::NumericVector v1 = x.column(j);
-		for (i = j + 1; i < outcols; i++) {
-			d = sqrt(sum(pow(v1 - x.column(i), 2.0)));
-			out(i, j) = d;
-			out(j, i) = d;
-		}
-	}
-
-	return out;
-}
 
 //' Consensus matrix computation
 //' 
 //' Computes consensus matrix given cluster labels
 //' 
 //' @param dat a matrix containing clustering solutions in columns
+//' @param K number of clusters
 // [[Rcpp::export]]
-arma::mat consmx(const arma::mat dat) {
+arma::mat consmx(const arma::mat dat, int K) 
+{
+  using namespace std;
+  typedef vector< set<int> > Membership;
+  mat res = zeros(dat.n_rows, dat.n_rows);
+ 
+  vector <Membership> clusters;
+ 
+  // Build index
+  for (size_t cm = 0; cm < dat.n_cols; cm++) 
+  {
+    Membership cluster(K , set<int>() );
+    for (size_t i = 0; i < dat.n_rows; i++) 
+    {
+      cluster[dat(i,cm) - 1].insert(i);
+    }
+    
+    // Push cluster lists to cluster membership container
+    clusters.push_back(cluster);
+  }
+ 
+  // Build consensus matrix
+  for (size_t i1 = 0; i1 < clusters.size(); i1++)
+  {
+    
+    // Cluster Result
+    Membership& cr1 = clusters[i1];
+    for (size_t i2 = i1 + 1; i2 < clusters.size(); i2++)
+    {
+      // Comparing clustering result
+      Membership& cr2 = clusters[i2];
+      // Iterate through individual clusters in cr1
+      for (Membership::const_iterator c1 = cr1.begin();  c1 != cr1.end(); ++c1)
+      {
+        
+        for (Membership::const_iterator c2 = cr2.begin();  c2 != cr2.end(); ++c2)
+        {
+          vector <int> common_members;
+          set_intersection(c1->begin(), c1->end(), c2->begin(), c2->end(), back_inserter(common_members));
+          for (size_t m1 = 0; m1 < common_members.size(); m1++)
+          {
+            for (size_t m2 = m1 + 1; m2 < common_members.size(); m2++)
+            {
+              res(common_members[m1], common_members[m2])++;
+              res(common_members[m2], common_members[m1])++;
+            }
+          }
+        }
+      }
+    }
+  }
 
-	mat res = dat.n_cols * eye<mat>( dat.n_rows, dat.n_rows );
-
-	int i, j, k;
-	for (j = 0; j < dat.n_cols; j++) {
-		for (i = 0; i < dat.n_rows; i++) {
-			for (k = i + 1; k < dat.n_rows; k++) {
-				if (dat(i, j) == dat(k, j)) {
-				    res(i, k)++;
-					res(k, i)++;
-				}
-			}
-		}
-	}
-	res /= dat.n_cols;
-	return res;
-}
-
-//' Graph Laplacian calculation
-//' 
-//' Calculate graph Laplacian of a symmetrix matrix
-//' 
-//' @param A symmetric matrix
-//' @export
-// [[Rcpp::export]]
-arma::mat norm_laplacian(arma::mat A) {
-    A = exp(-A/A.max());
-    arma::rowvec D_row = pow(sum(A), -0.5);
-    A.each_row() %= D_row;
-    arma::colvec D_col = conv_to< colvec >::from(D_row);
-    A.each_col() %= D_col;
-    arma::mat res = eye(A.n_cols, A.n_cols) - A;
-    return(res);
+  // Set diagonal back to one.. (Why? Nobody knows..)
+  for ( size_t i = 0; i < dat.n_rows; i++)
+  {
+    // is this legit??
+    res(i,i) = 1;
+    // check if armadillo support assignment operator
+    // it should not matter that much, if not we can continue..
+  }
+  
+  // Results should be now consistent with the original implementation, just faster
+  
+  res /= dat.n_cols;
+  return res;
 }
 
 //' Matrix left-multiplied by its transpose
@@ -100,4 +89,15 @@ arma::mat norm_laplacian(arma::mat A) {
 arma::mat tmult(arma::mat x) {
     return(x.t()*x);
 }
+
+//' Converts the distance matrix to adjacency matrix
+//' 
+//' Given matrix A, the procedure returns a transformed matrix A'.
+//' 
+//' @param x Numeric matrix.
+// [[Rcpp::export]]
+arma::mat distance_to_adjacency_mat(arma::mat A) {
+    return exp(A*A.max());
+}
+
 

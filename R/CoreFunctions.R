@@ -4,7 +4,6 @@
 #'
 #' Columns represent cells, rows represent genes expression values.
 #'
-"yan"
 
 #' Cell type annotations for data extracted from a publication by Yan et al.
 #'
@@ -12,7 +11,6 @@
 #'
 #' Each row corresponds to a single cell from `yan` dataset
 #'
-"ann"
 
 #' Calculate a distance matrix
 #'
@@ -25,18 +23,34 @@
 #' @return distance matrix
 #'
 #' @importFrom stats cor dist
+#' @importFrom distances distances
+#' @importFrom coop pcor covar
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
-    return(if (method == "spearman") {
-        as.matrix(1 - cor(data, method = "spearman"))
+
+    ## This helps when in farm environments. It prevents oversubscribing threads
+    ## as openmp runtime expects that has all the cores in its disposal.
+    ## Removing this line may heavily impact performance impact
+    ## This environment variable is only set through the function execution
+    ## as we unset its value when we are done with the transformation
+    Sys.setenv("OMP_NUM_THREADS" = "1")
+    
+    if (method == "spearman") {
+        mat <- as.matrix(1 - pcor(apply(data, 2, rank)))
     } else if (method == "pearson") {
-        as.matrix(1 - cor(data, method = "pearson"))
+        mat <- as.matrix(1 - pcor(data))
     } else {
-        ED2(data)
-    })
+        # Euclidian distance
+        mat <- as.matrix(distances(t(data)))
+    }
+    
+    ## Unset the environment variable
+    Sys.unsetenv("OMP_NUM_THREADS")
+    
+    return (mat)
 }
 
 #' Distance matrix transformation
@@ -50,20 +64,38 @@ calculate_distance <- function(data, method) {
 #' @param dists distance matrix
 #' @param method transformation method: either 'pca' or
 #' 'laplacian'
+#' @param n_dim number, calculate only the first n_dim top dimensions
 #' @return transformed distance matrix
 #'
-#' @importFrom stats prcomp cmdscale
+#' @importFrom svd trlan.eigen trlan.svd
+#' @importFrom coop scaler covar
+#' @importFrom igraph graph_from_adjacency_matrix laplacian_matrix
+#' @export
 #'
-transformation <- function(dists, method) {
+transformation <- function(dists, method, n_dim) {
+
+    ## Set omp number of available threads
+    ## see calculate_distance for more 
+    Sys.setenv("OMP_NUM_THREADS" = "1")
+    
     if (method == "pca") {
-        t <- prcomp(dists, center = TRUE, scale. = TRUE)
-        return(t$rotation)
+        # Perform pca on the fly
+        t <- trlan.svd(covar(scaler(dists)), neig = n_dim)
     } else if (method == "laplacian") {
-        L <- norm_laplacian(dists)
-        l <- eigen(L)
-        # sort eigenvectors by their eigenvalues
-        return(l$vectors[, order(l$values)])
+        # Create a graph and calculate laplacian matrix
+        adj_mat <- exp(-(dists/max(dists)))
+        G <- graph_from_adjacency_matrix(adj_mat, weighted = TRUE)
+        lm <- laplacian_matrix(G, normalized = TRUE, sparse = FALSE)
+        # Decompose matrix
+        t <- trlan.eigen(lm, neig = n_dim)
+    } else {
+        stop(paste0("Unimplemented transformation method ", method))
     }
+
+    ## Unset the environment variable
+    Sys.unsetenv("OMP_NUM_THREADS")
+    message(paste0("Done transformation:", method, "\n"))
+    return(t$u)
 }
 
 #' Calculate consensus matrix
@@ -76,13 +108,14 @@ transformation <- function(dists, method) {
 #' similarity matrices.
 #'
 #' @param clusts a matrix containing clustering solutions in columns
+#' @param clust_k the k parameter of k-means
 #' @return consensus matrix
 #' 
 #' @useDynLib SC3
 #' @importFrom Rcpp sourceCpp
 #' @export
-consensus_matrix <- function(clusts) {
-    res <- consmx(clusts)
+consensus_matrix <- function(clusts, clust_k) {
+    res <- consmx(clusts, clust_k)
     colnames(res) <- as.character(c(1:nrow(clusts)))
     rownames(res) <- as.character(c(1:nrow(clusts)))
     return(res)

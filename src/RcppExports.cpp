@@ -6,47 +6,15 @@
 
 using namespace Rcpp;
 
-// ED1
-arma::mat ED1(const arma::mat& x);
-RcppExport SEXP _SC3_ED1(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(ED1(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ED2
-Rcpp::NumericMatrix ED2(const Rcpp::NumericMatrix& x);
-RcppExport SEXP _SC3_ED2(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(ED2(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // consmx
-arma::mat consmx(const arma::mat dat);
-RcppExport SEXP _SC3_consmx(SEXP datSEXP) {
+arma::mat consmx(const arma::mat dat, int K);
+RcppExport SEXP _SC3_consmx(SEXP datSEXP, SEXP KSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat >::type dat(datSEXP);
-    rcpp_result_gen = Rcpp::wrap(consmx(dat));
-    return rcpp_result_gen;
-END_RCPP
-}
-// norm_laplacian
-arma::mat norm_laplacian(arma::mat A);
-RcppExport SEXP _SC3_norm_laplacian(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(norm_laplacian(A));
+    Rcpp::traits::input_parameter< int >::type K(KSEXP);
+    rcpp_result_gen = Rcpp::wrap(consmx(dat, K));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -61,13 +29,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// distance_to_adjacency_mat
+arma::mat distance_to_adjacency_mat(arma::mat A);
+RcppExport SEXP _SC3_distance_to_adjacency_mat(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(distance_to_adjacency_mat(A));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SC3_ED1", (DL_FUNC) &_SC3_ED1, 1},
-    {"_SC3_ED2", (DL_FUNC) &_SC3_ED2, 1},
-    {"_SC3_consmx", (DL_FUNC) &_SC3_consmx, 1},
-    {"_SC3_norm_laplacian", (DL_FUNC) &_SC3_norm_laplacian, 1},
+    {"_SC3_consmx", (DL_FUNC) &_SC3_consmx, 2},
     {"_SC3_tmult", (DL_FUNC) &_SC3_tmult, 1},
+    {"_SC3_distance_to_adjacency_mat", (DL_FUNC) &_SC3_distance_to_adjacency_mat, 1},
     {NULL, NULL, 0}
 };
 

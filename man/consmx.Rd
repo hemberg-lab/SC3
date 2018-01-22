@@ -4,10 +4,12 @@
 \alias{consmx}
 \title{Consensus matrix computation}
 \usage{
-consmx(dat)
+consmx(dat, K)
 }
 \arguments{
 \item{dat}{a matrix containing clustering solutions in columns}
+
+\item{K}{number of clusters}
 }
 \description{
 Computes consensus matrix given cluster labels
