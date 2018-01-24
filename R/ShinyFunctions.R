@@ -293,7 +293,7 @@ organise_de_genes <- function(object, k, p_val) {
 #' 
 #' Formula (imagine a given cluster with is split into N clusters when k is changed, and
 #' in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
-#' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
+#' SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for the number of clusters)/length(ks)
 #'
 #' @param consensus consensus item of the sc3 slot of an object of 'SingleCellExperiment' class
 #' @param k number of clusters k
@@ -319,7 +319,7 @@ calculate_stability <- function(consensus, k) {
                 # sum over new clusters, taking into account new cells from other clusters
                 for (j in clusts) {
                   inds2 <- names(labs2[labs2 == j])
-                  s <- length(inds[inds %in% inds2])/length(inds2)/N/N/kRange
+                  s <- length(inds[inds %in% inds2])/length(inds2)/N/kRange
                   stability[i] <- stability[i] + s
                 }
             }
