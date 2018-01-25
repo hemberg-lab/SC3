@@ -22,5 +22,5 @@ The stability index varies between 0 and 1, where
 \details{
 Formula (imagine a given cluster with is split into N clusters when k is changed, and
 in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
-SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for stability of each cluster)/N(corrects for the number of clusters)/length(ks)
+SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for the number of clusters)/N(penalty for splitting the cluster)/length(ks)
 }
