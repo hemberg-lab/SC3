@@ -2,7 +2,7 @@
 % Please edit documentation in R/ShinyFunctions.R
 \name{calculate_stability}
 \alias{calculate_stability}
-\title{Calculate the stability index of the obtained clusters when changing k}
+\title{Calculate the stability index of the obtained clusters when changing \code{k}}
 \usage{
 calculate_stability(consensus, k)
 }
@@ -15,12 +15,18 @@ calculate_stability(consensus, k)
 a numeric vector containing a stability index of each cluster
 }
 \description{
-Stability index shows how stable each cluster is accross the selected range of k. 
+Stability index shows how stable each cluster is accross the selected range of \code{k}. 
 The stability index varies between 0 and 1, where 
-1 means that the same cluster appears in every solution for different k.
+1 means that the same cluster appears in every solution for different \code{k}.
 }
 \details{
-Formula (imagine a given cluster with is split into N clusters when k is changed, and
-in each of the new clusters there are given_cells of the given cluster and also some extra_cells from other clusters):
-SI = sum_over_ks(sum_over_clusters_N(given_cells/(given_cells + extra_cells)))/N(corrects for the number of clusters)/N(penalty for splitting the cluster)/length(ks)
+Imagine a given cluster is split into \code{N} clusters when \code{k} is changed (all possible
+values of \code{k} are provided via \code{ks} argument in the main \code{sc3} function). 
+In each of the new clusters there are \code{given_cells} of the given cluster and also some 
+\code{extra_cells} from other clusters. Then we define stability as follows:
+
+\deqn{\frac{1}{ks*N^2}\sum_{ks}\sum_{N}\frac{given\_cells}{given\_cells + extra\_cells}}
+
+Where one \code{N} corrects for the number of clusters and the other \code{N} is a penalty 
+for splitting the cluster. \code{ks} corrects for the range of \code{k}.
 }
