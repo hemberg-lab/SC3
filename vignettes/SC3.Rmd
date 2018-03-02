@@ -124,12 +124,12 @@ Because the biological features were also calculated for each `k`, one can find 
 
 Again, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
 ```{r}
-plotFeatureData(
+plotRowData(
     sce, 
     aes(
-        x = sc3_3_markers_clusts, 
-        y = sc3_3_markers_auroc, 
-        colour = sc3_3_markers_padj
+        x = "sc3_3_markers_clusts", 
+        y = "sc3_3_markers_auroc", 
+        colour_by = "sc3_3_markers_padj"
     )
 )
 ```
