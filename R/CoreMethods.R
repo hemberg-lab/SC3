@@ -22,7 +22,7 @@
 #' @param svm_train_inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is \code{NULL}.
 #' @param svm_max define the maximum number of cells below which SVM is not run.
-#' @param n_cores defines the number of cores to be used on the user's machine.
+#' @param n_cores defines the number of cores to be used on the user's machine. If not set, `SC3` will use all but one cores of your machine.
 #' @param kmeans_nstart nstart parameter passed to \code{\link[stats]{kmeans}} function. Can be set manually. By default it is 
 #' \code{1000} for up to \code{2000} cells and \code{50} for more than \code{2000} cells.
 #' @param kmeans_iter_max iter.max parameter passed to \code{\link[stats]{kmeans}} 
@@ -96,7 +96,7 @@ setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SingleCellExper
 #' @param svm_train_inds a numeric vector defining indeces of training cells 
 #' that should be used for SVM training. The default is \code{NULL}.
 #' @param svm_max define the maximum number of cells below which SVM is not run.
-#' @param n_cores defines the number of cores to be used on the user's machine.
+#' @param n_cores defines the number of cores to be used on the user's machine. If not set, `SC3` will use all but one cores of your machine.
 #' @param kmeans_nstart nstart parameter passed to \code{\link[stats]{kmeans}} function. Default is 
 #' \code{1000} for up to \code{2000} cells and \code{50} for more than \code{2000} cells.
 #' @param kmeans_iter_max iter.max parameter passed to \code{\link[stats]{kmeans}} 

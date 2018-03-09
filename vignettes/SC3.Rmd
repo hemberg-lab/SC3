@@ -81,6 +81,8 @@ If you would like to explore clustering of your data in the range of `k`s (the n
 sce <- sc3(sce, ks = 2:4, biology = TRUE)
 ```
 
+> By default `SC3` will use all but one cores of your machine. You can manually set the number of cores to be used by setting the `n_cores` parameter in the `sc3` call.
+
 To quickly and easily explore the `SC3` solutions using an interactive Shiny application use the following method:
 ```{r, eval=FALSE}
 sc3_interactive(sce)
@@ -250,6 +252,8 @@ We start with `sc3_prepare`. This method prepares an object of `sce` class for `
 sce <- sc3_prepare(sce)
 str(metadata(sce)$sc3)
 ```
+
+> By default `SC3` will use all but one cores of your machine. You can manually set the number of cores to be used by setting the `n_cores` parameter in the `sc3_prepare` call.
 
 ## _(optional)_ `sc3_estimate_k`
 
