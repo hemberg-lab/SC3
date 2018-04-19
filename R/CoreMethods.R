@@ -27,7 +27,7 @@
 #' \code{1000} for up to \code{2000} cells and \code{50} for more than \code{2000} cells.
 #' @param kmeans_iter_max iter.max parameter passed to \code{\link[stats]{kmeans}} 
 #' function.
-#' @param k_estimator boolean parameter, defines whether to estimate an optimal number of clusters \code{k}.
+#' @param k_estimator boolean parameter, defines whether to estimate an optimal number of clusters \code{k}. If user has already defined the ks parameter the estimation does not affect the user's paramater.
 #' @param biology boolean parameter, defines whether to compute differentially expressed genes, marker 
 #' genes and cell outliers.
 #' @param rand_seed sets the seed of the random number generator. \code{SC3} is a stochastic
@@ -46,6 +46,11 @@ sc3.SingleCellExperiment <- function(object, ks, gene_filter, pct_dropout_min, p
         kmeans_iter_max, rand_seed)
     if (k_estimator) {
         object <- sc3_estimate_k(object)
+        # Do not override cluster if user has set a k
+        if (is.null(ks))
+        {
+            ks <- metadata(object)$sc3$k_estimation
+        }
     }
     object <- sc3_calc_dists(object)
     object <- sc3_calc_transfs(object)
