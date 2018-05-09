@@ -219,15 +219,20 @@ sc3_plot_markers.SingleCellExperiment <- function(object, k, auroc, p.val, show_
     
     # get all marker genes
     markers <- organise_marker_genes(object, k, p.val, auroc)
-    # get top 10 marker genes of each cluster
-    markers <- markers_for_heatmap(markers)
     
-    row.ann <- data.frame(Cluster = factor(markers[, 1], levels = unique(markers[, 1])))
-    rownames(row.ann) <- markers$feature_symbol
-    
-    do.call(pheatmap::pheatmap, c(list(dataset[markers$feature_symbol, , drop = FALSE], show_colnames = FALSE, 
-        cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row.ann, annotation_names_row = FALSE, 
-        gaps_row = which(diff(markers[, 1]) != 0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
+    if(!is.null(markers)) {
+        # get top 10 marker genes of each cluster
+        markers <- markers_for_heatmap(markers)
+        
+        row.ann <- data.frame(Cluster = factor(markers[, 1], levels = unique(markers[, 1])))
+        rownames(row.ann) <- markers$feature_symbol
+        
+        do.call(pheatmap::pheatmap, c(list(dataset[markers$feature_symbol, , drop = FALSE], show_colnames = FALSE, 
+            cluster_rows = FALSE, cluster_cols = hc, cutree_cols = k, annotation_row = row.ann, annotation_names_row = FALSE, 
+            gaps_row = which(diff(markers[, 1]) != 0), cellheight = 10), list(annotation_col = ann)[add_ann_col]))
+    } else {
+        message("No markers have been found, try to lower significance thresholds!")
+    }
 }
 
 #' @rdname sc3_plot_markers

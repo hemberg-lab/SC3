@@ -213,7 +213,11 @@ organise_marker_genes <- function(object, k, p_val, auroc) {
         d <- rbind(d, tmp)
     }
     
-    return(d)
+    if(nrow(dat) > 0) {
+        return(d)
+    } else {
+        return(NULL)
+    }
 }
 
 #' Reorder and subset gene markers for plotting on a heatmap
