@@ -59,7 +59,7 @@ that should be used for SVM training. The default is \code{NULL}.}
 \item{kmeans_iter_max}{iter.max parameter passed to \code{\link[stats]{kmeans}} 
 function.}
 
-\item{k_estimator}{boolean parameter, defines whether to estimate an optimal number of clusters \code{k}.}
+\item{k_estimator}{boolean parameter, defines whether to estimate an optimal number of clusters \code{k}. If user has already defined the ks parameter the estimation does not affect the user's paramater.}
 
 \item{biology}{boolean parameter, defines whether to compute differentially expressed genes, marker 
 genes and cell outliers.}
