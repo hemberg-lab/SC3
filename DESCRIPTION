@@ -1,7 +1,7 @@
 Package: SC3
 Type: Package
 Title: Single-Cell Consensus Clustering
-Version: 1.11.0
+Version: 1.11.1
 Author: Vladimir Kiselev
 Maintainer: Vladimir Kiselev <vladimir.yu.kiselev@gmail.com>
 Authors@R: c(person("Vladimir", "Kiselev",
@@ -26,7 +26,7 @@ LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests: knitr, rmarkdown, mclust, scater
 VignetteBuilder: knitr
-biocViews: SingleCell, Software, Classification, Clustering, DimensionReduction, 
+biocViews: ImmunoOncology, SingleCell, Software, Classification, Clustering, DimensionReduction, 
             SupportVectorMachine, RNASeq, Visualization, Transcriptomics, 
             DataRepresentation, GUI, DifferentialExpression, Transcription
 NeedsCompilation: no
