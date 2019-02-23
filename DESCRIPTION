@@ -15,11 +15,30 @@ Authors@R: c(person("Vladimir", "Kiselev",
              role=c("aut")))
 Description: A tool for unsupervised clustering and analysis of single cell RNA-Seq data.
 License: GPL-3
-Imports: graphics, stats, utils, methods, e1071, parallel, foreach,
-          doParallel, doRNG, shiny, ggplot2, pheatmap (>= 1.0.8),
-          ROCR, robustbase, rrcov, cluster, WriteXLS,
-          Rcpp (>= 0.11.1), SummarizedExperiment, SingleCellExperiment,
-          BiocGenerics, S4Vectors
+Imports: 
+    graphics,
+    stats,
+    utils,
+    methods,
+    e1071,
+    parallel,
+    foreach,
+    doParallel,
+    doRNG,
+    shiny,
+    ggplot2,
+    pheatmap (>= 1.0.8),
+    ROCR,
+    robustbase,
+    rrcov,
+    cluster,
+    WriteXLS,
+    Rcpp (>= 0.11.1),
+    SummarizedExperiment,
+    SingleCellExperiment,
+    BiocGenerics,
+    S4Vectors,
+    Matrix
 Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE

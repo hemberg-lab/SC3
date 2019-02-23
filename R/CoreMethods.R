@@ -149,7 +149,7 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
     f_data <- rowData(object)
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
-        dropouts <- rowSums(counts(object) == 0)/ncol(object)*100
+        dropouts <- Matrix::rowSums(counts(object) == 0)/ncol(object)*100
         if(!is.null(isSpike(object))) {
             f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min & !isSpike(object)
         } else {
