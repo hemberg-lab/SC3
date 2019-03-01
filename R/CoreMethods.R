@@ -407,7 +407,7 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
 
     # put a copy of transformations to @reducedDims when applicable
     if (nrow(transfs[[1]]) == ncol(sce)) {
-        reducedDims(object) <- transformations
+        reducedDims(object) <- SimpleList(transformations)
     }
     return(object)
 }
