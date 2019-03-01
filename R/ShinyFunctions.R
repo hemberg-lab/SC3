@@ -197,7 +197,7 @@ get_marker_genes <- function(dataset, labels) {
 #' @param k number of cluster
 #' @param p_val p-value threshold
 #' @param auroc area under the ROC curve threshold
-#' @export
+#'
 organise_marker_genes <- function(object, k, p_val, auroc) {
     dat <- rowData(object)[, c(paste0("sc3_", k, "_markers_clusts"), paste0("sc3_", k, 
         "_markers_auroc"), paste0("sc3_", k, "_markers_padj"), "feature_symbol")]
