@@ -406,7 +406,7 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     metadata(object)$sc3$distances <- NULL
 
     # put a copy of transformations to @reducedDims when applicable
-    if (nrow(transfs[[1]]) == ncol(sce)) {
+    if (nrow(transfs[[1]]) == ncol(object)) {
         reducedDims(object) <- SimpleList(transformations)
     }
     return(object)
