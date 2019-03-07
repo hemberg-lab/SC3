@@ -6,8 +6,6 @@
 \alias{sc3_plot_consensus.SingleCellExperiment}
 \alias{sc3_plot_consensus,}
 \alias{sc3_plot_consensus,SingleCellExperiment-method}
-\alias{sc3_plot_consensus,SingleCellExperiment-method}
-\alias{sc3_plot_consensus}
 \title{Plot consensus matrix as a heatmap}
 \usage{
 sc3_plot_consensus.SingleCellExperiment(object, k, show_pdata)

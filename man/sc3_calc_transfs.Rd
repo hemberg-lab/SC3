@@ -6,8 +6,6 @@
 \alias{sc3_calc_transfs.SingleCellExperiment}
 \alias{sc3_calc_transfs,}
 \alias{sc3_calc_transfs,SingleCellExperiment-method}
-\alias{sc3_calc_transfs,SingleCellExperiment-method}
-\alias{sc3_calc_transfs}
 \title{Calculate transformations of the distance matrices.}
 \usage{
 sc3_calc_transfs.SingleCellExperiment(object)

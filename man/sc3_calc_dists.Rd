@@ -6,8 +6,6 @@
 \alias{sc3_calc_dists.SingleCellExperiment}
 \alias{sc3_calc_dists,}
 \alias{sc3_calc_dists,SingleCellExperiment-method}
-\alias{sc3_calc_dists,SingleCellExperiment-method}
-\alias{sc3_calc_dists}
 \title{Calculate distances between the cells.}
 \usage{
 sc3_calc_dists.SingleCellExperiment(object)

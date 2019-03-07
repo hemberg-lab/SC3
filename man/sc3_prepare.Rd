@@ -5,13 +5,12 @@
 \alias{sc3_prepare}
 \alias{sc3_prepare.SingleCellExperiment}
 \alias{sc3_prepare,SingleCellExperiment-method}
-\alias{sc3_prepare,SingleCellExperiment-method}
-\alias{sc3_prepare}
 \title{Prepare the \code{SingleCellExperiment} object for \code{SC3} clustering.}
 \usage{
 sc3_prepare.SingleCellExperiment(object, gene_filter, pct_dropout_min,
-  pct_dropout_max, d_region_min, d_region_max, svm_num_cells, svm_train_inds,
-  svm_max, n_cores, kmeans_nstart, kmeans_iter_max, rand_seed)
+  pct_dropout_max, d_region_min, d_region_max, svm_num_cells,
+  svm_train_inds, svm_max, n_cores, kmeans_nstart, kmeans_iter_max,
+  rand_seed)
 
 \S4method{sc3_prepare}{SingleCellExperiment}(object, gene_filter = TRUE,
   pct_dropout_min = 10, pct_dropout_max = 90, d_region_min = 0.04,

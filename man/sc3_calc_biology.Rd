@@ -6,8 +6,6 @@
 \alias{sc3_calc_biology.SingleCellExperiment}
 \alias{sc3_calc_biology,}
 \alias{sc3_calc_biology,SingleCellExperiment-method}
-\alias{sc3_calc_biology,SingleCellExperiment-method}
-\alias{sc3_calc_biology}
 \title{Calculate DE genes, marker genes and cell outliers.}
 \usage{
 sc3_calc_biology.SingleCellExperiment(object, ks, regime)

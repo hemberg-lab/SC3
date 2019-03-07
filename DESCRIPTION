@@ -42,7 +42,7 @@ Imports:
 Depends: R(>= 3.3)
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown, mclust, scater
 VignetteBuilder: knitr
 biocViews: SingleCell, Software, Classification, Clustering, DimensionReduction, 

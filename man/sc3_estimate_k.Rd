@@ -5,8 +5,6 @@
 \alias{sc3_estimate_k}
 \alias{sc3_estimate_k.SingleCellExperiment}
 \alias{sc3_estimate_k,SingleCellExperiment-method}
-\alias{sc3_estimate_k,SingleCellExperiment-method}
-\alias{sc3_estimate_k}
 \title{Estimate the optimal number of cluster \code{k} for a scRNA-Seq expression matrix}
 \usage{
 sc3_estimate_k.SingleCellExperiment(object)

@@ -5,7 +5,6 @@
 \alias{sc3_export_results_xls}
 \alias{sc3_export_results_xls.SingleCellExperiment}
 \alias{sc3_export_results_xls,SingleCellExperiment-method}
-\alias{sc3_export_results_xls}
 \title{Write \code{SC3} results to Excel file}
 \usage{
 sc3_export_results_xls.SingleCellExperiment(object, filename)

@@ -6,8 +6,6 @@
 \alias{sc3_plot_silhouette.SingleCellExperiment}
 \alias{sc3_plot_silhouette,}
 \alias{sc3_plot_silhouette,SingleCellExperiment-method}
-\alias{sc3_plot_silhouette,SingleCellExperiment-method}
-\alias{sc3_plot_silhouette}
 \title{Plot silhouette indexes of the cells}
 \usage{
 sc3_plot_silhouette.SingleCellExperiment(object, k)
