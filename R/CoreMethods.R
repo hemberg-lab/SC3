@@ -318,7 +318,7 @@ sc3_calc_dists.SingleCellExperiment <- function(object) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     ## pass .libPaths to workers
-    parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths())
+    parallel::clusterCall(cl, function(x) {.libPaths(.Library); .libPaths(x)}, .libPaths())
     
     # calculate distances in parallel
     dists <- foreach::foreach(i = distances) %dorng% {
@@ -392,7 +392,7 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     ## pass .libPaths to workers
-    parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths())
+    parallel::clusterCall(cl, function(x) {.libPaths(.Library); .libPaths(x)}, .libPaths())
     
     # calculate the 6 distinct transformations in parallel
     transfs <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
@@ -471,7 +471,7 @@ sc3_kmeans.SingleCellExperiment <- function(object, ks) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     ## pass .libPaths to workers
-    parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths())
+    parallel::clusterCall(cl, function(x) {.libPaths(.Library); .libPaths(x)}, .libPaths())
     
     pb <- utils::txtProgressBar(min = 1, max = nrow(hash.table), style = 3)
     
@@ -555,7 +555,7 @@ sc3_calc_consens.SingleCellExperiment <- function(object) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     ## pass .libPaths to workers
-    parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths())
+    parallel::clusterCall(cl, function(x) {.libPaths(.Library); .libPaths(x)}, .libPaths())
     
     cons <- foreach::foreach(i = ks) %dorng% {
         try({
@@ -708,7 +708,7 @@ sc3_calc_biology.SingleCellExperiment <- function(object, ks, regime) {
     doParallel::registerDoParallel(cl, cores = n_cores)
     
     ## pass .libPaths to workers
-    parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths())
+    parallel::clusterCall(cl, function(x) {.libPaths(.Library); .libPaths(x)}, .libPaths())
     
     biol <- foreach::foreach(i = 1:nrow(hash.table)) %dorng% {
         try({
