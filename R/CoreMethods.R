@@ -404,6 +404,11 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     metadata(object)$sc3$transformations <- transfs
     # remove distances after calculating transformations
     metadata(object)$sc3$distances <- NULL
+
+    # put a copy of transformations to @reducedDims when applicable
+    if (nrow(transfs[[1]]) == ncol(object)) {
+        reducedDims(object) <- SimpleList(transformations)
+    }
     return(object)
 }
 
