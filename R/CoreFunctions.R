@@ -30,6 +30,9 @@
 #' @importFrom Rcpp sourceCpp
 #'
 calculate_distance <- function(data, method) {
+    if(class(data) == "dgCMatrix"){
+      data = as.matrix(data)
+    }
     return(if (method == "spearman") {
         as.matrix(1 - cor(data, method = "spearman"))
     } else if (method == "pearson") {

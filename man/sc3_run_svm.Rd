@@ -6,8 +6,6 @@
 \alias{sc3_run_svm.SingleCellExperiment}
 \alias{sc3_run_svm,}
 \alias{sc3_run_svm,SingleCellExperiment-method}
-\alias{sc3_run_svm,SingleCellExperiment-method}
-\alias{sc3_run_svm}
 \title{Run the hybrid \code{SVM} approach.}
 \usage{
 sc3_run_svm.SingleCellExperiment(object, ks)

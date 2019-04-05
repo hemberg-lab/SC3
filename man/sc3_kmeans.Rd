@@ -6,8 +6,6 @@
 \alias{sc3_kmeans.SingleCellExperiment}
 \alias{sc3_kmeans,}
 \alias{sc3_kmeans,SingleCellExperiment-method}
-\alias{sc3_kmeans,SingleCellExperiment-method}
-\alias{sc3_kmeans}
 \title{\code{kmeans} clustering of cells.}
 \usage{
 sc3_kmeans.SingleCellExperiment(object, ks)

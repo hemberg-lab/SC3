@@ -6,8 +6,6 @@
 \alias{sc3_calc_consens.SingleCellExperiment}
 \alias{sc3_calc_consens,}
 \alias{sc3_calc_consens,SingleCellExperiment-method}
-\alias{sc3_calc_consens,SingleCellExperiment-method}
-\alias{sc3_calc_consens}
 \title{Calculate consensus matrix.}
 \usage{
 sc3_calc_consens.SingleCellExperiment(object)

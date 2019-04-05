@@ -6,8 +6,6 @@
 \alias{sc3_plot_expression.SingleCellExperiment}
 \alias{sc3_plot_expression,}
 \alias{sc3_plot_expression,SingleCellExperiment-method}
-\alias{sc3_plot_expression,SingleCellExperiment-method}
-\alias{sc3_plot_expression}
 \title{Plot expression matrix used for SC3 clustering as a heatmap}
 \usage{
 sc3_plot_expression.SingleCellExperiment(object, k, show_pdata)

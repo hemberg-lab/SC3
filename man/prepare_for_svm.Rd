@@ -4,7 +4,8 @@
 \alias{prepare_for_svm}
 \title{A helper function for the SVM analysis}
 \usage{
-prepare_for_svm(N, svm_num_cells = NULL, svm_train_inds = NULL, svm_max)
+prepare_for_svm(N, svm_num_cells = NULL, svm_train_inds = NULL,
+  svm_max)
 }
 \arguments{
 \item{N}{number of cells in the input dataset}

@@ -6,8 +6,6 @@
 \alias{sc3_plot_cluster_stability.SingleCellExperiment}
 \alias{sc3_plot_cluster_stability,}
 \alias{sc3_plot_cluster_stability,SingleCellExperiment-method}
-\alias{sc3_plot_cluster_stability,SingleCellExperiment-method}
-\alias{sc3_plot_cluster_stability}
 \title{Plot stability of the clusters}
 \usage{
 sc3_plot_cluster_stability.SingleCellExperiment(object, k)

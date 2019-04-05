@@ -6,8 +6,6 @@
 \alias{sc3_interactive.SingleCellExperiment}
 \alias{sc3_interactive,}
 \alias{sc3_interactive,SingleCellExperiment-method}
-\alias{sc3_interactive,SingleCellExperiment-method}
-\alias{sc3_interactive}
 \title{Opens \code{SC3} results in an interactive session in a web browser.}
 \usage{
 sc3_interactive.SingleCellExperiment(object)
