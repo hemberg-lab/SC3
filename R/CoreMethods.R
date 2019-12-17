@@ -121,7 +121,6 @@ setMethod("sc3", signature(object = "SingleCellExperiment"), sc3.SingleCellExper
 #' @importFrom utils capture.output
 #' @importFrom methods new
 #' @importFrom BiocGenerics counts
-#' @importFrom SingleCellExperiment isSpike
 sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_min, pct_dropout_max, 
                                d_region_min, d_region_max, svm_num_cells, svm_train_inds, svm_max, n_cores, kmeans_nstart, 
                                kmeans_iter_max, rand_seed) {
@@ -150,11 +149,7 @@ sc3_prepare.SingleCellExperiment <- function(object, gene_filter, pct_dropout_mi
     f_data$sc3_gene_filter <- TRUE
     if (gene_filter) {
         dropouts <- rowSums(counts(object) == 0)/ncol(object)*100
-        if(!is.null(isSpike(object))) {
-            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min & !isSpike(object)
-        } else {
-            f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min
-        }
+          f_data$sc3_gene_filter <- dropouts < pct_dropout_max & dropouts > pct_dropout_min
         if (all(!f_data$sc3_gene_filter)) {
             stop("All genes were removed after the gene filter! Please check the `counts` slot of the `SingleCellExperiment` object. It has to contain zeros, where no gene expression was detected. Alternatively, you can set `gene_filter = FALSE` to switch off gene filtering.")
             return(object)
@@ -406,9 +401,9 @@ sc3_calc_transfs.SingleCellExperiment <- function(object) {
     metadata(object)$sc3$distances <- NULL
 
     # put a copy of transformations to @reducedDims when applicable
-    if (nrow(transfs[[1]]) == ncol(object)) {
-        reducedDims(object) <- SimpleList(transformations)
-    }
+    # if (nrow(transfs[[1]]) == ncol(object)) {
+    #     reducedDims(object) <- SimpleList(transformations)
+    # }
     return(object)
 }
 

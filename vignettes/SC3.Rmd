@@ -48,8 +48,6 @@ Now we can create a `SingleCellExperiment` object from `yan` expression matrix.
 Note that `SC3` requires both `counts` and `logcounts` slots to exist in the input `SingleCellExperiment` object. The `counts` slot is used for gene filtering, which is based on gene dropout rates. `logcounts` slot, which is supposed to contain both normalised and log-transformed expression matrix, is used in the main clustering algorithm. In the case of the `yan` dataset even though the `counts` are not available (we only have __FPKM__ values) we can use the __FPKM__ values for gene dropout rate calculations since __FPKM__ normalisation does not change the dropout rate.
 
 `SC3` also requires the `feature_symbol` column of the `rowData` slot of the input `SingleCellExperiment` object to contain preferable feature names (genes/transcript) which will be used in the futher visualisations.
-
-Additionally, if spike-ins are defined via `isSpike` function, `SC3` will automatically remove them before doing clustering:
 ```{r}
 # create a SingleCellExperiment object
 sce <- SingleCellExperiment(
@@ -64,13 +62,11 @@ sce <- SingleCellExperiment(
 rowData(sce)$feature_symbol <- rownames(sce)
 # remove features with duplicated names
 sce <- sce[!duplicated(rowData(sce)$feature_symbol), ]
-
-# define spike-ins
-isSpike(sce, "ERCC") <- grepl("ERCC", rowData(sce)$feature_symbol)
 ```
 
 `scater` allows a user to quickly visualize and assess any `SingleCellExperiment` object, for example using a PCA plot:
 ```{r}
+sce <- runPCA(sce)
 plotPCA(sce, colour_by = "cell_type1")
 ```
 
@@ -106,6 +102,7 @@ head(col_data[ , grep("sc3_", colnames(col_data))])
 
 Additionally, having `SC3` results stored in the same slot makes it possible to highlight them during any of the `scater`'s plotting function call, for example:
 ```{r}
+sce <- runPCA(sce)
 plotPCA(
     sce, 
     colour_by = "sc3_3_clusters", 
