@@ -4,7 +4,9 @@
 \name{yan}
 \alias{yan}
 \title{Single cell RNA-Seq data extracted from a publication by Yan et al.}
-\format{An object of class \code{data.frame} with 20214 rows and 90 columns.}
+\format{
+An object of class \code{data.frame} with 20214 rows and 90 columns.
+}
 \source{
 \url{http://dx.doi.org/10.1038/nsmb.2660}
 

@@ -54,7 +54,7 @@ sce <- SingleCellExperiment(
     assays = list(
         counts = as.matrix(yan),
         logcounts = log2(as.matrix(yan) + 1)
-    ), 
+    ),
     colData = ann
 )
 
@@ -70,14 +70,29 @@ sce <- runPCA(sce)
 plotPCA(sce, colour_by = "cell_type1")
 ```
 
+## Speeding up the computations
+
+`SC3` is using the [BiocParallel](https://bioconductor.org/packages/release/bioc/html/BiocParallel.html) package for parallel computations.
+To utilize its capabilities, you have to create an object of class `BiocParallelParam`, which defines the parallel backend, its allocated
+resources, and also a seed for random number generator. The most common is `SnowParam()`:
+```{r}
+library(BiocParallel)
+BPPARAM <- SnowParam(workers = 4, type = "SOCK", RNGseed = 1, progressbar = TRUE)
+bpstart(BPPARAM)
+BiocParallel::register(BPPARAM)
+```
+
+Instead of calling the `register()` function you can also directly pass `BPPARAM` to `SC3` methods which support it.
+
+> `type = "SOCK"` works on all platforms, because it uses external R processes to distribute the parallel computations.
+>  On the other hand, `type = "FORK"` works only on Unix platforms, and could be faster in exchange for increased memory consumption.
+
 ## Run SC3
 
 If you would like to explore clustering of your data in the range of `k`s (the number of clusters) from 2 to 4, you just need to run the main `sc3` method and define the range of `k`s using the `ks` parameter (here we also ask `SC3` to calculate biological features based on the identified cell clusters):
 ```{r}
 sce <- sc3(sce, ks = 2:4, biology = TRUE)
 ```
-
-> By default `SC3` will use all but one cores of your machine. You can manually set the number of cores to be used by setting the `n_cores` parameter in the `sc3` call.
 
 To quickly and easily explore the `SC3` solutions using an interactive Shiny application use the following method:
 ```{r, eval=FALSE}
@@ -104,8 +119,8 @@ Additionally, having `SC3` results stored in the same slot makes it possible to 
 ```{r}
 sce <- runPCA(sce)
 plotPCA(
-    sce, 
-    colour_by = "sc3_3_clusters", 
+    sce,
+    colour_by = "sc3_3_clusters",
     size_by = "sc3_3_log2_outlier_score"
 )
 ```
@@ -123,7 +138,7 @@ Because the biological features were also calculated for each `k`, one can find 
 
 # Number of Сells
 
-The default settings of `SC3` allow to cluster (using a single `k`) a dataset of 2,000 cells in about 20-30 minutes. 
+The default settings of `SC3` allow to cluster (using a single `k`) a dataset of 2,000 cells in about 20-30 minutes.
 
 For datasets with more than 2,000 cells `SC3` automatically adjusts some of its parameters (see below). This allows to cluster a dataset of 5,000 cells in about 20-30 minutes. The parameters can also be manually adjusted for datasets with any number of cells.
 
@@ -143,11 +158,11 @@ sc3_plot_consensus(sce, k = 3)
 It is also possible to annotate cells (columns of the consensus matrix) with any column of the `colData` slot of the `sce` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_consensus(
-    sce, k = 3, 
+    sce, k = 3,
     show_pdata = c(
-        "cell_type1", 
+        "cell_type1",
         "log10_total_features",
-        "sc3_3_clusters", 
+        "sc3_3_clusters",
         "sc3_3_log2_outlier_score"
     )
 )
@@ -170,11 +185,11 @@ sc3_plot_expression(sce, k = 3)
 It is also possible to annotate cells (columns of the expression matrix) with any column of the `colData` slot of the `sce` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_expression(
-    sce, k = 3, 
+    sce, k = 3,
     show_pdata = c(
-        "cell_type1", 
+        "cell_type1",
         "log10_total_features",
-        "sc3_3_clusters", 
+        "sc3_3_clusters",
         "sc3_3_log2_outlier_score"
     )
 )
@@ -197,11 +212,11 @@ sc3_plot_de_genes(sce, k = 3)
 It is also possible to annotate cells (columns of the matrix containing DE genes) with any column of the `colData` slot of the `sce` object.
 ```{r, fig.height=9, fig.width=8}
 sc3_plot_de_genes(
-    sce, k = 3, 
+    sce, k = 3,
     show_pdata = c(
-        "cell_type1", 
+        "cell_type1",
         "log10_total_features",
-        "sc3_3_clusters", 
+        "sc3_3_clusters",
         "sc3_3_log2_outlier_score"
     )
 )
@@ -217,11 +232,11 @@ sc3_plot_markers(sce, k = 3)
 It is also possible to annotate cells (columns of the matrix containing marker genes) with any column of the `colData` slot of the `sce` object.
 ```{r, fig.height=6, fig.width=8}
 sc3_plot_markers(
-    sce, k = 3, 
+    sce, k = 3,
     show_pdata = c(
-        "cell_type1", 
+        "cell_type1",
         "log10_total_features",
-        "sc3_3_clusters", 
+        "sc3_3_clusters",
         "sc3_3_log2_outlier_score"
     )
 )
@@ -243,14 +258,12 @@ Let us go through each of them independently.
 
 ## `sc3_prepare`
 
-We start with `sc3_prepare`. This method prepares an object of `sce` class for `SC3` clustering. This method also defines all parameters needed for clustering and stores them in the `sc3` slot. The parameters have their own defaults but can be manually changed. For more information on the parameters please use `?sc3_prepare`. 
+We start with `sc3_prepare`. This method prepares an object of `sce` class for `SC3` clustering. This method also defines all parameters needed for clustering and stores them in the `sc3` slot. The parameters have their own defaults but can be manually changed. For more information on the parameters please use `?sc3_prepare`.
 
 ```{r}
 sce <- sc3_prepare(sce)
 str(metadata(sce)$sc3)
 ```
-
-> By default `SC3` will use all but one cores of your machine. You can manually set the number of cores to be used by setting the `n_cores` parameter in the `sc3_prepare` call.
 
 ## _(optional)_ `sc3_estimate_k`
 
@@ -274,7 +287,7 @@ names(metadata(sce)$sc3$distances)
 
 ## `sc3_calc_transfs`
 
-Next the distance matrices are transformed using PCA and graph Laplacian. Method `sc3_calc_transfs` calculates transforamtions of the distance matrices contained in 
+Next the distance matrices are transformed using PCA and graph Laplacian. Method `sc3_calc_transfs` calculates transforamtions of the distance matrices contained in
 the `distances` item of the `sc3` slot. It then creates and populates the following items of the `sc3` slot:
 
 * `transformations` - contains a list of transformations of the distance matrices corresponding to PCA and graph Laplacian transformations.

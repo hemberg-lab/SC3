@@ -4,7 +4,9 @@
 \name{ann}
 \alias{ann}
 \title{Cell type annotations for data extracted from a publication by Yan et al.}
-\format{An object of class \code{data.frame} with 90 rows and 1 columns.}
+\format{
+An object of class \code{data.frame} with 90 rows and 1 columns.
+}
 \source{
 \url{http://dx.doi.org/10.1038/nsmb.2660}
 
